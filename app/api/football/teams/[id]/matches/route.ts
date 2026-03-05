@@ -1,3 +1,4 @@
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
@@ -11,14 +12,12 @@ const QuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(20),
 })
 
-type Params = {
-  params: {
-    id: string
-  }
-}
-
-export async function GET(req: Request, { params }: Params) {
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> },
+) {
   const url = new URL(req.url)
+  const params = await context.params
   const parsedParams = ParamsSchema.safeParse(params)
   const parsedQuery = QuerySchema.safeParse({
     scope: url.searchParams.get('scope') ?? undefined,

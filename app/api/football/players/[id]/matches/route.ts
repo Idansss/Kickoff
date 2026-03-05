@@ -1,3 +1,4 @@
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
@@ -11,12 +12,6 @@ const QuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50),
 })
 
-type Params = {
-  params: {
-    id: string
-  }
-}
-
 function computeMinutes(inMin: number | null, outMin: number | null): {
   inMin: number | null
   outMin: number | null
@@ -28,8 +23,12 @@ function computeMinutes(inMin: number | null, outMin: number | null): {
   return { inMin, outMin, playedMinutes: played }
 }
 
-export async function GET(req: Request, { params }: Params) {
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> },
+) {
   const url = new URL(req.url)
+  const params = await context.params
   const parsedParams = ParamsSchema.safeParse(params)
   const parsedQuery = QuerySchema.safeParse({
     seasonId: url.searchParams.get('seasonId') ?? undefined,

@@ -1,3 +1,4 @@
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
@@ -6,12 +7,6 @@ const ParamsSchema = z.object({
   id: z.string().min(1),
 })
 
-type Params = {
-  params: {
-    id: string
-  }
-}
-
 function calculateAge(dob: Date | null): number | null {
   if (!dob) return null
   const diffMs = Date.now() - dob.getTime()
@@ -19,7 +14,11 @@ function calculateAge(dob: Date | null): number | null {
   return Math.abs(ageDate.getUTCFullYear() - 1970)
 }
 
-export async function GET(_req: Request, { params }: Params) {
+export async function GET(
+  _req: NextRequest,
+  context: { params: Promise<{ id: string }> },
+) {
+  const params = await context.params
   const parsed = ParamsSchema.safeParse(params)
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid player id' }, { status: 400 })

@@ -27,9 +27,9 @@ vi.mock('@/lib/db', () => {
 
 describe('/api/football/teams/[id]/stats route', () => {
   it('returns totals, perMatch and matchesPlayed', async () => {
-    const res = await GET(new Request('http://localhost/api/football/teams/t1/stats'), {
-      params: { id: 't1' },
-    })
+    const res = await GET(new Request('http://localhost/api/football/teams/t1/stats') as any, {
+      params: Promise.resolve({ id: 't1' }),
+    } as any)
 
     expect(res.status).toBe(200)
     const json = (await res.json()) as any

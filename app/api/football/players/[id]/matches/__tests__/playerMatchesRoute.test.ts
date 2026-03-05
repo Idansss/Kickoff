@@ -39,9 +39,9 @@ vi.mock('@/lib/db', () => {
 
 describe('/api/football/players/[id]/matches route', () => {
   it('returns match log rows with required keys', async () => {
-    const res = await GET(new Request('http://localhost/api/football/players/p1/matches'), {
-      params: { id: 'p1' },
-    })
+    const res = await GET(new Request('http://localhost/api/football/players/p1/matches') as any, {
+      params: Promise.resolve({ id: 'p1' }),
+    } as any)
 
     expect(res.status).toBe(200)
     const json = (await res.json()) as any
