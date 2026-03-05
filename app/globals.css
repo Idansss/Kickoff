@@ -70,6 +70,11 @@
 
 .dark {
   /* Dark mode: charcoal background, off-white text, emerald accents */
+  --bg-app: #05070a;
+  --bg-sidebar: #0b0e13;
+  --glass-bg: rgba(15, 23, 42, 0.78);
+  --glass-bg-elevated: rgba(15, 23, 42, 0.92);
+  --glass-border: rgba(148, 163, 184, 0.45);
   --background: oklch(0.12 0.001 200);
   --foreground: oklch(0.96 0.001 200);
   --card: oklch(0.16 0.001 200);
@@ -151,7 +156,7 @@
   }
   body {
     @apply text-foreground;
-    background: var(--bg-app);
+    background: var(--background);
   }
 }
 
