@@ -11,7 +11,7 @@ import { FeedPostCard } from '@/components/feed/FeedPostCard'
 import { SkeletonLoader } from '@/components/shared/SkeletonLoader'
 import { INPUT_LIMITS } from '@/lib/constants'
 import { cn } from '@/lib/utils'
-import { ShowNewPostsBar, TrendingStrip } from '@/components/NewComponents'
+import { TrendingStrip } from '@/components/NewComponents'
 
 const MAX_LENGTH = INPUT_LIMITS.postMaxLength
 const TAGS = ['General', 'PL', 'UCL', 'Transfer', 'Stats', 'SerieA', 'LaLiga'] as const
@@ -23,9 +23,6 @@ function FeedPageInner(): React.JSX.Element {
   const posts = feedStore((s) => s.posts)
   const initPosts = feedStore((s) => s.initPosts)
   const addPost = feedStore((s) => s.addPost)
-  const pendingPostCount = feedStore((s) => s.pendingPostCount)
-  const flushPendingPosts = feedStore((s) => s.flushPendingPosts)
-  const addPendingPostsSimulation = feedStore((s) => s.addPendingPostsSimulation)
   const mutedUsers = feedStore((s) => s.mutedUsers)
   const blockedUsers = feedStore((s) => s.blockedUsers)
   const hiddenPosts = feedStore((s) => s.hiddenPosts)
@@ -53,11 +50,6 @@ function FeedPageInner(): React.JSX.Element {
     const t = setTimeout(() => setLoading(false), 600)
     return () => clearTimeout(t)
   }, [initPosts])
-
-  useEffect(() => {
-    const interval = setInterval(() => addPendingPostsSimulation(), 15000)
-    return () => clearInterval(interval)
-  }, [addPendingPostsSimulation])
 
   const displayedPosts = useMemo(() => {
     let list = activeTab === 'following'
@@ -106,9 +98,6 @@ function FeedPageInner(): React.JSX.Element {
   return (
     <AppLayout>
       <div className="mx-auto max-w-2xl border-x border-border">
-        {pendingPostCount > 0 && (
-          <ShowNewPostsBar count={pendingPostCount} onLoad={flushPendingPosts} />
-        )}
         <div className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur">
           <div className="px-4 pt-4 pb-0 sm:px-6">
             <h1 className="text-xl font-bold mb-3">Feed</h1>

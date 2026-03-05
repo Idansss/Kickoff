@@ -75,38 +75,38 @@
   --glass-bg: rgba(15, 23, 42, 0.78);
   --glass-bg-elevated: rgba(15, 23, 42, 0.92);
   --glass-border: rgba(148, 163, 184, 0.45);
-  --background: oklch(0.12 0.001 200);
-  --foreground: oklch(0.96 0.001 200);
-  --card: oklch(0.16 0.001 200);
-  --card-foreground: oklch(0.96 0.001 200);
-  --popover: oklch(0.16 0.001 200);
-  --popover-foreground: oklch(0.96 0.001 200);
-  --primary: oklch(0.96 0.001 200);
-  --primary-foreground: oklch(0.12 0.001 200);
-  --secondary: oklch(0.24 0.001 200);
-  --secondary-foreground: oklch(0.96 0.001 200);
-  --muted: oklch(0.28 0.001 200);
-  --muted-foreground: oklch(0.65 0.001 200);
-  --accent: oklch(0.62 0.147 142.5);
-  --accent-foreground: oklch(0.12 0.001 200);
+  --background: #020617; /* slate-950 */
+  --foreground: #e5e7eb; /* gray-200 */
+  --card: #020617;
+  --card-foreground: #e5e7eb;
+  --popover: #020617;
+  --popover-foreground: #e5e7eb;
+  --primary: #22c55e; /* emerald-500 */
+  --primary-foreground: #022c22;
+  --secondary: #020617;
+  --secondary-foreground: #e5e7eb;
+  --muted: #1f2933;
+  --muted-foreground: #9ca3af;
+  --accent: #22c55e;
+  --accent-foreground: #022c22;
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.96 0.001 200);
-  --border: oklch(0.24 0.001 200);
-  --input: oklch(0.24 0.001 200);
-  --ring: oklch(0.62 0.147 142.5);
+  --border: #1f2933;
+  --input: #020617;
+  --ring: #22c55e;
   --chart-1: oklch(0.62 0.147 142.5);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.16 0.001 200);
-  --sidebar-foreground: oklch(0.96 0.001 200);
-  --sidebar-primary: oklch(0.62 0.147 142.5);
-  --sidebar-primary-foreground: oklch(0.12 0.001 200);
-  --sidebar-accent: oklch(0.24 0.001 200);
-  --sidebar-accent-foreground: oklch(0.96 0.001 200);
-  --sidebar-border: oklch(0.24 0.001 200);
-  --sidebar-ring: oklch(0.62 0.147 142.5);
+  --sidebar: #020617;
+  --sidebar-foreground: #e5e7eb;
+  --sidebar-primary: #22c55e;
+  --sidebar-primary-foreground: #022c22;
+  --sidebar-accent: #020617;
+  --sidebar-accent-foreground: #e5e7eb;
+  --sidebar-border: rgba(148, 163, 184, 0.35);
+  --sidebar-ring: #22c55e;
 }
 
 @theme inline {
@@ -216,6 +216,11 @@
 .sidebar-kickoff {
   background: var(--bg-sidebar);
   border-right: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.dark .sidebar-kickoff {
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--sidebar-border);
 }
 
 /* Sidebar collapsed state tooltip (used if custom tooltips are re-enabled) */
