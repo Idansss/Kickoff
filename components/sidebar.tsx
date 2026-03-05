@@ -146,8 +146,8 @@ export function Sidebar() {
         {/* Navigation links — collapsed: 48px rows, one icon each; expanded: normal without inner scroll */}
         <nav
           className={cn(
-            'flex flex-col',
-            isOpen ? 'flex-1 gap-1' : 'gap-0'
+            'flex flex-col flex-shrink-0',
+            isOpen ? 'gap-1' : 'gap-0'
           )}
         >
           {links.map(({ href, label, icon: Icon }) => {
@@ -197,9 +197,6 @@ export function Sidebar() {
             )
           })}
         </nav>
-
-        {/* Spacer when collapsed so bottom stays at bottom */}
-        {!isOpen && <div className="flex-1 min-h-0 flex-shrink" />}
 
         {/* Floating Post Button — above profile */}
         {isOpen && (
@@ -277,6 +274,9 @@ export function Sidebar() {
             </span>
           </Link>
         </div>
+
+        {/* Spacer to push profile to bottom while keeping Notifications/Settings higher */}
+        <div className="flex-1 min-h-0" />
 
         {/* Profile card at bottom */}
         {isOpen && (

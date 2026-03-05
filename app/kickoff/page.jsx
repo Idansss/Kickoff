@@ -792,7 +792,21 @@ function PlayersTab({ apiKey }) {
         />
         <div style={{display:'flex',alignItems:'center',gap:8,overflowX:'auto'}}>
           {positions.map(p=><Pill key={p} active={filter===p} onClick={()=>setFilter(p)}>{p}</Pill>)}
-          <select value={sort} onChange={e=>setSort(e.target.value)} style={{marginLeft:'auto',background:'#1a1a1a',border:'1px solid '+S.border,borderRadius:8,padding:'5px 10px',color:S.text,fontFamily:'DM Sans, sans-serif',fontSize:13}}>
+          <select
+            value={sort}
+            onChange={e=>setSort(e.target.value)}
+            style={{
+              marginLeft:'auto',
+              background:S.card,
+              border:'1px solid '+S.border,
+              borderRadius:8,
+              padding:'5px 10px',
+              color:S.text,
+              fontFamily:'DM Sans, sans-serif',
+              fontSize:13,
+              appearance:'none'
+            }}
+          >
             {['Goals','Assists','Rating'].map(s=><option key={s} value={s}>{s}</option>)}
           </select>
         </div>

@@ -12,7 +12,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <main className="flex-1 pb-16 md:pb-0 overflow-y-auto transition-all duration-300 ease-in-out min-w-0">
+      <main className="flex-1 pb-16 md:pb-0 overflow-y-auto transition-all duration-300 ease-in-out min-w-0 px-2 sm:px-4 lg:px-8">
         {children}
       </main>
       {showRightSidebar && <RightSidebarWrapper />}

@@ -451,21 +451,22 @@ export function RightSidebar({
   const { theme, systemTheme } = useTheme();
   const resolvedTheme = theme === 'system' ? systemTheme : theme;
   const isLight = resolvedTheme !== 'dark';
+  const divider = isLight ? '#d6dee4' : '#1a1a1a';
 
   const palette = {
     sidebarBg: isLight ? '#ffffff' : '#000000',
-    sidebarBorder: isLight ? '#e5e7eb' : '#1a1a1a',
+    sidebarBorder: divider,
     cardBg: isLight ? '#ffffff' : '#111111',
-    cardBorder: isLight ? '#e5e7eb' : '#222222',
+    cardBorder: isLight ? divider : '#222222',
     header: isLight ? '#000000' : '#ffffff',
     primary: isLight ? '#000000' : '#f2f2f2',
     secondary: isLight ? '#000000' : '#555555',
     rank: isLight ? '#000000' : '#333333',
     searchBg: isLight ? '#ffffff' : '#111111',
-    searchBorder: isLight ? '#e5e7eb' : '#222222',
+    searchBorder: isLight ? divider : '#222222',
     searchText: isLight ? '#000000' : '#f2f2f2',
     rowHover: isLight ? '#ffffff' : '#1a1a1a',
-    separator: isLight ? '#e5e7eb' : '#1a1a1a',
+    separator: divider,
   };
 
   const [query, setQuery] = useState('');
@@ -606,15 +607,15 @@ export function RightSidebar({
             width: '100%',
             background: palette.searchBg,
             border: focused ? '1px solid #16a34a' : `1px solid ${palette.searchBorder}`,
-            borderRadius: '12px',
-            padding: '10px 12px 10px 38px',
+            borderRadius: '999px',
+            padding: '10px 14px 10px 38px',
             fontSize: '13px',
             fontFamily: 'Inter, sans-serif',
             color: palette.searchText,
             outline: 'none',
             boxShadow: focused
-              ? '0 0 0 2px rgba(22,163,74,0.15)'
-              : isLight ? '0 1px 2px rgba(0,0,0,0.06)' : '0 1px 4px rgba(0,0,0,0.4)',
+              ? '0 0 0 1px rgba(22,163,74,0.2)'
+              : 'none',
             transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
           }}
         />

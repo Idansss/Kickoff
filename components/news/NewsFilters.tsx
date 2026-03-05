@@ -1,6 +1,7 @@
 "use client"
 
 import type { ChangeEvent } from 'react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface CompetitionOption {
   id: string
@@ -26,8 +27,7 @@ export function NewsFilters({
   teamQuery,
   onTeamQueryChange,
 }: NewsFiltersProps) {
-  const handleCompetitionChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value
+  const handleCompetitionChange = (value: string) => {
     onCompetitionChange(value === '' ? null : value)
   }
 
@@ -44,18 +44,19 @@ export function NewsFilters({
       <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
         <label className="flex items-center gap-2">
           <span className="whitespace-nowrap text-[11px] text-muted-foreground">Competition</span>
-          <select
-            value={competitionId ?? ''}
-            onChange={handleCompetitionChange}
-            className="h-8 min-w-[140px] rounded-md border border-border bg-background px-2 text-xs"
-          >
-            <option value="">All</option>
-            {competitions.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <Select value={competitionId ?? ''} onValueChange={handleCompetitionChange}>
+            <SelectTrigger className="h-8 min-w-[140px]">
+              <SelectValue placeholder="All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All</SelectItem>
+              {competitions.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </label>
 
         <label className="flex flex-1 items-center gap-2">
