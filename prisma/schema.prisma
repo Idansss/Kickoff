@@ -40,6 +40,9 @@ model User {
   likes    Like[]
   reposts  UserRepost[]
   messages Message[]
+  follows  Follow[]
+  notificationPrefs   NotificationPref[]
+  pushSubscriptions   PushSubscription[]
 }
 
 model Post {
@@ -100,6 +103,10 @@ model Competition {
   type        String?
   logoUrl     String?
   seasons     Season[]
+  matches     Match[]
+  standings   StandingRow[]
+  newsItems   NewsItem[]
+  trophies    Trophy[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -112,6 +119,7 @@ model Season {
   yearEnd       Int
   matches       Match[]
   standings     StandingRow[]
+  squads        TeamSquad[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -131,6 +139,14 @@ model Team {
   homeMatches Match[]  @relation("HomeTeam")
   awayMatches Match[]  @relation("AwayTeam")
   trophies    Trophy[]
+  currentPlayers       Player[]
+  events               MatchEvent[]
+  lineups              MatchLineup[]
+  teamNewsItems        TeamNewsItem[]
+  newsItems            NewsItem[]
+  notificationPrefs    NotificationPref[]
+  transfersFrom        Transfer[] @relation("TransferFrom")
+  transfersTo          Transfer[] @relation("TransferTo")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -148,6 +164,9 @@ model Player {
   currentTeam   Team?    @relation(fields: [currentTeamId], references: [id])
   squads        TeamSquad[]
   transfers     Transfer[]
+  events        MatchEvent[]
+  lineups       MatchLineup[]
+  newsItems     NewsItem[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
