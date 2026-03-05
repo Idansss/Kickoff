@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { AppLayout } from '@/components/app-layout'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
@@ -35,10 +35,15 @@ function FeedPageInner(): React.JSX.Element {
   const [selectedTag, setSelectedTag] = useState<FeedTag>('General')
   const [activeHashtag, setActiveHashtag] = useState<string | null>(null)
   const searchParams = useSearchParams()
+  const router = useRouter()
 
   useEffect(() => {
     const hashtag = searchParams.get('hashtag')
-    if (hashtag) setActiveHashtag(hashtag.startsWith('#') ? hashtag : `#${hashtag}`)
+    if (hashtag) {
+      setActiveHashtag(hashtag.startsWith('#') ? hashtag : `#${hashtag}`)
+    } else {
+      setActiveHashtag(null)
+    }
   }, [searchParams])
 
   const charsLeft = MAX_LENGTH - content.length
@@ -95,6 +100,14 @@ function FeedPageInner(): React.JSX.Element {
     [getTrendingTopics, posts]
   )
 
+  const clearHashtagFilter = () => {
+    setActiveHashtag(null)
+    const params = new URLSearchParams(Array.from(searchParams.entries()))
+    params.delete('hashtag')
+    const queryString = params.toString()
+    router.push(queryString ? `/feed?${queryString}` : '/feed')
+  }
+
   return (
     <AppLayout>
       <div className="mx-auto max-w-2xl border-x border-border">
@@ -120,7 +133,22 @@ function FeedPageInner(): React.JSX.Element {
           </div>
         </div>
 
-        <div className="px-4 sm:px-6 pt-2">
+        <div className="px-4 sm:px-6 pt-2 space-y-2">
+          {activeHashtag ? (
+            <div className="flex items-center justify-between text-xs rounded-lg border border-[rgba(22,163,74,0.3)] bg-[rgba(22,163,74,0.1)] px-3 py-2 text-green-600">
+              <span className="font-medium">
+                Showing posts for {activeHashtag.startsWith('#') ? activeHashtag : `#${activeHashtag}`}
+              </span>
+              <button
+                type="button"
+                onClick={clearHashtagFilter}
+                className="ml-3 text-[11px] font-semibold text-green-700 hover:text-green-800"
+                aria-label="Clear hashtag filter"
+              >
+                ×
+              </button>
+            </div>
+          ) : null}
           <TrendingStrip
             onFilter={(pill: string | null) => setActiveHashtag(pill ?? null)}
             topics={trendingTopics.length > 0 ? trendingTopics : undefined}

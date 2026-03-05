@@ -1,6 +1,7 @@
 'use client'
 
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { Suspense, memo, useCallback, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { AppLayout } from '@/components/app-layout'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -10,7 +11,7 @@ import { MatchTimeline } from '@/components/matches/MatchTimeline'
 import { ShotMap } from '@/components/matches/ShotMap'
 import { SkeletonLoader } from '@/components/shared/SkeletonLoader'
 import { getMatchPreview } from '@/lib/claudeClient'
-import { cn } from '@/lib/utils'
+import { cn, formatKickoffTime, scrollToAndHighlight } from '@/lib/utils'
 import { matchStore } from '@/store/matchStore'
 import type { Match } from '@/types'
 
@@ -33,6 +34,7 @@ const LiveMatchCard = memo(function LiveMatchCard({
 
   return (
     <div
+      id={match.id}
       className={cn(
         'group rounded-xl border transition-all overflow-hidden',
         'border-red-500/40 bg-red-500/5 hover:border-red-500/60'
@@ -138,20 +140,17 @@ const UpcomingMatchCard = memo(function UpcomingMatchCard({
   }, [loadingPreview, match.away.name, match.competition, match.home.name, preview])
 
   return (
-    <div className="rounded-xl border border-border transition-all hover:bg-muted/50 overflow-hidden">
+    <div
+      id={match.id}
+      className="rounded-xl border border-border transition-all hover:bg-muted/50 overflow-hidden"
+    >
       <div className="p-4">
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-medium text-muted-foreground">
             {match.competitionFlag} {match.competition}
           </span>
           <Badge variant="outline" className="text-xs">
-            {match.kickoffTime
-              ? new Date(match.kickoffTime).toLocaleTimeString('en-US', {
-                  hour: 'numeric',
-                  minute: '2-digit',
-                  hour12: true,
-                })
-              : '—'}
+            {match.kickoffTime ? formatKickoffTime(match.kickoffTime) : '—'}
           </Badge>
         </div>
 
@@ -194,7 +193,7 @@ const UpcomingMatchCard = memo(function UpcomingMatchCard({
   )
 })
 
-export default function MatchesPage(): React.JSX.Element {
+function MatchesPageInner(): React.JSX.Element {
   const liveMatches = matchStore((state) => state.liveMatches)
   const upcomingFixtures = matchStore((state) => state.upcomingFixtures)
   const initMatches = matchStore((state) => state.initMatches)
@@ -204,6 +203,7 @@ export default function MatchesPage(): React.JSX.Element {
 
   const [loading, setLoading] = useState(true)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     initMatches()
@@ -219,6 +219,22 @@ export default function MatchesPage(): React.JSX.Element {
       intervalRef.current = null
     }
   }, [tickMatchMinute])
+
+  useEffect(() => {
+    const id = searchParams.get('id')
+    const fixtureId = searchParams.get('fixture')
+    const tab = searchParams.get('tab')
+
+    if (id) {
+      scrollToAndHighlight(id)
+    } else if (fixtureId) {
+      scrollToAndHighlight(fixtureId)
+    }
+
+    if (tab === 'upcoming') {
+      scrollToAndHighlight('upcoming-section')
+    }
+  }, [searchParams])
 
   const handleToggleReminder = useCallback(
     (matchId: string): void => {
@@ -271,7 +287,7 @@ export default function MatchesPage(): React.JSX.Element {
               ) : null}
 
               {upcomingFixtures.length > 0 ? (
-                <section>
+                <section id="upcoming-section">
                   <h2 className="mb-4 text-lg font-bold">Upcoming</h2>
                   <div className="space-y-3">
                     {upcomingFixtures.map((match) => (
@@ -290,5 +306,13 @@ export default function MatchesPage(): React.JSX.Element {
         </div>
       </div>
     </AppLayout>
+  )
+}
+
+export default function MatchesPage(): React.JSX.Element {
+  return (
+    <Suspense fallback={null}>
+      <MatchesPageInner />
+    </Suspense>
   )
 }

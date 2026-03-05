@@ -412,13 +412,25 @@ const TRENDING_LIST = [
   { rank: 6, tag: '#Bellingham',       count: '2,456' },
 ];
 const FIXTURES = [
-  { comp: 'Premier League', home: 'Liverpool',  away: 'Chelsea',    time: '15:00' },
-  { comp: 'La Liga',        home: 'Sevilla',    away: 'Atlético',   time: '17:30' },
-  { comp: 'Serie A',        home: 'Juventus',   away: 'Napoli',     time: '19:45' },
-  { comp: 'Bundesliga',     home: 'Dortmund',   away: 'Leverkusen', time: '20:30' },
+  { id: 'fx1', comp: 'Premier League', home: 'Liverpool',  away: 'Chelsea',    time: '15:00' },
+  { id: 'fx2', comp: 'La Liga',        home: 'Sevilla',    away: 'Atlético',   time: '17:30' },
+  { id: 'fx3', comp: 'Serie A',        home: 'Juventus',   away: 'Napoli',     time: '19:45' },
+  { id: 'fx4', comp: 'Bundesliga',     home: 'Dortmund',   away: 'Leverkusen', time: '20:30' },
 ];
 
-export function RightSidebar({ liveMatches: liveMatchesProp, trendingList: trendingListProp, fixtures: fixturesProp, onSearchSubmit }) {
+export function RightSidebar({
+  liveMatches: liveMatchesProp,
+  trendingList: trendingListProp,
+  fixtures: fixturesProp,
+  onSearchSubmit,
+  onClickLiveHeader,
+  onClickLiveMatch,
+  onClickTrendingHeader,
+  onClickTrendingTag,
+  onClickShowMoreTrending,
+  onClickFixturesHeader,
+  onClickFixture,
+}) {
   useGlobalStyles();
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(false);
@@ -489,7 +501,14 @@ export function RightSidebar({ liveMatches: liveMatchesProp, trendingList: trend
       {/* ── Live Now ── */}
       <GlassCard accentLeft>
         <div style={{ padding: '12px' }}>
-          <CardSectionHeader icon="⚽" label="LIVE NOW" />
+          <div
+            onClick={typeof onClickLiveHeader === 'function' ? () => onClickLiveHeader() : undefined}
+            style={{
+              cursor: onClickLiveHeader ? 'pointer' : 'default',
+            }}
+          >
+            <CardSectionHeader icon="⚽" label="LIVE NOW" />
+          </div>
           {liveMatches.slice(0, 3).map((m, i) => (
             <div key={m.id ?? i}>
               {i > 0 && (
@@ -502,12 +521,35 @@ export function RightSidebar({ liveMatches: liveMatchesProp, trendingList: trend
                 />
               )}
               <div
+                onClick={
+                  typeof onClickLiveMatch === 'function' && m.id
+                    ? () => onClickLiveMatch(m.id)
+                    : undefined
+                }
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  cursor: 'pointer',
-                  padding: '10px 0',
+                  cursor: onClickLiveMatch ? 'pointer' : 'default',
+                  padding: '8px 10px',
+                  margin: '0 -10px',
+                  borderRadius: '8px',
+                  transition: 'background 0.15s ease, transform 0.05s ease',
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.background = '#222222';
+                  e.currentTarget.style.transform = 'scale(0.99)';
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.background = '#1a1a1a';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#1a1a1a';
                 }}
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -570,6 +612,7 @@ export function RightSidebar({ liveMatches: liveMatchesProp, trendingList: trend
                 color: '#16a34a',
                 textDecoration: 'none',
                 fontWeight: 600,
+                cursor: 'pointer',
               }}
             >
               View all live matches →
@@ -581,7 +624,18 @@ export function RightSidebar({ liveMatches: liveMatchesProp, trendingList: trend
       {/* ── Trending ── */}
       <GlassCard>
         <div style={{ padding: '12px' }}>
-          <CardSectionHeader icon="🔥" label="TRENDING" />
+          <div
+            onClick={
+              typeof onClickTrendingHeader === 'function'
+                ? () => onClickTrendingHeader()
+                : undefined
+            }
+            style={{
+              cursor: onClickTrendingHeader ? 'pointer' : 'default',
+            }}
+          >
+            <CardSectionHeader icon="🔥" label="TRENDING" />
+          </div>
           {trendingList.slice(0, 6).map((t, i) => (
             <div
               key={t.rank ?? i}
@@ -590,12 +644,40 @@ export function RightSidebar({ liveMatches: liveMatchesProp, trendingList: trend
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
-                padding: '10px 12px',
-                margin: '0 -4px',
+                padding: '8px 10px',
+                margin: '0 -10px',
                 borderRadius: '8px',
-                cursor: 'pointer',
-                transition: 'background 0.15s ease',
+                cursor: onClickTrendingTag ? 'pointer' : 'default',
+                transition: 'background 0.15s ease, transform 0.05s ease',
                 borderBottom: '1px solid #1a1a1a',
+              }}
+              onClick={
+                typeof onClickTrendingTag === 'function'
+                  ? () => onClickTrendingTag(t.tag)
+                  : undefined
+              }
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#1a1a1a';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.transform = 'scale(1)';
+                const arrow = e.currentTarget.querySelector('.nc-trend-arrow');
+                if (arrow) {
+                  arrow.style.color = '#333333';
+                }
+              }}
+              onMouseDown={(e) => {
+                e.currentTarget.style.background = '#222222';
+                e.currentTarget.style.transform = 'scale(0.99)';
+              }}
+              onMouseUp={(e) => {
+                e.currentTarget.style.background = '#1a1a1a';
+                e.currentTarget.style.transform = 'scale(1)';
+                const arrow = e.currentTarget.querySelector('.nc-trend-arrow');
+                if (arrow) {
+                  arrow.style.color = '#16a34a';
+                }
               }}
             >
               <span
@@ -631,6 +713,7 @@ export function RightSidebar({ liveMatches: liveMatchesProp, trendingList: trend
                 </div>
               </div>
               <span
+                className="nc-trend-arrow"
                 style={{
                   color: '#333333',
                   fontSize: '16px',
@@ -649,6 +732,12 @@ export function RightSidebar({ liveMatches: liveMatchesProp, trendingList: trend
             }}
           >
             <button
+              type="button"
+              onClick={
+                typeof onClickShowMoreTrending === 'function'
+                  ? () => onClickShowMoreTrending()
+                  : undefined
+              }
               style={{
                 background: 'none',
                 border: 'none',
@@ -669,17 +758,48 @@ export function RightSidebar({ liveMatches: liveMatchesProp, trendingList: trend
       {/* ── Today's Fixtures ── */}
       <GlassCard>
         <div style={{ padding: '12px' }}>
-          <CardSectionHeader icon="📅" label="TODAY'S FIXTURES" />
+          <div
+            onClick={
+              typeof onClickFixturesHeader === 'function'
+                ? () => onClickFixturesHeader()
+                : undefined
+            }
+            style={{
+              cursor: onClickFixturesHeader ? 'pointer' : 'default',
+            }}
+          >
+            <CardSectionHeader icon="📅" label="TODAY'S FIXTURES" />
+          </div>
           {fixtures.slice(0, 4).map((f, i) => (
             <div
-              key={i}
+              key={f.id ?? i}
               className="nc-fixture-row"
               style={{
-                padding: '10px 0',
-                cursor: 'pointer',
+                padding: '8px 10px',
+                cursor: onClickFixture ? 'pointer' : 'default',
                 borderRadius: '8px',
-                transition: 'background 0.15s ease',
+                transition: 'background 0.15s ease, transform 0.05s ease',
                 borderBottom: '1px solid #1a1a1a',
+              }}
+              onClick={
+                typeof onClickFixture === 'function' && f.id
+                  ? () => onClickFixture(f.id)
+                  : undefined
+              }
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#1a1a1a';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+              onMouseDown={(e) => {
+                e.currentTarget.style.background = '#222222';
+                e.currentTarget.style.transform = 'scale(0.99)';
+              }}
+              onMouseUp={(e) => {
+                e.currentTarget.style.background = '#1a1a1a';
+                e.currentTarget.style.transform = 'scale(1)';
               }}
             >
               <div

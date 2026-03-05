@@ -5,6 +5,7 @@ import { RightSidebar } from '@/components/NewComponents'
 import { matchStore } from '@/store/matchStore'
 import { feedStore } from '@/store/feedStore'
 import { useMemo } from 'react'
+import { formatKickoffTime } from '@/lib/utils'
 
 export function RightSidebarWrapper() {
   const router = useRouter()
@@ -39,10 +40,11 @@ export function RightSidebarWrapper() {
   const fixtures = useMemo(
     () =>
       upcomingFixtures.slice(0, 4).map((f) => ({
+        id: f.id,
         comp: f.competition,
         home: f.home.name,
         away: f.away.name,
-        time: f.kickoffTime ?? '—',
+        time: f.kickoffTime ? formatKickoffTime(f.kickoffTime) : '—',
       })),
     [upcomingFixtures]
   )
@@ -52,12 +54,48 @@ export function RightSidebarWrapper() {
     router.push(`/discovery?q=${encodeURIComponent(q.trim())}`)
   }
 
+  const handleLiveHeaderClick = () => {
+    router.push('/matches')
+  }
+
+  const handleLiveMatchClick = (id: string) => {
+    router.push(`/matches?id=${encodeURIComponent(id)}`)
+  }
+
+  const handleTrendingHeaderClick = () => {
+    router.push('/discovery')
+  }
+
+  const handleTrendingClick = (tag: string) => {
+    const clean = tag.startsWith('#') ? tag.slice(1) : tag
+    router.push(`/feed?hashtag=${encodeURIComponent(clean)}`)
+  }
+
+  const handleShowMoreTrending = () => {
+    router.push('/discovery?tab=trending')
+  }
+
+  const handleFixturesHeaderClick = () => {
+    router.push('/matches?tab=upcoming')
+  }
+
+  const handleFixtureClick = (id: string) => {
+    router.push(`/matches?fixture=${encodeURIComponent(id)}`)
+  }
+
   return (
     <RightSidebar
       liveMatches={liveForSidebar}
       trendingList={trendingList}
       fixtures={fixtures}
       onSearchSubmit={onSearchSubmit}
+      onClickLiveHeader={handleLiveHeaderClick}
+      onClickLiveMatch={handleLiveMatchClick}
+      onClickTrendingHeader={handleTrendingHeaderClick}
+      onClickTrendingTag={handleTrendingClick}
+      onClickShowMoreTrending={handleShowMoreTrending}
+      onClickFixturesHeader={handleFixturesHeaderClick}
+      onClickFixture={handleFixtureClick}
     />
   )
 }
