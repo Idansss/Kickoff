@@ -1,5 +1,7 @@
 import { AppLayout } from '@/components/app-layout'
 
+export const dynamic = 'force-dynamic'
+
 interface CompetitionSummary {
   id: string
   name: string
@@ -16,13 +18,17 @@ interface CompetitionsResponse {
 
 async function fetchCompetitions(): Promise<CompetitionsResponse> {
   const base = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-  const res = await fetch(`${base}/api/football/competitions`, {
-    next: { revalidate: 300 },
-  })
-  if (!res.ok) {
-    throw new Error('Failed to load competitions')
+  try {
+    const res = await fetch(`${base}/api/football/competitions`, {
+      cache: 'no-store',
+    })
+    if (!res.ok) {
+      return { leagues: [], cups: [], international: [] }
+    }
+    return (await res.json()) as CompetitionsResponse
+  } catch {
+    return { leagues: [], cups: [], international: [] }
   }
-  return (await res.json()) as CompetitionsResponse
 }
 
 function Section({
@@ -92,4 +98,3 @@ export default async function CompetitionsPage() {
     </AppLayout>
   )
 }
-

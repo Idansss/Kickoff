@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { AppLayout } from '@/components/app-layout'
 import { Button } from '@/components/ui/button'
@@ -40,7 +40,7 @@ function xpProgress(xp: number): { current: number; next: number; pct: number } 
   return { current: 2000, next: 2000, pct: 100 }
 }
 
-export default function ProfilePage(): React.JSX.Element {
+function ProfilePageContent(): React.JSX.Element {
   const currentUser = userStore((s) => s.currentUser)
   const posts = feedStore((s) => s.posts)
   const bookmarks = feedStore((s) => s.bookmarks)
@@ -220,5 +220,13 @@ export default function ProfilePage(): React.JSX.Element {
         </div>
       </div>
     </AppLayout>
+  )
+}
+
+export default function ProfilePage(): React.JSX.Element {
+  return (
+    <Suspense fallback={null}>
+      <ProfilePageContent />
+    </Suspense>
   )
 }

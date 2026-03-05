@@ -160,8 +160,9 @@ function FeedPageInner(): React.JSX.Element {
     if (activeTab === 'following') {
       list = list.filter((post) => {
         const isAuthorFollowed = followingIds.includes(post.author.id)
+        const repostedBy = post.repostedBy
         const isRepostFromFollowed =
-          Boolean(post.repostOfPostId) && Boolean(post.repostedBy) && followingIds.includes(post.repostedBy)
+          Boolean(post.repostOfPostId) && typeof repostedBy === 'string' && followingIds.includes(repostedBy)
         return isAuthorFollowed || isRepostFromFollowed
       })
       return list.sort(

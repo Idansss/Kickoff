@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
+import type { MatchStatus } from '@/lib/generated/prisma'
 
 const ParamsSchema = z.object({
   id: z.string().min(1),
@@ -28,8 +29,9 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
   const competitionId = parsedParams.data.id
   const { scope, limit } = parsedQuery.data
 
-  const statusFilter =
-    scope === 'played' ? ['FINISHED'] : (['SCHEDULED', 'LIVE'] as Array<'SCHEDULED' | 'LIVE' | 'FINISHED'>)
+  const playedStatuses: MatchStatus[] = ['FINISHED']
+  const upcomingStatuses: MatchStatus[] = ['SCHEDULED', 'LIVE']
+  const statusFilter: MatchStatus[] = scope === 'played' ? playedStatuses : upcomingStatuses
 
   const matches = await db.match.findMany({
     where: {
@@ -68,4 +70,3 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
 
   return NextResponse.json({ matches: items })
 }
-
