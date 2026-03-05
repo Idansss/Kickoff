@@ -62,7 +62,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'sidebar-kickoff hidden md:flex md:flex-col md:h-screen md:border-r md:overflow-hidden transition-[width] duration-300 ease-in-out',
+        'sidebar-kickoff hidden md:flex md:flex-col md:h-screen md:border-r transition-[width] duration-300 ease-in-out',
         isOpen ? 'md:w-64' : COLLAPSED_WIDTH
       )}
     >
@@ -143,10 +143,10 @@ export function Sidebar() {
           )}
         </div>
 
-        {/* Navigation links — collapsed: 48px rows, one icon each; expanded: normal with flex-1 for scroll */}
+        {/* Navigation links — collapsed: 48px rows, one icon each; expanded: normal without inner scroll */}
         <nav
           className={cn(
-            'flex flex-col min-h-0 overflow-y-auto overflow-x-hidden',
+            'flex flex-col',
             isOpen ? 'flex-1 gap-1' : 'gap-0'
           )}
         >

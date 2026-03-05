@@ -84,9 +84,12 @@ const GLOBAL_CSS = `
   }
 
   .nc-postcard:hover .nc-dots-btn { opacity: 1 !important; }
-  .nc-trend-row:hover { background: rgba(0,0,0,0.03) !important; }
+  .nc-trend-row:hover { background: #ffffff !important; }
   .nc-menu-item:hover { background: rgba(0,0,0,0.04) !important; }
-  .nc-fixture-row:hover { background: rgba(0,0,0,0.02) !important; }
+  .nc-fixture-row:hover { background: #ffffff !important; }
+
+  .dark .nc-trend-row:hover { background: #1a1a1a !important; }
+  .dark .nc-fixture-row:hover { background: #1a1a1a !important; }
 
   @media (min-width: 1200px) {
     .nc-right-sidebar { display: flex !important; }
@@ -447,21 +450,21 @@ export function RightSidebar({
   useGlobalStyles();
   const { theme, systemTheme } = useTheme();
   const resolvedTheme = theme === 'system' ? systemTheme : theme;
-  const isLight = resolvedTheme === 'light';
+  const isLight = resolvedTheme !== 'dark';
 
   const palette = {
     sidebarBg: isLight ? '#ffffff' : '#000000',
     sidebarBorder: isLight ? '#e5e7eb' : '#1a1a1a',
-    cardBg: isLight ? '#f9f9f9' : '#111111',
+    cardBg: isLight ? '#ffffff' : '#111111',
     cardBorder: isLight ? '#e5e7eb' : '#222222',
-    header: isLight ? '#0f0f0f' : '#ffffff',
-    primary: isLight ? '#111111' : '#f2f2f2',
-    secondary: isLight ? '#6b7280' : '#555555',
-    rank: isLight ? '#9ca3af' : '#333333',
-    searchBg: isLight ? '#f3f4f6' : '#111111',
+    header: isLight ? '#000000' : '#ffffff',
+    primary: isLight ? '#000000' : '#f2f2f2',
+    secondary: isLight ? '#000000' : '#555555',
+    rank: isLight ? '#000000' : '#333333',
+    searchBg: isLight ? '#ffffff' : '#111111',
     searchBorder: isLight ? '#e5e7eb' : '#222222',
-    searchText: isLight ? '#0f0f0f' : '#f2f2f2',
-    rowHover: isLight ? '#f3f4f6' : '#1a1a1a',
+    searchText: isLight ? '#000000' : '#f2f2f2',
+    rowHover: isLight ? '#ffffff' : '#1a1a1a',
     separator: isLight ? '#e5e7eb' : '#1a1a1a',
   };
 
@@ -611,7 +614,7 @@ export function RightSidebar({
             outline: 'none',
             boxShadow: focused
               ? '0 0 0 2px rgba(22,163,74,0.15)'
-              : '0 1px 4px rgba(0,0,0,0.4)',
+              : isLight ? '0 1px 2px rgba(0,0,0,0.06)' : '0 1px 4px rgba(0,0,0,0.4)',
             transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
           }}
         />
@@ -902,7 +905,7 @@ export function RightSidebar({
               cursor: onClickLiveHeader ? 'pointer' : 'default',
             }}
           >
-            <CardSectionHeader icon="⚽" label="LIVE NOW" />
+            <CardSectionHeader icon="⚽" label="LIVE NOW" color={palette.header} />
           </div>
           <div
             className="nc-right-scroll"
@@ -939,11 +942,11 @@ export function RightSidebar({
                   transition: 'background 0.15s ease, transform 0.05s ease',
                 }}
                 onMouseDown={(e) => {
-                  e.currentTarget.style.background = '#222222';
+                  e.currentTarget.style.background = palette.rowHover;
                   e.currentTarget.style.transform = 'scale(0.99)';
                 }}
                 onMouseUp={(e) => {
-                  e.currentTarget.style.background = '#1a1a1a';
+                  e.currentTarget.style.background = palette.rowHover;
                   e.currentTarget.style.transform = 'scale(1)';
                 }}
                 onMouseLeave={(e) => {
@@ -951,7 +954,7 @@ export function RightSidebar({
                   e.currentTarget.style.transform = 'scale(1)';
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#1a1a1a';
+                  e.currentTarget.style.background = palette.rowHover;
                 }}
                 >
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -966,7 +969,7 @@ export function RightSidebar({
                     }}
                   >
                     {m.home}{' '}
-                    <span style={{ color: '#ffffff' }}>
+                    <span style={{ color: palette.primary }}>
                       {m.hs}–{m.as}
                     </span>{' '}
                     {m.away}
@@ -1005,7 +1008,7 @@ export function RightSidebar({
             style={{
               marginTop: '10px',
               paddingTop: '10px',
-              borderTop: '1px solid #1a1a1a',
+              borderTop: `1px solid ${palette.separator}`,
             }}
           >
             <a
@@ -1139,7 +1142,7 @@ export function RightSidebar({
             style={{
               marginTop: '8px',
               paddingTop: '8px',
-              borderTop: '1px solid #1a1a1a',
+              borderTop: `1px solid ${palette.separator}`,
             }}
           >
             <button
