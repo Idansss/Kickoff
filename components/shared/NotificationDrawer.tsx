@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import { X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import type { Notification } from '@/types'
 
@@ -19,7 +20,9 @@ export function NotificationDrawer({
   onClose,
   notifications,
   onMarkAllRead,
+  onMarkRead,
 }: NotificationDrawerProps) {
+  const router = useRouter()
   const containerRef = useRef<HTMLDivElement | null>(null)
   const lastFocusedElementRef = useRef<HTMLElement | null>(null)
 
@@ -74,6 +77,59 @@ export function NotificationDrawer({
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
+  const grouped = useMemo(() => {
+    const unread = notifications.filter((n) => !n.read)
+    const read = notifications.filter((n) => n.read)
+    return { unread, read }
+  }, [notifications])
+
+  const navigateFor = (n: Notification) => {
+    onMarkRead?.(n.id)
+    if (n.type === 'like') {
+      const postId = n.postId
+      if (postId) router.push(`/feed?post=${encodeURIComponent(postId)}&highlight=1`)
+      else router.push('/feed')
+      onClose()
+      return
+    }
+    if (n.type === 'reply') {
+      const postId = n.postId
+      if (postId)
+        router.push(
+          `/feed?post=${encodeURIComponent(postId)}&highlight=1&openReplies=1`
+        )
+      else router.push('/feed')
+      onClose()
+      return
+    }
+    if (n.type === 'follow') {
+      const userId = n.userId
+      router.push(userId ? `/profile?user=${encodeURIComponent(userId)}` : '/profile')
+      onClose()
+      return
+    }
+    if (n.type === 'goal_alert') {
+      const matchId = n.matchId
+      router.push(matchId ? `/matches?id=${encodeURIComponent(matchId)}` : '/matches')
+      onClose()
+      return
+    }
+    if (n.type === 'badge_earned') {
+      const badgeId = n.badgeId
+      router.push(
+        badgeId
+          ? `/profile?tab=badges&badge=${encodeURIComponent(badgeId)}`
+          : '/profile?tab=badges'
+      )
+      onClose()
+      return
+    }
+    if (n.type === 'prediction_result') {
+      router.push('/profile?tab=achievements')
+      onClose()
+    }
+  }
+
   return (
     <>
       <div
@@ -83,70 +139,113 @@ export function NotificationDrawer({
       />
       <div
         ref={containerRef}
-        className={cn(
-          'fixed top-0 right-0 z-50 h-full w-full max-w-sm bg-background border-l border-border shadow-xl',
-          'transition-transform duration-300 ease-out',
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        )}
+        className={cn('fixed z-50 right-5 top-20')}
+        style={{ width: 380, maxWidth: 'calc(100vw - 24px)' }}
       >
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <h2 className="text-lg font-bold">Notifications</h2>
-          <div className="flex items-center gap-2">
-            {unreadCount > 0 && (
+        <div
+          className={cn(
+            'rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.12)] overflow-hidden',
+            'bg-white dark:bg-[#111111]'
+          )}
+        >
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0f0f0] dark:border-[#1f1f1f]">
+            <h2 className="text-[18px] font-extrabold">Notifications</h2>
+            <div className="flex items-center gap-3">
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={onMarkAllRead}
+                  className="text-[13px] text-green-600 hover:underline cursor-pointer"
+                >
+                  Mark all read
+                </button>
+              )}
               <button
                 type="button"
-                onClick={onMarkAllRead}
-                className="text-sm text-green-600 hover:underline"
-                aria-label="Mark all notifications as read"
+                onClick={onClose}
+                className="text-muted-foreground hover:text-foreground text-[18px] leading-none"
+                aria-label="Close"
               >
-                Mark all read
+                ×
               </button>
-            )}
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded p-1 text-muted-foreground hover:bg-muted"
-              aria-label="Close"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            </div>
           </div>
-        </div>
-        <div className="overflow-y-auto max-h-[calc(100%-60px)]">
+
+          <div className="max-h-[520px] overflow-y-auto">
           {notifications.length === 0 ? (
             <div className="p-6 text-center text-sm text-muted-foreground">
               No notifications yet
             </div>
           ) : (
-            <ul className="divide-y divide-border">
-              {notifications.map((n) => (
-                <li
+            <div>
+              {grouped.unread.length > 0 && (
+                <div className="px-5 pt-2.5 pb-1 text-[10px] font-bold tracking-[1px] text-[#9ca3af]">
+                  NEW
+                </div>
+              )}
+              {grouped.unread.map((n) => (
+                <button
                   key={n.id}
-                className={cn(
-                  'flex gap-3 px-4 py-3 hover:bg-muted/50 transition-colors',
-                  !n.read && 'bg-muted/30'
-                )}
-                aria-label={!n.read ? 'Unread notification' : 'Read notification'}
-              >
+                  type="button"
+                  onClick={() => navigateFor(n)}
+                  className={cn(
+                    'relative w-full text-left px-5 py-3.5 flex gap-3 items-start border-b',
+                    'border-[#f5f5f5] dark:border-[#1a1a1a]',
+                    'transition-[background] duration-150 cursor-pointer',
+                    'bg-[rgba(22,163,74,0.04)] dark:bg-[rgba(22,163,74,0.06)]',
+                    'hover:bg-[rgba(0,0,0,0.03)] dark:hover:bg-[#1a1a1a]'
+                  )}
+                >
                   <div
-                    className="h-9 w-9 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-semibold text-white"
+                    className="h-[42px] w-[42px] rounded-full flex-shrink-0 flex items-center justify-center text-xs font-semibold text-white"
                     style={{ backgroundColor: n.avatarColor }}
                   >
                     {n.avatarInitials}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-foreground">{n.text}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="text-[14px] leading-[1.45] text-foreground">{n.text}</p>
+                    <p className="text-[11px] text-[#9ca3af] mt-[3px]">
                       {formatDistanceToNow(new Date(n.timestamp), { addSuffix: true })}
                     </p>
                   </div>
-                  {!n.read && (
-                    <div className="h-2 w-2 rounded-full bg-green-500 flex-shrink-0 mt-2" />
-                  )}
-                </li>
+                  <span className="absolute right-5 top-4 h-2 w-2 rounded-full bg-green-500" />
+                </button>
               ))}
-            </ul>
+
+              {grouped.read.length > 0 && (
+                <div className="px-5 pt-3 pb-1 text-[10px] font-bold tracking-[1px] text-[#9ca3af]">
+                  EARLIER
+                </div>
+              )}
+              {grouped.read.map((n) => (
+                <button
+                  key={n.id}
+                  type="button"
+                  onClick={() => navigateFor(n)}
+                  className={cn(
+                    'relative w-full text-left px-5 py-3.5 flex gap-3 items-start border-b',
+                    'border-[#f5f5f5] dark:border-[#1a1a1a]',
+                    'transition-[background] duration-150 cursor-pointer',
+                    'hover:bg-[rgba(0,0,0,0.03)] dark:hover:bg-[#1a1a1a]'
+                  )}
+                >
+                  <div
+                    className="h-[42px] w-[42px] rounded-full flex-shrink-0 flex items-center justify-center text-xs font-semibold text-white"
+                    style={{ backgroundColor: n.avatarColor }}
+                  >
+                    {n.avatarInitials}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[14px] leading-[1.45] text-foreground">{n.text}</p>
+                    <p className="text-[11px] text-[#9ca3af] mt-[3px]">
+                      {formatDistanceToNow(new Date(n.timestamp), { addSuffix: true })}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
           )}
+        </div>
         </div>
       </div>
     </>

@@ -1,4 +1,4 @@
-import { PrismaClient } from '../lib/generated/prisma'
+import { PrismaClient, MatchStatus } from '../lib/generated/prisma'
 
 const prisma = new PrismaClient()
 
@@ -111,7 +111,7 @@ const MESSAGES = [
   { roomId: 'general', authorId: 'u2', content: 'Real Madrid every time. Vini is unplayable in big games', createdAt: new Date(Date.now() - 4.5 * 60 * 60000) },
 ]
 
-async function main() {
+async function seedCore() {
   console.log('Seeding database...')
 
   await prisma.userRepost.deleteMany()
@@ -137,7 +137,994 @@ async function main() {
     await prisma.message.create({ data: message })
   }
   console.log(`Created ${MESSAGES.length} messages`)
+}
 
+async function seedFootballDomain() {
+  console.log('Seeding football domain...')
+
+  await prisma.matchLineup.deleteMany()
+  await prisma.matchEvent.deleteMany()
+  await prisma.match.deleteMany()
+  await prisma.teamSquad.deleteMany()
+  await prisma.transfer.deleteMany()
+  ;(prisma as any).teamNewsItem?.deleteMany?.()
+  ;(prisma as any).newsItem?.deleteMany?.()
+  ;(prisma as any).standingRow?.deleteMany?.()
+  await prisma.trophy.deleteMany()
+  await prisma.season.deleteMany()
+  await prisma.competition.deleteMany()
+  await prisma.team.deleteMany()
+  await prisma.player.deleteMany()
+
+  const competition = await prisma.competition.create({
+    data: {
+      name: 'Premier League',
+      country: 'England',
+      type: 'league',
+      logoUrl: 'https://crests.football-data.org/PL.png',
+      seasons: {
+        create: {
+          yearStart: 2025,
+          yearEnd: 2026,
+        },
+      },
+    },
+    include: { seasons: true },
+  })
+
+  // additional competitions for discovery and news
+  await prisma.competition.createMany({
+    data: [
+      {
+        name: 'La Liga',
+        country: 'Spain',
+        type: 'league',
+        logoUrl: 'https://crests.football-data.org/PD.png',
+      },
+      {
+        name: 'Serie A',
+        country: 'Italy',
+        type: 'league',
+        logoUrl: 'https://crests.football-data.org/SA.png',
+      },
+      {
+        name: 'Bundesliga',
+        country: 'Germany',
+        type: 'league',
+        logoUrl: 'https://crests.football-data.org/BL1.png',
+      },
+      {
+        name: 'Ligue 1',
+        country: 'France',
+        type: 'league',
+        logoUrl: 'https://crests.football-data.org/FL1.png',
+      },
+      {
+        name: 'UEFA Champions League',
+        country: 'Europe',
+        type: 'international',
+        logoUrl: 'https://crests.football-data.org/CL.png',
+      },
+      {
+        name: 'UEFA Europa League',
+        country: 'Europe',
+        type: 'international',
+        logoUrl: 'https://crests.football-data.org/EL.png',
+      },
+      {
+        name: 'FA Cup',
+        country: 'England',
+        type: 'cup',
+        logoUrl: 'https://crests.football-data.org/FA.png',
+      },
+    ],
+  })
+
+  const season = competition.seasons[0]
+
+  const teams = await prisma.$transaction([
+    prisma.team.create({
+      data: {
+        name: 'Manchester City',
+        country: 'England',
+        badgeUrl: 'https://crests.football-data.org/65.png',
+        venue: 'Etihad Stadium',
+        coachName: 'Pep Guardiola',
+      },
+    }),
+    prisma.team.create({
+      data: {
+        name: 'Arsenal',
+        country: 'England',
+        badgeUrl: 'https://crests.football-data.org/57.png',
+        venue: 'Emirates Stadium',
+        coachName: 'Mikel Arteta',
+      },
+    }),
+    prisma.team.create({
+      data: {
+        name: 'Liverpool',
+        country: 'England',
+        badgeUrl: 'https://crests.football-data.org/64.png',
+        venue: 'Anfield',
+        coachName: 'Jürgen Klopp',
+      },
+    }),
+    prisma.team.create({
+      data: {
+        name: 'Chelsea',
+        country: 'England',
+        badgeUrl: 'https://crests.football-data.org/61.png',
+        venue: 'Stamford Bridge',
+        coachName: 'Mauricio Pochettino',
+      },
+    }),
+    prisma.team.create({
+      data: {
+        name: 'Tottenham Hotspur',
+        country: 'England',
+        badgeUrl: 'https://crests.football-data.org/73.png',
+        venue: 'Tottenham Hotspur Stadium',
+        coachName: 'Ange Postecoglou',
+      },
+    }),
+    prisma.team.create({
+      data: {
+        name: 'Manchester United',
+        country: 'England',
+        badgeUrl: 'https://crests.football-data.org/66.png',
+        venue: 'Old Trafford',
+        coachName: 'Erik ten Hag',
+      },
+    }),
+    prisma.team.create({
+      data: {
+        name: 'Newcastle United',
+        country: 'England',
+        badgeUrl: 'https://crests.football-data.org/67.png',
+        venue: "St James' Park",
+        coachName: 'Eddie Howe',
+      },
+    }),
+    prisma.team.create({
+      data: {
+        name: 'Aston Villa',
+        country: 'England',
+        badgeUrl: 'https://crests.football-data.org/58.png',
+        venue: 'Villa Park',
+        coachName: 'Unai Emery',
+      },
+    }),
+    prisma.team.create({
+      data: {
+        name: 'Brighton & Hove Albion',
+        country: 'England',
+        badgeUrl: 'https://crests.football-data.org/397.png',
+        venue: 'Amex Stadium',
+        coachName: 'Roberto De Zerbi',
+      },
+    }),
+    prisma.team.create({
+      data: {
+        name: 'West Ham United',
+        country: 'England',
+        badgeUrl: 'https://crests.football-data.org/563.png',
+        venue: 'London Stadium',
+        coachName: 'David Moyes',
+      },
+    }),
+  ])
+
+  const [city, arsenal, liverpool, chelsea, spurs, united, newcastle, villa, brighton, westHam] = teams
+
+  const players = await prisma.$transaction([
+    prisma.player.create({
+      data: {
+        name: 'Erling Haaland',
+        nationality: 'Norway',
+        position: 'FW',
+        preferredFoot: 'Left',
+        currentTeamId: city.id,
+      },
+    }),
+    prisma.player.create({
+      data: {
+        name: 'Kevin De Bruyne',
+        nationality: 'Belgium',
+        position: 'MF',
+        preferredFoot: 'Right',
+        currentTeamId: city.id,
+      },
+    }),
+    prisma.player.create({
+      data: {
+        name: 'Phil Foden',
+        nationality: 'England',
+        position: 'MF',
+        preferredFoot: 'Left',
+        currentTeamId: city.id,
+      },
+    }),
+    prisma.player.create({
+      data: {
+        name: 'Bukayo Saka',
+        nationality: 'England',
+        position: 'FW',
+        preferredFoot: 'Left',
+        currentTeamId: arsenal.id,
+      },
+    }),
+    prisma.player.create({
+      data: {
+        name: 'Martin Ødegaard',
+        nationality: 'Norway',
+        position: 'MF',
+        preferredFoot: 'Left',
+        currentTeamId: arsenal.id,
+      },
+    }),
+    prisma.player.create({
+      data: {
+        name: 'Declan Rice',
+        nationality: 'England',
+        position: 'MF',
+        preferredFoot: 'Right',
+        currentTeamId: arsenal.id,
+      },
+    }),
+    prisma.player.create({
+      data: {
+        name: 'Mohamed Salah',
+        nationality: 'Egypt',
+        position: 'FW',
+        preferredFoot: 'Left',
+        currentTeamId: liverpool.id,
+      },
+    }),
+    prisma.player.create({
+      data: {
+        name: 'Virgil van Dijk',
+        nationality: 'Netherlands',
+        position: 'DF',
+        preferredFoot: 'Right',
+        currentTeamId: liverpool.id,
+      },
+    }),
+    prisma.player.create({
+      data: {
+        name: 'Alisson Becker',
+        nationality: 'Brazil',
+        position: 'GK',
+        preferredFoot: 'Right',
+        currentTeamId: liverpool.id,
+      },
+    }),
+    prisma.player.create({
+      data: {
+        name: 'Raheem Sterling',
+        nationality: 'England',
+        position: 'FW',
+        preferredFoot: 'Right',
+        currentTeamId: chelsea.id,
+      },
+    }),
+    prisma.player.create({
+      data: {
+        name: 'Christopher Nkunku',
+        nationality: 'France',
+        position: 'FW',
+        preferredFoot: 'Right',
+        currentTeamId: chelsea.id,
+      },
+    }),
+    prisma.player.create({
+      data: {
+        name: 'Enzo Fernández',
+        nationality: 'Argentina',
+        position: 'MF',
+        preferredFoot: 'Right',
+        currentTeamId: chelsea.id,
+      },
+    }),
+    // bench / depth players to reach 20 total
+    prisma.player.create({
+      data: { name: 'Riyad Mahrez', nationality: 'Algeria', position: 'FW', currentTeamId: city.id },
+    }),
+    prisma.player.create({
+      data: { name: 'Rodri', nationality: 'Spain', position: 'MF', currentTeamId: city.id },
+    }),
+    prisma.player.create({
+      data: { name: 'Gabriel Jesus', nationality: 'Brazil', position: 'FW', currentTeamId: arsenal.id },
+    }),
+    prisma.player.create({
+      data: { name: 'Gabriel Magalhães', nationality: 'Brazil', position: 'DF', currentTeamId: arsenal.id },
+    }),
+    prisma.player.create({
+      data: { name: 'Trent Alexander-Arnold', nationality: 'England', position: 'DF', currentTeamId: liverpool.id },
+    }),
+    prisma.player.create({
+      data: { name: 'Andrew Robertson', nationality: 'Scotland', position: 'DF', currentTeamId: liverpool.id },
+    }),
+    prisma.player.create({
+      data: { name: 'Reece James', nationality: 'England', position: 'DF', currentTeamId: chelsea.id },
+    }),
+    prisma.player.create({
+      data: { name: 'Thiago Silva', nationality: 'Brazil', position: 'DF', currentTeamId: chelsea.id },
+    }),
+  ])
+
+  console.log(`Created competition, season, ${teams.length} teams, ${players.length} players`)
+
+  const now = new Date()
+  const day1 = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 15, 0, 0)
+  const day2 = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 18, 30, 0)
+  const day3 = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2, 20, 0, 0)
+
+  const matches = await prisma.$transaction([
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: day1,
+        status: MatchStatus.FINISHED,
+        homeTeamId: city.id,
+        awayTeamId: arsenal.id,
+        homeScore: 2,
+        awayScore: 1,
+        venue: city.venue,
+      },
+    }),
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: new Date(day1.getTime() + 2 * 60 * 60 * 1000),
+        status: MatchStatus.FINISHED,
+        homeTeamId: liverpool.id,
+        awayTeamId: chelsea.id,
+        homeScore: 3,
+        awayScore: 2,
+        venue: liverpool.venue,
+      },
+    }),
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: new Date(day1.getTime() + 4 * 60 * 60 * 1000),
+        status: MatchStatus.SCHEDULED,
+        homeTeamId: arsenal.id,
+        awayTeamId: chelsea.id,
+        venue: arsenal.venue,
+      },
+    }),
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: day2,
+        status: MatchStatus.SCHEDULED,
+        homeTeamId: chelsea.id,
+        awayTeamId: city.id,
+        venue: chelsea.venue,
+      },
+    }),
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: new Date(day2.getTime() + 2 * 60 * 60 * 1000),
+        status: MatchStatus.SCHEDULED,
+        homeTeamId: arsenal.id,
+        awayTeamId: liverpool.id,
+        venue: arsenal.venue,
+      },
+    }),
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: new Date(day2.getTime() + 4 * 60 * 60 * 1000),
+        status: MatchStatus.SCHEDULED,
+        homeTeamId: city.id,
+        awayTeamId: liverpool.id,
+        venue: city.venue,
+      },
+    }),
+    // additional fixtures across 3 matchdays
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: day3,
+        status: MatchStatus.SCHEDULED,
+        homeTeamId: spurs.id,
+        awayTeamId: united.id,
+        venue: spurs.venue,
+      },
+    }),
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: new Date(day3.getTime() + 2 * 60 * 60 * 1000),
+        status: MatchStatus.SCHEDULED,
+        homeTeamId: newcastle.id,
+        awayTeamId: villa.id,
+        venue: newcastle.venue,
+      },
+    }),
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: new Date(day3.getTime() + 4 * 60 * 60 * 1000),
+        status: MatchStatus.SCHEDULED,
+        homeTeamId: brighton.id,
+        awayTeamId: westHam.id,
+        venue: brighton.venue,
+      },
+    }),
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: new Date(day1.getTime() + 6 * 60 * 60 * 1000),
+        status: MatchStatus.SCHEDULED,
+        homeTeamId: spurs.id,
+        awayTeamId: brighton.id,
+        venue: spurs.venue,
+      },
+    }),
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: new Date(day2.getTime() + 6 * 60 * 60 * 1000),
+        status: MatchStatus.SCHEDULED,
+        homeTeamId: united.id,
+        awayTeamId: westHam.id,
+        venue: united.venue,
+      },
+    }),
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: new Date(day3.getTime() + 6 * 60 * 60 * 1000),
+        status: MatchStatus.SCHEDULED,
+        homeTeamId: newcastle.id,
+        awayTeamId: chelsea.id,
+        venue: newcastle.venue,
+      },
+    }),
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: new Date(day1.getTime() + 8 * 60 * 60 * 1000),
+        status: MatchStatus.SCHEDULED,
+        homeTeamId: villa.id,
+        awayTeamId: city.id,
+        venue: villa.venue,
+      },
+    }),
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: new Date(day2.getTime() + 8 * 60 * 60 * 1000),
+        status: MatchStatus.SCHEDULED,
+        homeTeamId: liverpool.id,
+        awayTeamId: spurs.id,
+        venue: liverpool.venue,
+      },
+    }),
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: new Date(day3.getTime() + 8 * 60 * 60 * 1000),
+        status: MatchStatus.SCHEDULED,
+        homeTeamId: arsenal.id,
+        awayTeamId: united.id,
+        venue: arsenal.venue,
+      },
+    }),
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: new Date(day1.getTime() + 10 * 60 * 60 * 1000),
+        status: MatchStatus.SCHEDULED,
+        homeTeamId: westHam.id,
+        awayTeamId: newcastle.id,
+        venue: westHam.venue,
+      },
+    }),
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: new Date(day2.getTime() + 10 * 60 * 60 * 1000),
+        status: MatchStatus.SCHEDULED,
+        homeTeamId: brighton.id,
+        awayTeamId: villa.id,
+        venue: brighton.venue,
+      },
+    }),
+    prisma.match.create({
+      data: {
+        competitionId: competition.id,
+        seasonId: season.id,
+        kickoff: new Date(day3.getTime() + 10 * 60 * 60 * 1000),
+        status: MatchStatus.SCHEDULED,
+        homeTeamId: chelsea.id,
+        awayTeamId: arsenal.id,
+        venue: chelsea.venue,
+      },
+    }),
+  ])
+
+  console.log(`Created ${matches.length} matches`)
+
+  // simple Premier League standings snapshot for 10 teams
+  ;(prisma as any).standingRow?.createMany?.({
+    data: [
+      {
+        competitionId: competition.id,
+        seasonId: season.id,
+        teamId: city.id,
+        position: 1,
+        played: 10,
+        won: 8,
+        drawn: 1,
+        lost: 1,
+        goalsFor: 25,
+        goalsAgainst: 8,
+        goalDiff: 17,
+        points: 25,
+        form: 'WWDWW',
+      },
+      {
+        competitionId: competition.id,
+        seasonId: season.id,
+        teamId: arsenal.id,
+        position: 2,
+        played: 10,
+        won: 7,
+        drawn: 2,
+        lost: 1,
+        goalsFor: 21,
+        goalsAgainst: 9,
+        goalDiff: 12,
+        points: 23,
+        form: 'WDWWW',
+      },
+      {
+        competitionId: competition.id,
+        seasonId: season.id,
+        teamId: liverpool.id,
+        position: 3,
+        played: 10,
+        won: 7,
+        drawn: 1,
+        lost: 2,
+        goalsFor: 22,
+        goalsAgainst: 11,
+        goalDiff: 11,
+        points: 22,
+        form: 'LWWWL',
+      },
+      {
+        competitionId: competition.id,
+        seasonId: season.id,
+        teamId: spurs.id,
+        position: 4,
+        played: 10,
+        won: 6,
+        drawn: 2,
+        lost: 2,
+        goalsFor: 19,
+        goalsAgainst: 12,
+        goalDiff: 7,
+        points: 20,
+        form: 'DWLLW',
+      },
+      {
+        competitionId: competition.id,
+        seasonId: season.id,
+        teamId: villa.id,
+        position: 5,
+        played: 10,
+        won: 6,
+        drawn: 1,
+        lost: 3,
+        goalsFor: 20,
+        goalsAgainst: 14,
+        goalDiff: 6,
+        points: 19,
+        form: 'WLWLW',
+      },
+      {
+        competitionId: competition.id,
+        seasonId: season.id,
+        teamId: newcastle.id,
+        position: 6,
+        played: 10,
+        won: 5,
+        drawn: 2,
+        lost: 3,
+        goalsFor: 18,
+        goalsAgainst: 13,
+        goalDiff: 5,
+        points: 17,
+        form: 'DLWWD',
+      },
+      {
+        competitionId: competition.id,
+        seasonId: season.id,
+        teamId: united.id,
+        position: 7,
+        played: 10,
+        won: 5,
+        drawn: 1,
+        lost: 4,
+        goalsFor: 15,
+        goalsAgainst: 14,
+        goalDiff: 1,
+        points: 16,
+        form: 'WLWLL',
+      },
+      {
+        competitionId: competition.id,
+        seasonId: season.id,
+        teamId: brighton.id,
+        position: 8,
+        played: 10,
+        won: 4,
+        drawn: 3,
+        lost: 3,
+        goalsFor: 17,
+        goalsAgainst: 16,
+        goalDiff: 1,
+        points: 15,
+        form: 'DDWLW',
+      },
+      {
+        competitionId: competition.id,
+        seasonId: season.id,
+        teamId: chelsea.id,
+        position: 9,
+        played: 10,
+        won: 3,
+        drawn: 3,
+        lost: 4,
+        goalsFor: 13,
+        goalsAgainst: 15,
+        goalDiff: -2,
+        points: 12,
+        form: 'DLDDL',
+      },
+      {
+        competitionId: competition.id,
+        seasonId: season.id,
+        teamId: westHam.id,
+        position: 10,
+        played: 10,
+        won: 3,
+        drawn: 2,
+        lost: 5,
+        goalsFor: 12,
+        goalsAgainst: 18,
+        goalDiff: -6,
+        points: 11,
+        form: 'LLWDD',
+      },
+    ],
+  })
+
+  // simple squads for all teams in current season
+  const makeSquad = async (teamId: string) => {
+    const teamPlayers = players.filter((p) => p.currentTeamId === teamId)
+    for (const [index, p] of teamPlayers.entries()) {
+      await prisma.teamSquad.create({
+        data: {
+          teamId,
+          seasonId: season.id,
+          playerId: p.id,
+          role: p.position ?? undefined,
+          shirtNo: 1 + index,
+        },
+      })
+    }
+  }
+
+  await makeSquad(city.id)
+  await makeSquad(arsenal.id)
+  await makeSquad(liverpool.id)
+  await makeSquad(chelsea.id)
+
+  // transfers
+  await prisma.transfer.create({
+    data: {
+      playerId: players[0].id,
+      fromTeamId: chelsea.id,
+      toTeamId: city.id,
+      type: 'permanent',
+      fee: '€90m',
+      date: new Date(now.getFullYear() - 1, 6, 1),
+    },
+  })
+
+  await prisma.transfer.create({
+    data: {
+      playerId: players[3].id,
+      fromTeamId: city.id,
+      toTeamId: arsenal.id,
+      type: 'loan',
+      fee: 'Loan',
+      date: new Date(now.getFullYear() - 1, 0, 15),
+    },
+  })
+
+  // trophies
+  await prisma.trophy.createMany({
+    data: [
+      {
+        teamId: city.id,
+        competitionId: competition.id,
+        seasonLabel: '2024/25',
+        count: 1,
+      },
+      {
+        teamId: liverpool.id,
+        competitionId: competition.id,
+        seasonLabel: '2019/20',
+        count: 1,
+      },
+    ],
+  })
+
+  // simple team news items
+  ;(prisma as any).teamNewsItem?.createMany?.({
+    data: [
+      {
+        teamId: city.id,
+        title: 'City prepare for title charge',
+        source: 'Kickoff News',
+        url: 'https://example.com/city-title-charge',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
+      },
+      {
+        teamId: city.id,
+        title: 'Haaland back in full training',
+        source: 'Kickoff News',
+        url: 'https://example.com/haaland-training',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 6 * 60 * 60 * 1000),
+      },
+      {
+        teamId: arsenal.id,
+        title: 'Arsenal focus on defensive solidity',
+        source: 'Kickoff News',
+        url: 'https://example.com/arsenal-defense',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 3 * 60 * 60 * 1000),
+      },
+      {
+        teamId: liverpool.id,
+        title: 'Anfield under the lights: big clash ahead',
+        source: 'Kickoff News',
+        url: 'https://example.com/anfield-big-clash',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 5 * 60 * 60 * 1000),
+      },
+      {
+        teamId: chelsea.id,
+        title: 'Chelsea academy prospects impress in training',
+        source: 'Kickoff News',
+        url: 'https://example.com/chelsea-academy',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 7 * 60 * 60 * 1000),
+      },
+    ],
+  })
+
+  // global news items across scopes
+  ;(prisma as any).newsItem?.createMany?.({
+    data: [
+      {
+        scope: 'LATEST',
+        title: 'Title race heats up in the Premier League',
+        summary:
+          'City, Arsenal and Liverpool are separated by just three points after a thrilling weekend.',
+        source: 'Kickoff Newsroom',
+        url: 'https://example.com/pl-title-race',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 60 * 60 * 1000),
+        competitionId: competition.id,
+        teamId: null,
+        playerId: null,
+      },
+      {
+        scope: 'LATEST',
+        title: 'Haaland scores decisive brace in top-of-table clash',
+        summary: 'The Norwegian striker once again delivered when it mattered most.',
+        source: 'Kickoff Newsroom',
+        url: 'https://example.com/haaland-brace',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
+        competitionId: competition.id,
+        teamId: city.id,
+        playerId: players[0].id,
+      },
+      {
+        scope: 'LATEST',
+        title: 'Saka shines as Arsenal keep pressure on leaders',
+        summary: 'Another influential display from the England winger keeps Arsenal in the hunt.',
+        source: 'Kickoff Newsroom',
+        url: 'https://example.com/saka-shines',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 3 * 60 * 60 * 1000),
+        competitionId: competition.id,
+        teamId: arsenal.id,
+        playerId: players[3].id,
+      },
+      {
+        scope: 'LATEST',
+        title: 'Villa Park rocking as Emery’s side continue strong home form',
+        summary: null,
+        source: 'Kickoff Newsroom',
+        url: 'https://example.com/villa-park-form',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 4 * 60 * 60 * 1000),
+        competitionId: competition.id,
+        teamId: villa.id,
+        playerId: null,
+      },
+      {
+        scope: 'LATEST',
+        title: 'Brighton youngsters impress again in high-tempo draw',
+        summary: null,
+        source: 'Kickoff Newsroom',
+        url: 'https://example.com/brighton-youngsters',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 5 * 60 * 60 * 1000),
+        competitionId: competition.id,
+        teamId: brighton.id,
+        playerId: null,
+      },
+      {
+        scope: 'TRANSFERS',
+        title: 'European giants lining up summer move for Declan Rice',
+        summary: 'Midfielder continues to attract interest after another dominant season.',
+        source: 'Transfer Zone',
+        url: 'https://example.com/rice-links',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 6 * 60 * 60 * 1000),
+        competitionId: competition.id,
+        teamId: arsenal.id,
+        playerId: players[5].id,
+      },
+      {
+        scope: 'TRANSFERS',
+        title: 'Liverpool preparing contract extension offer for Salah',
+        summary: null,
+        source: 'Transfer Zone',
+        url: 'https://example.com/salah-extension',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 7 * 60 * 60 * 1000),
+        competitionId: competition.id,
+        teamId: liverpool.id,
+        playerId: players[6].id,
+      },
+      {
+        scope: 'TRANSFERS',
+        title: 'Manchester United monitoring emerging Brighton full-back',
+        summary: null,
+        source: 'Transfer Zone',
+        url: 'https://example.com/united-brighton-fullback',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 8 * 60 * 60 * 1000),
+        competitionId: competition.id,
+        teamId: brighton.id,
+        playerId: null,
+      },
+      {
+        scope: 'TRANSFERS',
+        title: 'Chelsea open to loan exits for several academy graduates',
+        summary: null,
+        source: 'Transfer Zone',
+        url: 'https://example.com/chelsea-loans',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 9 * 60 * 60 * 1000),
+        competitionId: competition.id,
+        teamId: chelsea.id,
+        playerId: null,
+      },
+      {
+        scope: 'LEAGUE',
+        title: 'La Liga title battle shaping up as Madrid and Barcelona trade blows',
+        summary: null,
+        source: 'Kickoff World',
+        url: 'https://example.com/laliga-title-battle',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 10 * 60 * 60 * 1000),
+        competitionId: null,
+        teamId: null,
+        playerId: null,
+      },
+      {
+        scope: 'LEAGUE',
+        title: 'Serie A tactical trends: high pressing and aggressive wing play',
+        summary: null,
+        source: 'Kickoff World',
+        url: 'https://example.com/seriea-tactics',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 11 * 60 * 60 * 1000),
+        competitionId: null,
+        teamId: null,
+        playerId: null,
+      },
+      {
+        scope: 'LEAGUE',
+        title: 'Bundesliga continues to produce elite attacking talent',
+        summary: null,
+        source: 'Kickoff World',
+        url: 'https://example.com/bundesliga-talent',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 12 * 60 * 60 * 1000),
+        competitionId: null,
+        teamId: null,
+        playerId: null,
+      },
+      {
+        scope: 'LEAGUE',
+        title: 'Ligue 1 clubs focus on youth development as budgets tighten',
+        summary: null,
+        source: 'Kickoff World',
+        url: 'https://example.com/ligue1-youth',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 13 * 60 * 60 * 1000),
+        competitionId: null,
+        teamId: null,
+        playerId: null,
+      },
+      {
+        scope: 'LATEST',
+        title: 'Champions League draw throws up heavyweight clashes',
+        summary: null,
+        source: 'Kickoff Europe',
+        url: 'https://example.com/ucl-draw',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 14 * 60 * 60 * 1000),
+        competitionId: null,
+        teamId: null,
+        playerId: null,
+      },
+      {
+        scope: 'TRANSFERS',
+        title: 'Agents expect busy summer window across Europe',
+        summary: null,
+        source: 'Transfer Zone',
+        url: 'https://example.com/europe-summer-window',
+        imageUrl: null,
+        publishedAt: new Date(now.getTime() - 15 * 60 * 60 * 1000),
+        competitionId: null,
+        teamId: null,
+        playerId: null,
+      },
+    ],
+  })
+
+  console.log('Football domain seeding complete!')
+}
+
+async function main() {
+  await seedCore()
+  await seedFootballDomain()
   console.log('Seeding complete!')
 }
 

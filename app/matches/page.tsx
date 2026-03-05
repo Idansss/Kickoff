@@ -1,6 +1,7 @@
-'use client'
+"use client"
 
 import { Suspense, memo, useCallback, useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { AppLayout } from '@/components/app-layout'
 import { Badge } from '@/components/ui/badge'
@@ -53,7 +54,9 @@ const LiveMatchCard = memo(function LiveMatchCard({
       </div>
 
       <div className="p-4">
-        <MatchCard match={match} className="border-0 bg-transparent p-0 rounded-none" />
+        <Link href={`/match/${match.id}`} className="block">
+          <MatchCard match={match} className="border-0 bg-transparent p-0 rounded-none" />
+        </Link>
 
         <div className="mt-3 flex items-center gap-2">
           <button
@@ -154,7 +157,9 @@ const UpcomingMatchCard = memo(function UpcomingMatchCard({
           </Badge>
         </div>
 
-        <MatchCard match={match} className="border-0 bg-transparent p-0 rounded-none" />
+        <Link href={`/match/${match.id}`} className="block">
+          <MatchCard match={match} className="border-0 bg-transparent p-0 rounded-none" />
+        </Link>
 
         <div className="mt-3 flex items-center gap-2">
           <button

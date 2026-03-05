@@ -3,6 +3,7 @@ export const STORE_KEYS = {
   user: 'kickoff-user',
   matches: 'kickoff-matches',
   chat: 'kickoff-chat',
+  follow: 'kickoff-follow',
   streakDate: 'kickoff-last-streak-date',
   ui: 'kickoff-ui',
 } as const

@@ -27,6 +27,7 @@ export const mockUsers: User[] = [
     verified: false,
     followers: 2850,
     following: 456,
+    followingIds: [],
     favoriteTeams: ['Manchester City', 'England'],
     xp: 0,
     level: 1,
@@ -42,6 +43,7 @@ export const mockUsers: User[] = [
     verified: true,
     followers: 12000000,
     following: 42,
+    followingIds: [],
     favoriteTeams: [],
     xp: 0,
     level: 1,
@@ -57,6 +59,7 @@ export const mockUsers: User[] = [
     verified: true,
     followers: 3200000,
     following: 12,
+    followingIds: [],
     favoriteTeams: [],
     xp: 0,
     level: 1,
@@ -72,6 +75,7 @@ export const mockUsers: User[] = [
     verified: true,
     followers: 2800000,
     following: 8,
+    followingIds: [],
     favoriteTeams: [],
     xp: 0,
     level: 1,
@@ -87,6 +91,7 @@ export const mockUsers: User[] = [
     verified: false,
     followers: 1240,
     following: 892,
+    followingIds: [],
     favoriteTeams: ['Liverpool'],
     xp: 0,
     level: 1,
@@ -102,6 +107,7 @@ export const mockUsers: User[] = [
     verified: false,
     followers: 3120,
     following: 234,
+    followingIds: [],
     favoriteTeams: ['Arsenal'],
     xp: 0,
     level: 1,
@@ -606,7 +612,15 @@ export const mockStandings: Standing[] = [
 ]
 
 // ─── Notifications (8, 3 unread) ────────────────────────────────────────────
-const n = (id: string, type: Notification['type'], text: string, read: boolean, initials: string, color: string): Notification => ({
+const n = (
+  id: string,
+  type: Notification['type'],
+  text: string,
+  read: boolean,
+  initials: string,
+  color: string,
+  meta?: Pick<Notification, 'postId' | 'userId' | 'matchId' | 'badgeId'>
+): Notification => ({
   id,
   type,
   text,
@@ -614,16 +628,17 @@ const n = (id: string, type: Notification['type'], text: string, read: boolean, 
   read,
   avatarInitials: initials,
   avatarColor: color,
+  ...(meta ?? {}),
 })
 export const mockNotifications: Notification[] = [
-  n('n1', 'like', 'Jordan Silva liked your post', false, 'JS', '#7c3aed'),
-  n('n2', 'reply', 'Sam Johnson replied to your post', false, 'SJ', '#ea580c'),
-  n('n3', 'badge_earned', 'You earned the First Post ⚽ badge!', false, 'AT', '#16a34a'),
-  n('n4', 'goal_alert', 'Haaland scores! Manchester City 2-1 Liverpool', true, 'FR', '#6CABDD'),
-  n('n5', 'follow', 'Riley Chen started following you', true, 'RC', '#0d9488'),
-  n('n6', 'like', '12 people liked your comment', true, 'OJ', '#dc2626'),
+  n('n1', 'like', 'Jordan Silva liked your post', false, 'JS', '#7c3aed', { postId: 'post4' }),
+  n('n2', 'reply', 'Sam Johnson replied to your post', false, 'SJ', '#ea580c', { postId: 'post4' }),
+  n('n3', 'badge_earned', 'You earned the First Post ⚽ badge!', false, 'AT', '#16a34a', { badgeId: 'b1' }),
+  n('n4', 'goal_alert', 'Haaland scores! Manchester City 2-1 Liverpool', true, 'FR', '#6CABDD', { matchId: 'm1' }),
+  n('n5', 'follow', 'Riley Chen started following you', true, 'RC', '#0d9488', { userId: 'u2' }),
+  n('n6', 'like', '12 people liked your comment', true, 'OJ', '#dc2626', { postId: 'post2' }),
   n('n7', 'prediction_result', 'Correct prediction! +50 XP', true, 'AT', '#16a34a'),
-  n('n8', 'reply', 'Fabrizio Romano replied to a post you follow', true, 'FR', '#2563eb'),
+  n('n8', 'reply', 'Fabrizio Romano replied to a post you follow', true, 'FR', '#2563eb', { postId: 'post1' }),
 ]
 
 // ─── Chat rooms & initial messages ──────────────────────────────────────────

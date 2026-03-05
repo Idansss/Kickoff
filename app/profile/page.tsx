@@ -1,13 +1,14 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { AppLayout } from '@/components/app-layout'
 import { Button } from '@/components/ui/button'
 import { CalendarDays, Link2, Lock } from 'lucide-react'
 import { userStore } from '@/store/userStore'
 import { feedStore } from '@/store/feedStore'
 import { FeedPostCard } from '@/components/feed/FeedPostCard'
-import { cn } from '@/lib/utils'
+import { cn, scrollToAndHighlight } from '@/lib/utils'
 
 const LEVEL_NAMES: Record<number, string> = {
   1: 'Grassroots',
@@ -44,6 +45,18 @@ export default function ProfilePage(): React.JSX.Element {
   const posts = feedStore((s) => s.posts)
   const bookmarks = feedStore((s) => s.bookmarks)
   const [activeTab, setActiveTab] = useState<Tab>('posts')
+  const searchParams = useSearchParams()
+  const focusBadgeId = searchParams.get('badge') ?? ''
+  const profileTab = searchParams.get('tab') ?? ''
+
+  useEffect(() => {
+    if (profileTab === 'badges') {
+      scrollToAndHighlight('profile-badges', '#16a34a')
+    }
+    if (profileTab === 'achievements') {
+      scrollToAndHighlight('profile-achievements', '#16a34a')
+    }
+  }, [profileTab])
 
   const myPosts = useMemo(
     () => posts.filter((post) => post.author.id === currentUser.id),
@@ -144,15 +157,16 @@ export default function ProfilePage(): React.JSX.Element {
             </div>
           </div>
 
-          <div className="mb-4">
+          <div id="profile-achievements" className="mb-4">
             <p className="text-xs font-medium text-muted-foreground mb-2">Badges</p>
-            <div className="flex flex-wrap gap-2">
+            <div id="profile-badges" className="flex flex-wrap gap-2">
               {currentUser.badges.map((b) => (
                 <div
                   key={b.id}
                   className={cn(
                     'rounded-lg border border-border p-2 flex items-center gap-2',
-                    b.earned ? 'opacity-100' : 'opacity-40'
+                    b.earned ? 'opacity-100' : 'opacity-40',
+                    focusBadgeId && b.id === focusBadgeId && 'border-green-500 bg-green-500/10'
                   )}
                   title={b.description}
                 >

@@ -28,10 +28,10 @@ export function GlobalModals() {
   const hideToast = toastStore((s) => s.hideToast)
   const addPost = feedStore((s) => s.addPost)
 
-  const handlePost = (data: { text: string; tags: string[]; images?: string[] }) => {
+  const handlePost = (data: { text: string; tags: string[]; images?: string[]; poll?: Post['poll'] }) => {
     const content = data.text.trim()
     const tag = data.tags?.[0] ? mapTag(data.tags[0]) : 'General'
-    addPost(content, tag, undefined, data.images)
+    addPost(content, tag, data.poll, data.images)
     closePostModal()
     toastStore.getState().showToast({ message: '✓ Posted!', duration: 3000 })
   }

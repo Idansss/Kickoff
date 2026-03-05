@@ -7,6 +7,8 @@ export interface User {
   verified: boolean
   followers: number
   following: number
+  /** IDs of users this user follows (used for Following feed) */
+  followingIds: string[]
   favoriteTeams: string[]
   xp: number
   level: number
@@ -167,6 +169,11 @@ export interface Notification {
   read: boolean
   avatarInitials: string
   avatarColor: string
+  /** Navigation metadata (optional; used for click-through) */
+  postId?: string
+  userId?: string
+  matchId?: string
+  badgeId?: string
 }
 
 export interface Prediction {

@@ -23,6 +23,7 @@ import { userStore } from '@/store/userStore'
 import { toastStore } from '@/store/toastStore'
 import { INPUT_LIMITS } from '@/lib/constants'
 import { PostMenu, ImpressionCounter } from '@/components/NewComponents'
+import { mockUsers } from '@/data/mockData'
 
 function seededRandom(str: string): number {
   let h = 0
@@ -311,9 +312,20 @@ function ReplyCard({
 
 interface FeedPostCardProps {
   post: Post
+  /** If provided, we will scroll/highlight this post when it matches */
+  focusPostId?: string
+  /** If true, apply highlight styling to focus post */
+  highlightFocus?: boolean
+  /** If true, expand replies for focus post (used for reply notifications) */
+  openRepliesForFocus?: boolean
 }
 
-function FeedPostCardInner({ post }: FeedPostCardProps) {
+function FeedPostCardInner({
+  post,
+  focusPostId,
+  highlightFocus = false,
+  openRepliesForFocus = false,
+}: FeedPostCardProps) {
   const currentUser = userStore((s) => s.currentUser)
   const posts = feedStore((s) => s.posts)
   const [replyBoxOpen, setReplyBoxOpen] = useState(false)
@@ -329,6 +341,10 @@ function FeedPostCardInner({ post }: FeedPostCardProps) {
   const shareResetTimeoutRef = useRef<number | null>(null)
 
   const effectivePostId = post.repostOfPostId ?? post.id
+  const isOriginal = !post.repostOfPostId
+  const isFocusTarget = Boolean(focusPostId && focusPostId === effectivePostId)
+  const focusStyleOn = highlightFocus && isFocusTarget
+  const containerId = isOriginal ? `post-${post.id}` : `repost-${post.id}`
   const effectivePost = useMemo(() => {
     if (post.repostOfPostId) {
       return posts.find((p) => p.id === post.repostOfPostId) ?? post
@@ -480,12 +496,41 @@ function FeedPostCardInner({ post }: FeedPostCardProps) {
     [post.id]
   )
 
+  useEffect(() => {
+    if (!isFocusTarget) return
+    if (openRepliesForFocus && replies.length > 0) {
+      setShowReplies(true)
+      setReplyBoxOpen(false)
+    }
+  }, [isFocusTarget, openRepliesForFocus, replies.length])
+
   return (
-    <article className="post-card border-b border-border px-4 py-4 transition-colors hover:bg-muted/30 sm:px-6 animate-fade-in-up">
+    <article
+      id={containerId}
+      className={cn(
+        'post-card border-b border-border px-4 py-4 transition-colors hover:bg-muted/30 sm:px-6 animate-fade-in-up',
+        focusStyleOn && 'bg-[rgba(22,163,74,0.04)]'
+      )}
+      style={
+        focusStyleOn
+          ? { boxShadow: '0 0 0 2px rgba(22,163,74,0.15) inset' }
+          : undefined
+    }
+    >
       {post.repostOfPostId && (
         <div className="mb-1 text-xs text-muted-foreground flex items-center gap-1">
           <Repeat2 className="h-3.5 w-3.5 text-green-600" />
-          You reposted
+          {post.repostedBy && post.repostedBy !== currentUser.id ? (
+            <span>
+              {(() => {
+                const reposter = mockUsers.find((u) => u.id === post.repostedBy)
+                const label = reposter?.handle ?? 'Someone'
+                return `🔁 ${label} reposted`
+              })()}
+            </span>
+          ) : (
+            'You reposted'
+          )}
         </div>
       )}
       <div className="flex gap-3">

@@ -49,6 +49,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   posts: true,
 }
 
+const DEFAULT_FOLLOW_HANDLES = ['fabrizioromano', 'OptaJoe', 'TheAthletic'] as const
+
 export const userStore = create<UserState>()(
   persist(
     (set, get) => ({
@@ -77,6 +79,15 @@ export const userStore = create<UserState>()(
           },
           notifications:
             state.notifications.length > 0 ? state.notifications : mockNotifications,
+          followingIds:
+            state.followingIds.length > 0
+              ? state.followingIds
+              : DEFAULT_FOLLOW_HANDLES.map((h) => {
+                  const u = mockUsers.find(
+                    (mu) => mu.handle.toLowerCase() === h.toLowerCase()
+                  )
+                  return u?.id ?? h
+                }),
         }))
       },
 

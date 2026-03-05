@@ -11,6 +11,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum FollowEntityType {
+  TEAM
+  PLAYER
+  MATCH
+  COMPETITION
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  POSTPONED
+  CANCELLED
+}
+
 model User {
   id        String    @id @default(cuid())
   name      String
@@ -75,4 +90,292 @@ model Message {
   authorId  String
   author    User     @relation(fields: [authorId], references: [id])
   createdAt DateTime @default(now())
+}
+
+model Competition {
+  id          String   @id @default(cuid())
+  providerKey String?  @unique
+  name        String
+  country     String?
+  type        String?
+  logoUrl     String?
+  seasons     Season[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Season {
+  id            String      @id @default(cuid())
+  competitionId String
+  competition   Competition @relation(fields: [competitionId], references: [id])
+  yearStart     Int
+  yearEnd       Int
+  matches       Match[]
+  standings     StandingRow[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([competitionId])
+}
+
+model Team {
+  id          String   @id @default(cuid())
+  providerKey String?  @unique
+  name        String
+  country     String?
+  badgeUrl    String?
+  venue       String?
+  coachName   String?
+  squads      TeamSquad[]
+  standings   StandingRow[]
+  homeMatches Match[]  @relation("HomeTeam")
+  awayMatches Match[]  @relation("AwayTeam")
+  trophies    Trophy[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Player {
+  id            String   @id @default(cuid())
+  providerKey   String?  @unique
+  name          String
+  dob           DateTime?
+  nationality   String?
+  photoUrl      String?
+  preferredFoot String?
+  position      String?
+  currentTeamId String?
+  currentTeam   Team?    @relation(fields: [currentTeamId], references: [id])
+  squads        TeamSquad[]
+  transfers     Transfer[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([currentTeamId])
+}
+
+model TeamSquad {
+  id       String @id @default(cuid())
+  teamId   String
+  seasonId String
+  playerId String
+  role     String?
+  shirtNo  Int?
+
+  team   Team   @relation(fields: [teamId], references: [id])
+  season Season @relation(fields: [seasonId], references: [id])
+  player Player @relation(fields: [playerId], references: [id])
+
+  @@unique([teamId, seasonId, playerId])
+  @@index([teamId, seasonId])
+}
+
+model Match {
+  id            String       @id @default(cuid())
+  providerKey   String?      @unique
+  seasonId      String?
+  season        Season?      @relation(fields: [seasonId], references: [id])
+  competitionId String?
+  competition   Competition? @relation(fields: [competitionId], references: [id])
+
+  kickoff    DateTime
+  status     MatchStatus @default(SCHEDULED)
+  homeTeamId String
+  awayTeamId String
+  homeTeam   Team @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam   Team @relation("AwayTeam", fields: [awayTeamId], references: [id])
+
+  homeScore Int? @default(0)
+  awayScore Int? @default(0)
+
+  venue     String?
+  statsJson Json?
+
+  events  MatchEvent[]
+  lineups MatchLineup[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([kickoff])
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+}
+
+model MatchEvent {
+  id       String  @id @default(cuid())
+  matchId  String
+  minute   Int?
+  type     String
+  teamId   String?
+  playerId String?
+  assistId String?
+  metaJson Json?
+
+  match  Match  @relation(fields: [matchId], references: [id])
+  team   Team?  @relation(fields: [teamId], references: [id])
+  player Player? @relation(fields: [playerId], references: [id])
+
+  @@index([matchId])
+}
+
+model MatchLineup {
+  id         String @id @default(cuid())
+  matchId    String
+  teamId     String
+  playerId   String
+  isStarting Boolean @default(false)
+  inMin      Int?
+  outMin     Int?
+  rating     Float?
+  cardsJson  Json?
+  g_aJson    Json?
+
+  match  Match  @relation(fields: [matchId], references: [id])
+  team   Team   @relation(fields: [teamId], references: [id])
+  player Player @relation(fields: [playerId], references: [id])
+
+  @@index([matchId, teamId])
+  @@index([playerId])
+}
+
+model StandingRow {
+  id            String   @id @default(cuid())
+  competitionId String
+  seasonId      String?
+  teamId        String
+  position      Int
+  played        Int
+  won           Int
+  drawn         Int
+  lost          Int
+  goalsFor      Int
+  goalsAgainst  Int
+  goalDiff      Int
+  points        Int
+  form          String?
+
+  competition Competition @relation(fields: [competitionId], references: [id])
+  season      Season?     @relation(fields: [seasonId], references: [id])
+  team        Team        @relation(fields: [teamId], references: [id])
+
+  @@index([competitionId, seasonId])
+}
+
+enum NewsScope {
+  LATEST
+  TRANSFERS
+  LEAGUE
+}
+
+model NewsItem {
+  id            String     @id @default(cuid())
+  scope         NewsScope
+  title         String
+  summary       String?
+  source        String?
+  url           String?
+  imageUrl      String?
+  publishedAt   DateTime   @default(now())
+  competitionId String?
+  teamId        String?
+  playerId      String?
+
+  competition Competition? @relation(fields: [competitionId], references: [id])
+  team        Team?        @relation(fields: [teamId], references: [id])
+  player      Player?      @relation(fields: [playerId], references: [id])
+
+  @@index([publishedAt, scope])
+  @@index([scope])
+  @@index([competitionId])
+  @@index([teamId])
+}
+
+model Transfer {
+  id         String   @id @default(cuid())
+  playerId   String
+  fromTeamId String?
+  toTeamId   String?
+  type       String
+  fee        String?
+  date       DateTime?
+  metaJson   Json?
+
+  player   Player @relation(fields: [playerId], references: [id])
+  fromTeam Team?  @relation("TransferFrom", fields: [fromTeamId], references: [id])
+  toTeam   Team?  @relation("TransferTo", fields: [toTeamId], references: [id])
+
+  @@index([playerId])
+}
+
+model Trophy {
+  id            String   @id @default(cuid())
+  teamId        String
+  competitionId String?
+  seasonLabel   String?
+  count         Int @default(1)
+
+  team        Team         @relation(fields: [teamId], references: [id])
+  competition Competition? @relation(fields: [competitionId], references: [id])
+
+  @@index([teamId])
+}
+
+model TeamNewsItem {
+  id          String   @id @default(cuid())
+  teamId      String
+  title       String
+  source      String?
+  url         String?
+  imageUrl    String?
+  publishedAt DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id])
+
+  @@index([teamId, publishedAt])
+}
+
+model Follow {
+  id          String          @id @default(cuid())
+  userId      String
+  entityType  FollowEntityType
+  entityId    String
+  createdAt   DateTime        @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, entityType, entityId])
+  @@index([userId])
+}
+
+model NotificationPref {
+  id         String  @id @default(cuid())
+  userId     String
+  teamId     String?
+  matchStart Boolean @default(true)
+  goals      Boolean @default(true)
+  redCards   Boolean @default(true)
+  finalScore Boolean @default(true)
+  transfers  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  team Team? @relation(fields: [teamId], references: [id])
+
+  @@unique([userId, teamId])
+}
+
+model PushSubscription {
+  id        String @id @default(cuid())
+  userId    String
+  endpoint  String @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }

@@ -33,12 +33,15 @@ export function Sidebar() {
   const notifications = userStore((s) => s.notifications)
   const unreadCount = userStore(selectUnreadNotificationCount)
   const markAllNotificationsRead = userStore((s) => s.markAllNotificationsRead)
+  const markNotificationRead = userStore((s) => s.markNotificationRead)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const { isOpen, toggle } = useSidebarState()
 
   const links = [
     { href: '/feed', label: 'Feed', icon: Home },
     { href: '/discovery', label: 'Discovery', icon: Compass },
+    { href: '/competitions', label: 'Competitions', icon: Search },
+    { href: '/news', label: 'News', icon: Zap },
     { href: '/matches', label: 'Live Matches', icon: Zap },
     { href: '/chat', label: 'Chat Rooms', icon: MessageCircle },
     { href: '/ai', label: 'FootballGPT', icon: Sparkles },
@@ -294,6 +297,7 @@ export function Sidebar() {
         onClose={() => setDrawerOpen(false)}
         notifications={notifications}
         onMarkAllRead={markAllNotificationsRead}
+        onMarkRead={markNotificationRead}
       />
     </aside>
   )

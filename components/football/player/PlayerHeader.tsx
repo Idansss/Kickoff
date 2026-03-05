@@ -1,0 +1,125 @@
+'use client'
+
+import Link from 'next/link'
+import { FollowButton } from '@/components/common/FollowButton'
+
+interface PlayerHeaderProps {
+  player: {
+    id: string
+    name: string
+    photoUrl?: string | null
+    age?: number | null
+    dob?: string | null
+    nationality?: string | null
+    preferredFoot?: string | null
+    position?: string | null
+    currentTeam?: {
+      id: string
+      name: string
+      badgeUrl?: string | null
+    } | null
+  }
+  transferStatus?: {
+    type: string
+    isOnLoan: boolean
+    loanFromTeam?: { id: string; name: string } | null
+  }
+  value?: string | number | null
+  recentForm?: {
+    avgRating: number
+    matches: number
+  } | null
+}
+
+export function PlayerHeader({ player, transferStatus, value, recentForm }: PlayerHeaderProps) {
+  return (
+    <section className="flex flex-col gap-4 rounded-xl border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center gap-4">
+        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border bg-background">
+          {player.photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={player.photoUrl}
+              alt={player.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <span className="text-xl font-bold">{player.name.charAt(0)}</span>
+          )}
+        </div>
+        <div>
+          <h1 className="text-xl font-semibold">{player.name}</h1>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {player.position && <span>{player.position}</span>}
+            {player.nationality && (
+              <>
+                {player.position && <span className="mx-1.5">·</span>}
+                <span>{player.nationality}</span>
+              </>
+            )}
+            {player.age != null && (
+              <>
+                {(player.position || player.nationality) && <span className="mx-1.5">·</span>}
+                <span>{player.age} years</span>
+              </>
+            )}
+          </div>
+          {player.currentTeam && (
+            <div className="mt-1 text-xs">
+              <span className="text-muted-foreground">Club: </span>
+              <Link href={`/club/${player.currentTeam.id}`} className="font-medium hover:underline">
+                {player.currentTeam.name}
+              </Link>
+            </div>
+          )}
+          {player.preferredFoot && (
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Preferred foot: {player.preferredFoot}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col items-stretch gap-3 text-xs sm:flex-row sm:items-start sm:justify-end">
+        <div className="flex flex-col items-start gap-3 sm:items-end">
+          <div>
+            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Contract
+            </p>
+            <div className="rounded-full border bg-background px-2 py-1">
+              {transferStatus?.isOnLoan
+                ? `On loan from ${transferStatus.loanFromTeam?.name ?? 'unknown'}`
+                : 'Permanent'}
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Market value
+            </p>
+            <div className="rounded-full border bg-background px-2 py-1">
+              {value ?? '—'}
+            </div>
+          </div>
+
+          {recentForm && (
+            <div>
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Recent form
+              </p>
+              <div className="rounded-full border bg-background px-2 py-1">
+                Avg rating {recentForm.avgRating} over {recentForm.matches} match
+                {recentForm.matches === 1 ? '' : 'es'}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-start sm:self-center">
+          <FollowButton entityType="PLAYER" entityId={player.id} size="md" />
+        </div>
+      </div>
+    </section>
+  )
+}
+

@@ -1,10 +1,14 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useTheme } from 'next-themes';
 import { getCursorOffset, setCursorOffset } from '@/lib/contentEditable';
 import { toRichHtml } from '@/lib/richComposerHtml';
 import { useComposerTokens } from '@/hooks/useComposerTokens';
 import { HASHTAGS, MENTIONABLE_USERS, MENTIONABLE_CLUBS } from '@/data/composerSuggestions';
+import { useSearchSuggestions } from '@/hooks/useSearchSuggestions';
+import { highlightMatch } from '@/lib/highlightMatch';
+import { PostToolbar } from '@/components/composer/PostToolbar';
 
 // ─────────────────────────────────────────────────────────────
 // DESIGN TOKENS
@@ -91,6 +95,13 @@ const GLOBAL_CSS = `
   /* Hide scrollbar for trending strip */
   .nc-trend-strip::-webkit-scrollbar { display: none; }
   .nc-trend-strip { scrollbar-width: none; -ms-overflow-style: none; }
+
+  /* Hide scrollbars for right sidebar + inner scroll regions */
+  .nc-right-sidebar::-webkit-scrollbar { display: none; }
+  .nc-right-sidebar { scrollbar-width: none; -ms-overflow-style: none; }
+
+  .nc-right-scroll::-webkit-scrollbar { display: none; }
+  .nc-right-scroll { scrollbar-width: none; -ms-overflow-style: none; }
 `;
 
 function useGlobalStyles() {
@@ -106,13 +117,15 @@ function useGlobalStyles() {
 // ─────────────────────────────────────────────────────────────
 // SHARED PRIMITIVES
 // ─────────────────────────────────────────────────────────────
-function GlassCard({ children, style, accentLeft }) {
+function GlassCard({ children, style, accentLeft, palette }) {
+  const cardBg = palette?.cardBg ?? '#111111';
+  const cardBorder = palette?.cardBorder ?? '#222222';
   return (
     <div
       className="nc-right-card"
       style={{
-        background: '#111111',
-        border: '1px solid #222222',
+        background: cardBg,
+        border: `1px solid ${cardBorder}`,
         borderLeft: accentLeft ? `3px solid ${T.accent}` : undefined,
         borderRadius: '14px',
         boxShadow: T.shadowCard,
@@ -125,7 +138,7 @@ function GlassCard({ children, style, accentLeft }) {
   );
 }
 
-function CardSectionHeader({ icon, label }) {
+function CardSectionHeader({ icon, label, color }) {
   return (
     <div
       style={{
@@ -133,7 +146,7 @@ function CardSectionHeader({ icon, label }) {
         fontWeight: 700,
         letterSpacing: '1px',
         textTransform: 'uppercase',
-        color: '#ffffff',
+        color: color ?? '#ffffff',
         marginBottom: '10px',
         fontFamily: 'Inter, sans-serif',
       }}
@@ -432,11 +445,110 @@ export function RightSidebar({
   onClickFixture,
 }) {
   useGlobalStyles();
+  const { theme, systemTheme } = useTheme();
+  const resolvedTheme = theme === 'system' ? systemTheme : theme;
+  const isLight = resolvedTheme === 'light';
+
+  const palette = {
+    sidebarBg: isLight ? '#ffffff' : '#000000',
+    sidebarBorder: isLight ? '#e5e7eb' : '#1a1a1a',
+    cardBg: isLight ? '#f9f9f9' : '#111111',
+    cardBorder: isLight ? '#e5e7eb' : '#222222',
+    header: isLight ? '#0f0f0f' : '#ffffff',
+    primary: isLight ? '#111111' : '#f2f2f2',
+    secondary: isLight ? '#6b7280' : '#555555',
+    rank: isLight ? '#9ca3af' : '#333333',
+    searchBg: isLight ? '#f3f4f6' : '#111111',
+    searchBorder: isLight ? '#e5e7eb' : '#222222',
+    searchText: isLight ? '#0f0f0f' : '#f2f2f2',
+    rowHover: isLight ? '#f3f4f6' : '#1a1a1a',
+    separator: isLight ? '#e5e7eb' : '#1a1a1a',
+  };
+
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const containerRef = useRef(null);
+  const suggestions = useSearchSuggestions(query);
+  const hasQuery = query.trim().length >= 1;
+  const showDropdown = focused && hasQuery;
+
   const liveMatches = liveMatchesProp ?? LIVE_MATCHES;
   const trendingList = trendingListProp ?? TRENDING_LIST.map((t, i) => ({ ...t, rank: i + 1 }));
   const fixtures = fixturesProp ?? FIXTURES;
+
+  const flatItems = useMemo(() => {
+    if (!hasQuery) return [];
+    const items = [];
+    suggestions.players.slice(0, 3).forEach((p) => items.push({ type: 'player', data: p }));
+    suggestions.clubs.slice(0, 3).forEach((c) => items.push({ type: 'club', data: c }));
+    suggestions.hashtags.slice(0, 3).forEach((h) => items.push({ type: 'hashtag', data: h }));
+    if (hasQuery) items.push({ type: 'searchAll', data: query.trim() });
+    return items;
+  }, [hasQuery, suggestions.players, suggestions.clubs, suggestions.hashtags, query]);
+
+  useEffect(() => {
+    if (!showDropdown) return;
+    if (highlightedIndex >= flatItems.length) {
+      setHighlightedIndex(flatItems.length > 0 ? flatItems.length - 1 : 0);
+    }
+  }, [showDropdown, flatItems.length, highlightedIndex]);
+
+  useEffect(() => {
+    if (!showDropdown) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setFocused(false);
+        return;
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setHighlightedIndex((i) => (i < flatItems.length - 1 ? i + 1 : i));
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setHighlightedIndex((i) => (i > 0 ? i - 1 : 0));
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!flatItems.length) {
+          if (hasQuery && typeof onSearchSubmit === 'function') {
+            onSearchSubmit(query.trim());
+          }
+          setFocused(false);
+          return;
+        }
+        const item = flatItems[Math.max(0, Math.min(highlightedIndex, flatItems.length - 1))];
+        if (item && typeof onSearchSubmit === 'function') {
+          const q =
+            item.type === 'player'
+              ? item.data.name
+              : item.type === 'club'
+              ? item.data.name
+              : item.type === 'hashtag'
+              ? item.data.replace(/^#/, '')
+              : item.data;
+          onSearchSubmit(String(q));
+        }
+        setFocused(false);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [showDropdown, flatItems, highlightedIndex, hasQuery, query, onSearchSubmit]);
+
+  useEffect(() => {
+    if (!showDropdown) return;
+    const onMouseDown = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, [showDropdown]);
 
   const handleSearchKeyDown = (e) => {
     if (e.key === 'Enter' && typeof onSearchSubmit === 'function') {
@@ -447,6 +559,7 @@ export function RightSidebar({
   return (
     <aside
       className="nc-right-sidebar"
+      ref={containerRef}
       style={{
         width: '280px',
         flexShrink: 0,
@@ -455,40 +568,46 @@ export function RightSidebar({
         gap: '10px',
         padding: '12px 0 12px 12px',
         fontFamily: 'Inter, sans-serif',
-        background: '#000000',
-        borderLeft: '1px solid #1a1a1a',
+        background: palette.sidebarBg,
+        borderLeft: `1px solid ${palette.sidebarBorder}`,
         overflowY: 'auto',
+        height: '100vh',
+        position: 'sticky',
+        top: 0,
       }}
     >
       {/* ── Search ── */}
       <div style={{ position: 'relative' }}>
-        <span style={{
-          position: 'absolute',
-          left: '12px',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          color: '#666666',
-          fontSize: '14px',
-          pointerEvents: 'none',
-          zIndex: 1,
-        }}>🔍</span>
+        <span
+          style={{
+            position: 'absolute',
+            left: '12px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: palette.secondary,
+            fontSize: '14px',
+            pointerEvents: 'none',
+            zIndex: 1,
+          }}
+        >
+          🔍
+        </span>
         <input
           className="nc-right-search"
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={handleSearchKeyDown}
           onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
           placeholder="Search KICKOFF..."
           style={{
             width: '100%',
-            background: '#111111',
-            border: focused ? '1px solid #16a34a' : '1px solid #222222',
+            background: palette.searchBg,
+            border: focused ? '1px solid #16a34a' : `1px solid ${palette.searchBorder}`,
             borderRadius: '12px',
             padding: '10px 12px 10px 38px',
             fontSize: '13px',
             fontFamily: 'Inter, sans-serif',
-            color: '#f2f2f2',
+            color: palette.searchText,
             outline: 'none',
             boxShadow: focused
               ? '0 0 0 2px rgba(22,163,74,0.15)'
@@ -496,10 +615,286 @@ export function RightSidebar({
             transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
           }}
         />
+
+        {showDropdown && (
+          <div
+            className="nc-right-search-menu"
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              marginTop: 6,
+              borderRadius: 12,
+              border: `1px solid ${palette.sidebarBorder}`,
+              background: isLight ? 'rgba(255,255,255,0.96)' : 'rgba(17,17,17,0.98)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+              overflow: 'hidden',
+              zIndex: 40,
+            }}
+          >
+            <div
+              style={{
+                maxHeight: 320,
+                overflowY: 'auto',
+              }}
+            >
+              {(!suggestions.hasResults && !suggestions.isLoading) && (
+                <div
+                  style={{
+                    padding: '12px 14px',
+                    fontSize: 13,
+                    color: palette.secondary,
+                  }}
+                >
+                  ⚽ No quick results for '{query.trim()}'
+                </div>
+              )}
+
+              {suggestions.players.slice(0, 3).map((p, idx) => {
+                const globalIndex = flatItems.findIndex(
+                  (x) => x.type === 'player' && x.data.id === p.id
+                );
+                const isHighlighted = globalIndex === highlightedIndex;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      width: '100%',
+                      padding: '8px 12px',
+                      gap: 8,
+                      background: isHighlighted ? 'rgba(22,163,74,0.08)' : 'transparent',
+                      border: 'none',
+                      borderLeft: isHighlighted ? '3px solid #16a34a' : '3px solid transparent',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={() => setHighlightedIndex(globalIndex)}
+                    onClick={() => {
+                      if (typeof onSearchSubmit === 'function') {
+                        onSearchSubmit(p.name);
+                      }
+                      setFocused(false);
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: '50%',
+                        background: '#16a34a',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 12,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {p.name.charAt(0)}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: palette.primary,
+                        }}
+                      >
+                        {highlightMatch(p.name, query)}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          color: palette.secondary,
+                        }}
+                      >
+                        {p.club}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+
+              {suggestions.clubs.slice(0, 3).map((c) => {
+                const globalIndex = flatItems.findIndex(
+                  (x) => x.type === 'club' && x.data.id === c.id
+                );
+                const isHighlighted = globalIndex === highlightedIndex;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      width: '100%',
+                      padding: '8px 12px',
+                      gap: 8,
+                      background: isHighlighted ? 'rgba(22,163,74,0.08)' : 'transparent',
+                      border: 'none',
+                      borderLeft: isHighlighted ? '3px solid #16a34a' : '3px solid transparent',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={() => setHighlightedIndex(globalIndex)}
+                    onClick={() => {
+                      if (typeof onSearchSubmit === 'function') {
+                        onSearchSubmit(c.name);
+                      }
+                      setFocused(false);
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 6,
+                        background: c.color,
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 12,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {c.name.charAt(0)}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: palette.primary,
+                        }}
+                      >
+                        {highlightMatch(c.name, query)}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          color: palette.secondary,
+                        }}
+                      >
+                        {c.league}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+
+              {suggestions.hashtags.slice(0, 3).map((tag) => {
+                const globalIndex = flatItems.findIndex(
+                  (x) => x.type === 'hashtag' && x.data === tag
+                );
+                const isHighlighted = globalIndex === highlightedIndex;
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      width: '100%',
+                      padding: '8px 12px',
+                      gap: 8,
+                      background: isHighlighted ? 'rgba(22,163,74,0.08)' : 'transparent',
+                      border: 'none',
+                      borderLeft: isHighlighted ? '3px solid #16a34a' : '3px solid transparent',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={() => setHighlightedIndex(globalIndex)}
+                    onClick={() => {
+                      const clean = tag.replace(/^#/, '');
+                      if (typeof onSearchSubmit === 'function') {
+                        onSearchSubmit(clean);
+                      }
+                      setFocused(false);
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: '50%',
+                        background: '#16a34a',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 14,
+                        fontWeight: 700,
+                      }}
+                    >
+                      #
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: '#16a34a',
+                        }}
+                      >
+                        {highlightMatch(tag, query)}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+
+              {hasQuery && (
+                <div
+                  style={{
+                    borderTop: `1px solid ${palette.separator}`,
+                  }}
+                >
+                  <button
+                    type="button"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      width: '100%',
+                      padding: '9px 12px',
+                      gap: 6,
+                      border: 'none',
+                      background:
+                        highlightedIndex === flatItems.length - 1
+                          ? 'rgba(22,163,74,0.08)'
+                          : 'transparent',
+                      borderLeft:
+                        highlightedIndex === flatItems.length - 1
+                          ? '3px solid #16a34a'
+                          : '3px solid transparent',
+                      cursor: 'pointer',
+                      fontSize: 13,
+                      color: '#16a34a',
+                      fontWeight: 600,
+                      textAlign: 'left',
+                    }}
+                    onMouseEnter={() => setHighlightedIndex(flatItems.length - 1)}
+                    onClick={() => {
+                      if (typeof onSearchSubmit === 'function') {
+                        onSearchSubmit(query.trim());
+                      }
+                      setFocused(false);
+                    }}
+                  >
+                    🔍 Search all results for '{query.trim()}' →
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Live Now ── */}
-      <GlassCard accentLeft>
+      <GlassCard accentLeft palette={palette}>
         <div style={{ padding: '12px' }}>
           <div
             onClick={typeof onClickLiveHeader === 'function' ? () => onClickLiveHeader() : undefined}
@@ -509,18 +904,25 @@ export function RightSidebar({
           >
             <CardSectionHeader icon="⚽" label="LIVE NOW" />
           </div>
-          {liveMatches.slice(0, 3).map((m, i) => (
-            <div key={m.id ?? i}>
-              {i > 0 && (
+          <div
+            className="nc-right-scroll"
+            style={{
+              maxHeight: 220,
+              overflowY: 'auto',
+            }}
+          >
+            {liveMatches.slice(0, 3).map((m, i) => (
+              <div key={m.id ?? i}>
+                {i > 0 && (
+                  <div
+                    style={{
+                      height: '1px',
+                      background: palette.separator,
+                      margin: '10px 0',
+                    }}
+                  />
+                )}
                 <div
-                  style={{
-                    height: '1px',
-                    background: '#1a1a1a',
-                    margin: '10px 0',
-                  }}
-                />
-              )}
-              <div
                 onClick={
                   typeof onClickLiveMatch === 'function' && m.id
                     ? () => onClickLiveMatch(m.id)
@@ -551,13 +953,13 @@ export function RightSidebar({
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = '#1a1a1a';
                 }}
-              >
-                <div style={{ flex: 1, minWidth: 0 }}>
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
                   <div
                     style={{
                       fontSize: '14px',
                       fontWeight: 800,
-                      color: '#ffffff',
+                      color: palette.primary,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -572,14 +974,14 @@ export function RightSidebar({
                   <div
                     style={{
                       fontSize: '11px',
-                      color: '#555555',
+                      color: palette.secondary,
                       marginTop: '2px',
                     }}
                   >
                     {m.viewers ?? '—'} watching
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                   <span style={{
                     width: '6px', height: '6px', borderRadius: '50%',
                     background: '#ef4444', display: 'inline-block',
@@ -594,10 +996,11 @@ export function RightSidebar({
                   >
                     {m.min}'
                   </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
           <div
             style={{
               marginTop: '10px',
@@ -622,7 +1025,7 @@ export function RightSidebar({
       </GlassCard>
 
       {/* ── Trending ── */}
-      <GlassCard>
+      <GlassCard palette={palette}>
         <div style={{ padding: '12px' }}>
           <div
             onClick={
@@ -634,96 +1037,104 @@ export function RightSidebar({
               cursor: onClickTrendingHeader ? 'pointer' : 'default',
             }}
           >
-            <CardSectionHeader icon="🔥" label="TRENDING" />
+            <CardSectionHeader icon="🔥" label="TRENDING" color={palette.header} />
           </div>
-          {trendingList.slice(0, 6).map((t, i) => (
-            <div
-              key={t.rank ?? i}
-              className="nc-trend-row"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '8px 10px',
-                margin: '0 -10px',
-                borderRadius: '8px',
-                cursor: onClickTrendingTag ? 'pointer' : 'default',
-                transition: 'background 0.15s ease, transform 0.05s ease',
-                borderBottom: '1px solid #1a1a1a',
-              }}
-              onClick={
-                typeof onClickTrendingTag === 'function'
-                  ? () => onClickTrendingTag(t.tag)
-                  : undefined
-              }
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#1a1a1a';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.transform = 'scale(1)';
-                const arrow = e.currentTarget.querySelector('.nc-trend-arrow');
-                if (arrow) {
-                  arrow.style.color = '#333333';
-                }
-              }}
-              onMouseDown={(e) => {
-                e.currentTarget.style.background = '#222222';
-                e.currentTarget.style.transform = 'scale(0.99)';
-              }}
-              onMouseUp={(e) => {
-                e.currentTarget.style.background = '#1a1a1a';
-                e.currentTarget.style.transform = 'scale(1)';
-                const arrow = e.currentTarget.querySelector('.nc-trend-arrow');
-                if (arrow) {
-                  arrow.style.color = '#16a34a';
-                }
-              }}
-            >
-              <span
+          <div
+            className="nc-right-scroll"
+            style={{
+              maxHeight: 320,
+              overflowY: 'auto',
+            }}
+          >
+            {trendingList.slice(0, 6).map((t, i) => (
+              <div
+                key={t.rank ?? i}
+                className="nc-trend-row"
                 style={{
-                  fontSize: '12px',
-                  color: '#333333',
-                  width: '18px',
-                  textAlign: 'right',
-                  flexShrink: 0,
-                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '8px 10px',
+                  margin: '0 -10px',
+                  borderRadius: '8px',
+                  cursor: onClickTrendingTag ? 'pointer' : 'default',
+                  transition: 'background 0.15s ease, transform 0.05s ease',
+                  borderBottom: `1px solid ${palette.separator}`,
+                }}
+                onClick={
+                  typeof onClickTrendingTag === 'function'
+                    ? () => onClickTrendingTag(t.tag)
+                    : undefined
+                }
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = palette.rowHover;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.transform = 'scale(1)';
+                  const arrow = e.currentTarget.querySelector('.nc-trend-arrow');
+                  if (arrow) {
+                    arrow.style.color = palette.rank;
+                  }
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.background = palette.rowHover;
+                  e.currentTarget.style.transform = 'scale(0.99)';
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.background = palette.rowHover;
+                  e.currentTarget.style.transform = 'scale(1)';
+                  const arrow = e.currentTarget.querySelector('.nc-trend-arrow');
+                  if (arrow) {
+                    arrow.style.color = '#16a34a';
+                  }
                 }}
               >
-                #{t.rank ?? i + 1}
-              </span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: '14px',
-                    fontWeight: 700,
-                    color: '#f2f2f2',
-                  }}
-                >
-                  {t.tag}
-                </div>
-                <div
+                <span
                   style={{
                     fontSize: '12px',
-                    color: '#555555',
-                    marginTop: '1px',
+                    color: palette.rank,
+                    width: '18px',
+                    textAlign: 'right',
+                    flexShrink: 0,
+                    fontWeight: 700,
                   }}
                 >
-                  {typeof t.count === 'number' ? t.count : t.count} posts
+                  #{t.rank ?? i + 1}
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: '14px',
+                      fontWeight: 700,
+                      color: palette.primary,
+                    }}
+                  >
+                    {t.tag}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '12px',
+                      color: palette.secondary,
+                      marginTop: '1px',
+                    }}
+                  >
+                    {typeof t.count === 'number' ? t.count : t.count} posts
+                  </div>
                 </div>
+                <span
+                  className="nc-trend-arrow"
+                  style={{
+                    color: palette.rank,
+                    fontSize: '16px',
+                    lineHeight: 1,
+                  }}
+                >
+                  ›
+                </span>
               </div>
-              <span
-                className="nc-trend-arrow"
-                style={{
-                  color: '#333333',
-                  fontSize: '16px',
-                  lineHeight: 1,
-                }}
-              >
-                ›
-              </span>
-            </div>
-          ))}
+            ))}
+          </div>
           <div
             style={{
               marginTop: '8px',
@@ -756,7 +1167,7 @@ export function RightSidebar({
       </GlassCard>
 
       {/* ── Today's Fixtures ── */}
-      <GlassCard>
+      <GlassCard palette={palette}>
         <div style={{ padding: '12px' }}>
           <div
             onClick={
@@ -768,74 +1179,91 @@ export function RightSidebar({
               cursor: onClickFixturesHeader ? 'pointer' : 'default',
             }}
           >
-            <CardSectionHeader icon="📅" label="TODAY'S FIXTURES" />
+            <CardSectionHeader icon="📅" label="TODAY'S FIXTURES" color={palette.header} />
           </div>
-          {fixtures.slice(0, 4).map((f, i) => (
-            <div
-              key={f.id ?? i}
-              className="nc-fixture-row"
-              style={{
-                padding: '8px 10px',
-                cursor: onClickFixture ? 'pointer' : 'default',
-                borderRadius: '8px',
-                transition: 'background 0.15s ease, transform 0.05s ease',
-                borderBottom: '1px solid #1a1a1a',
-              }}
-              onClick={
-                typeof onClickFixture === 'function' && f.id
-                  ? () => onClickFixture(f.id)
-                  : undefined
-              }
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#1a1a1a';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-              onMouseDown={(e) => {
-                e.currentTarget.style.background = '#222222';
-                e.currentTarget.style.transform = 'scale(0.99)';
-              }}
-              onMouseUp={(e) => {
-                e.currentTarget.style.background = '#1a1a1a';
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-            >
+          <div
+            className="nc-right-scroll"
+            style={{
+              maxHeight: 250,
+              overflowY: 'auto',
+            }}
+          >
+            {fixtures.slice(0, 4).map((f, i) => (
               <div
+                key={f.id ?? i}
+                className="nc-fixture-row"
                 style={{
-                  fontSize: '11px',
-                  color: '#555555',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
+                  padding: '8px 10px',
+                  cursor: onClickFixture ? 'pointer' : 'default',
+                  borderRadius: '8px',
+                  transition: 'background 0.15s ease, transform 0.05s ease',
+                  borderBottom: `1px solid ${palette.separator}`,
+                }}
+                onClick={
+                  typeof onClickFixture === 'function' && f.id
+                    ? () => onClickFixture(f.id)
+                    : undefined
+                }
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = palette.rowHover;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.background = palette.rowHover;
+                  e.currentTarget.style.transform = 'scale(0.99)';
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.background = palette.rowHover;
+                  e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
-                {f.comp}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '3px' }}>
-                <span
+                <div
                   style={{
-                    fontSize: '13px',
+                    fontSize: '11px',
+                    color: palette.secondary,
                     fontWeight: 600,
-                    color: '#d4d4d4',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
                   }}
                 >
-                  {f.home} <span style={{ color: '#333333', fontSize: '11px' }}>vs</span> {f.away}
-                </span>
-                <span
+                  {f.comp}
+                </div>
+                <div
                   style={{
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    color: '#16a34a',
-                    fontFamily: 'Sora, sans-serif',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginTop: '3px',
                   }}
                 >
-                  {f.time}
-                </span>
+                  <span
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      color: palette.primary,
+                    }}
+                  >
+                    {f.home}{' '}
+                    <span style={{ color: palette.secondary, fontSize: '11px' }}>vs</span>{' '}
+                    {f.away}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: '#16a34a',
+                      fontFamily: 'Sora, sans-serif',
+                    }}
+                  >
+                    {f.time}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </GlassCard>
     </aside>
@@ -1038,6 +1466,9 @@ export function PostComposerModal({ isOpen, onClose, onPost }) {
   const [tags, setTags] = useState(['General']);
   const [images, setImages] = useState([]);
   const [imageUrls, setImageUrls] = useState([]);
+  const [showPoll, setShowPoll] = useState(false);
+  const [pollA, setPollA] = useState('');
+  const [pollB, setPollB] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(true);
   const editableRef = useRef(null);
@@ -1056,6 +1487,9 @@ export function PostComposerModal({ isOpen, onClose, onPost }) {
       imageUrls.forEach((u) => URL.revokeObjectURL(u));
       setImages([]);
       setImageUrls([]);
+      setShowPoll(false);
+      setPollA('');
+      setPollB('');
     }
   }, [isOpen]);
 
@@ -1142,7 +1576,16 @@ export function PostComposerModal({ isOpen, onClose, onPost }) {
 
   const submit = () => {
     if (!canPost) return;
-    onPost?.({ text: plainText.trim(), tags, images: imageUrls });
+    const poll = showPoll && pollA && pollB ? {
+      question: 'Poll',
+      options: [
+        { id: 'opt1', text: pollA.trim(), votes: 0 },
+        { id: 'opt2', text: pollB.trim(), votes: 0 },
+      ],
+      totalVotes: 0,
+      endsAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    } : undefined;
+    onPost?.({ text: plainText.trim(), tags, images: imageUrls, poll });
     onClose?.();
   };
 
@@ -1384,6 +1827,13 @@ export function PostComposerModal({ isOpen, onClose, onPost }) {
             </div>
           )}
 
+          {showPoll && (
+            <div style={{ marginTop: 12, paddingLeft: 52, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <input value={pollA} onChange={e => setPollA(e.target.value)} placeholder="Option A" style={{ width: '100%', background: 'rgba(255,255,255,0.65)', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 10, padding: '9px 12px', fontSize: 13, fontFamily: 'Inter, sans-serif' }} />
+              <input value={pollB} onChange={e => setPollB(e.target.value)} placeholder="Option B" style={{ width: '100%', background: 'rgba(255,255,255,0.65)', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 10, padding: '9px 12px', fontSize: 13, fontFamily: 'Inter, sans-serif' }} />
+            </div>
+          )}
+
           {/* Tag pills */}
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '14px', paddingLeft: '52px' }}>
             {COMPOSER_TAGS.map(tag => {
@@ -1416,92 +1866,21 @@ export function PostComposerModal({ isOpen, onClose, onPost }) {
           padding: '12px 20px',
           borderTop: '1px solid rgba(0,0,0,0.06)',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-            <button
-              type="button"
-              disabled={atMaxImages}
-              title={atMaxImages ? 'Maximum 4 images' : 'Add photo'}
-              style={{
-                background: 'none', border: 'none', cursor: atMaxImages ? 'not-allowed' : 'pointer',
-                fontSize: '18px', padding: '7px 9px', borderRadius: '8px',
-                transition: 'background 0.15s ease', opacity: atMaxImages ? 0.5 : 1,
-                position: 'relative',
-              }}
-              onClick={() => !atMaxImages && fileInputRef.current?.click()}
-              onMouseEnter={e => { if (!atMaxImages) e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
-            >
-              📷
-              {imageCount > 0 && (
-                <span style={{ position: 'absolute', top: 2, right: 2, fontSize: 10, fontWeight: 700, color: T.accent }}>{imageCount}</span>
-              )}
-            </button>
-            <input ref={fileInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={onFileChange} />
-            <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', padding: '7px 9px', borderRadius: '8px' }} title="Add poll">📊</button>
-            <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', padding: '7px 9px', borderRadius: '8px' }} title="Add emoji">😄</button>
-            <button
-              type="button"
-              style={{ padding: '4px 10px', border: '1px solid #16a34a', color: '#16a34a', borderRadius: 999, fontSize: 13, fontWeight: 700, background: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
-              onClick={() => insertAtCursor('#')}
-            >
-              #
-            </button>
-            <button
-              type="button"
-              style={{ padding: '4px 10px', border: '1px solid #16a34a', color: '#16a34a', borderRadius: 999, fontSize: 13, fontWeight: 700, background: 'none', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
-              onClick={() => insertAtCursor('@')}
-            >
-              @
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ position: 'relative', width: '28px', height: '28px' }}>
-              <svg width="28" height="28" viewBox="0 0 28 28">
-                <circle cx="14" cy="14" r="11" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="2.5" />
-                <circle
-                  cx="14" cy="14" r="11" fill="none"
-                  stroke={overDanger ? T.danger : overWarning ? '#f59e0b' : T.accent}
-                  strokeWidth="2.5"
-                  strokeDasharray={`${Math.min(len / MAX_CHARS, 1) * 69.1} 69.1`}
-                  strokeLinecap="round"
-                  transform="rotate(-90 14 14)"
-                  style={{ transition: 'stroke-dasharray 0.1s ease, stroke 0.2s ease' }}
-                />
-              </svg>
-              {len > 240 && (
-                <span style={{
-                  position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '8px', fontWeight: 700, color: counterColor, fontFamily: 'Inter, sans-serif',
-                }}>
-                  {MAX_CHARS - len}
-                </span>
-              )}
-            </div>
-
-            <button
-              onClick={submit}
-              disabled={!canPost}
-              style={{
-                background: canPost ? T.accent : 'rgba(0,0,0,0.10)',
-                color: canPost ? 'white' : T.subtle,
-                border: 'none', borderRadius: '12px',
-                padding: '9px 22px',
-                fontSize: '14px', fontWeight: 700, fontFamily: 'Inter, sans-serif',
-                cursor: canPost ? 'pointer' : 'not-allowed',
-                transition: T.spring,
-                boxShadow: canPost ? '0 2px 12px rgba(22,163,74,0.28)' : 'none',
-              }}
-              onMouseEnter={e => {
-                if (canPost) { e.currentTarget.style.background = T.accentDark; e.currentTarget.style.boxShadow = '0 4px 16px rgba(22,163,74,0.38)'; e.currentTarget.style.transform = 'scale(1.02)'; }
-              }}
-              onMouseLeave={e => {
-                if (canPost) { e.currentTarget.style.background = T.accent; e.currentTarget.style.boxShadow = '0 2px 12px rgba(22,163,74,0.28)'; e.currentTarget.style.transform = 'scale(1)'; }
-              }}
-            >
-              Post
-            </button>
-          </div>
+          <PostToolbar
+            variant="modal"
+            maxChars={MAX_CHARS}
+            charCount={len}
+            canPost={canPost}
+            onPost={submit}
+            imageCount={imageCount}
+            onPickImages={() => !atMaxImages && fileInputRef.current?.click()}
+            onInsertHashtag={() => insertAtCursor('#')}
+            onInsertMention={() => insertAtCursor('@')}
+            onInsertEmoji={(e) => insertAtCursor(e)}
+            pollOn={showPoll}
+            onTogglePoll={() => setShowPoll(v => !v)}
+          />
+          <input ref={fileInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={onFileChange} />
         </div>
       </div>
     </div>
