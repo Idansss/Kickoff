@@ -581,13 +581,13 @@ export function FloatingPostButton({ onClick }) {
       onClick={onClick}
       onMouseDown={() => setDown(true)}
       onMouseUp={() => setDown(false)}
-      onMouseLeave={() => setDown(false)}
       onMouseEnter={e => {
         e.currentTarget.style.background = T.accentDark;
         e.currentTarget.style.boxShadow = '0 4px 20px rgba(22,163,74,0.38)';
         e.currentTarget.style.transform = down ? 'scale(0.98)' : 'scale(1.01)';
       }}
       onMouseLeave={e => {
+        setDown(false);
         e.currentTarget.style.background = T.accent;
         e.currentTarget.style.boxShadow = '0 2px 12px rgba(22,163,74,0.22)';
         e.currentTarget.style.transform = 'scale(1)';

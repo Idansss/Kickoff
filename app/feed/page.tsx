@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { AppLayout } from '@/components/app-layout'
 import { Textarea } from '@/components/ui/textarea'
@@ -19,7 +19,7 @@ type FeedTag = (typeof TAGS)[number]
 
 type FeedTab = 'foryou' | 'following'
 
-export default function FeedPage(): React.JSX.Element {
+function FeedPageInner(): React.JSX.Element {
   const posts = feedStore((s) => s.posts)
   const initPosts = feedStore((s) => s.initPosts)
   const addPost = feedStore((s) => s.addPost)
@@ -238,5 +238,13 @@ export default function FeedPage(): React.JSX.Element {
         </div>
       </div>
     </AppLayout>
+  )
+}
+
+export default function FeedPage(): React.JSX.Element {
+  return (
+    <Suspense fallback={null}>
+      <FeedPageInner />
+    </Suspense>
   )
 }
