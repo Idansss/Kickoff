@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String
+  handle    String    @unique
+  avatar    String
+  bio       String?
+  followers Int       @default(0)
+  following Int       @default(0)
+  createdAt DateTime  @default(now())
+
+  posts    Post[]
+  likes    Like[]
+  reposts  UserRepost[]
+  messages Message[]
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  content   String
+  image     String?
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  likes     Like[]
+  reposts   UserRepost[]
+  shares    Int      @default(0)
+  createdAt DateTime @default(now())
+
+  relatedMatchId  String?
+  relatedPlayerId String?
+
+  parentId  String?
+  parent    Post?    @relation("PostReplies", fields: [parentId], references: [id])
+  replyList Post[]   @relation("PostReplies")
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+model UserRepost {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  roomId    String
+  content   String
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+}

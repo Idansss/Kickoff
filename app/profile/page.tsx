@@ -1,0 +1,210 @@
+'use client'
+
+import { useMemo, useState } from 'react'
+import { AppLayout } from '@/components/app-layout'
+import { Button } from '@/components/ui/button'
+import { CalendarDays, Link2, Lock } from 'lucide-react'
+import { userStore } from '@/store/userStore'
+import { feedStore } from '@/store/feedStore'
+import { FeedPostCard } from '@/components/feed/FeedPostCard'
+import { cn } from '@/lib/utils'
+
+const LEVEL_NAMES: Record<number, string> = {
+  1: 'Grassroots',
+  2: 'Sunday League',
+  3: 'Semi-Pro',
+  4: 'Professional',
+  5: 'Legend',
+}
+
+const XP_THRESHOLDS = [0, 200, 500, 1000, 2000]
+
+type Tab = 'posts' | 'bookmarks'
+
+function formatNumber(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`
+  return n.toString()
+}
+
+function xpProgress(xp: number): { current: number; next: number; pct: number } {
+  let next = 200
+  for (let i = 0; i < XP_THRESHOLDS.length - 1; i++) {
+    if (xp < XP_THRESHOLDS[i + 1]) {
+      next = XP_THRESHOLDS[i + 1]
+      const current = XP_THRESHOLDS[i]
+      const pct = ((xp - current) / (next - current)) * 100
+      return { current, next, pct }
+    }
+  }
+  return { current: 2000, next: 2000, pct: 100 }
+}
+
+export default function ProfilePage(): React.JSX.Element {
+  const currentUser = userStore((s) => s.currentUser)
+  const posts = feedStore((s) => s.posts)
+  const bookmarks = feedStore((s) => s.bookmarks)
+  const [activeTab, setActiveTab] = useState<Tab>('posts')
+
+  const myPosts = useMemo(
+    () => posts.filter((post) => post.author.id === currentUser.id),
+    [currentUser.id, posts]
+  )
+  const tabs = useMemo<{ key: Tab; label: string; count: number }[]>(
+    () => [
+      { key: 'posts', label: 'My Posts', count: myPosts.length },
+      { key: 'bookmarks', label: 'Bookmarks', count: bookmarks.length },
+    ],
+    [bookmarks.length, myPosts.length]
+  )
+  const displayedPosts = useMemo(
+    () => (activeTab === 'posts' ? myPosts : bookmarks),
+    [activeTab, bookmarks, myPosts]
+  )
+  const progress = xpProgress(currentUser.xp)
+
+  return (
+    <AppLayout>
+      <div className="mx-auto max-w-2xl border-x border-border">
+        <div className="h-36 bg-gradient-to-br from-green-600/40 via-emerald-500/20 to-teal-500/10" />
+
+        <div className="px-4 sm:px-6 pb-0 border-b border-border">
+          <div className="flex items-end justify-between -mt-12 mb-3">
+            <div className="relative">
+              <div
+                className="h-20 w-20 rounded-full border-4 border-background flex items-center justify-center text-2xl font-bold text-white"
+                style={{ backgroundColor: currentUser.avatarColor }}
+              >
+                {currentUser.avatarInitials}
+              </div>
+              <div className="absolute bottom-0 right-0 h-5 w-5 rounded-full bg-green-500 border-2 border-background" />
+            </div>
+            <Button variant="outline" size="sm">
+              Edit Profile
+            </Button>
+          </div>
+
+          <div className="space-y-1 mb-3">
+            <h1 className="text-xl font-bold">{currentUser.name}</h1>
+            <p className="text-muted-foreground text-sm">@{currentUser.handle}</p>
+          </div>
+
+          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
+            <div className="flex items-center gap-1">
+              <CalendarDays className="h-4 w-4" />
+              <span>Joined March 2024</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Link2 className="h-4 w-4" />
+              <span className="text-green-600">kickoff.football</span>
+            </div>
+          </div>
+
+          <div className="flex gap-4 text-sm mb-2">
+            <div>
+              <span className="font-bold text-foreground">{formatNumber(currentUser.following)}</span>
+              <span className="text-muted-foreground ml-1">Following</span>
+            </div>
+            <div>
+              <span className="font-bold text-foreground">{formatNumber(currentUser.followers)}</span>
+              <span className="text-muted-foreground ml-1">Followers</span>
+            </div>
+          </div>
+
+          <div className="mb-3">
+            <div className="flex items-center justify-between text-xs mb-1">
+              <span className="font-medium text-muted-foreground">
+                {LEVEL_NAMES[currentUser.level] ?? 'Grassroots'} · {currentUser.xp} XP
+              </span>
+              <span className="text-muted-foreground">
+                {currentUser.xp < 2000 ? `${progress.next} XP to next` : 'Max'}
+              </span>
+            </div>
+            <div className="h-2 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full bg-green-500 transition-all duration-300"
+                style={{ width: `${progress.pct}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-sm mb-3">
+            <span className="text-muted-foreground">Streak:</span>
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5, 6, 7].map((day) => (
+                <div
+                  key={day}
+                  className={cn(
+                    'h-6 w-6 rounded-full flex items-center justify-center text-xs',
+                    day <= currentUser.streak ? 'bg-green-500 text-white' : 'bg-muted text-muted-foreground'
+                  )}
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <p className="text-xs font-medium text-muted-foreground mb-2">Badges</p>
+            <div className="flex flex-wrap gap-2">
+              {currentUser.badges.map((b) => (
+                <div
+                  key={b.id}
+                  className={cn(
+                    'rounded-lg border border-border p-2 flex items-center gap-2',
+                    b.earned ? 'opacity-100' : 'opacity-40'
+                  )}
+                  title={b.description}
+                >
+                  <span>{b.emoji}</span>
+                  <span className="text-xs font-medium">{b.name}</span>
+                  {!b.earned && <Lock className="h-3 w-3 text-muted-foreground" />}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex border-b -mx-4 sm:-mx-6 px-4 sm:px-6">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={cn(
+                  'flex items-center gap-1.5 px-4 py-3 text-sm font-medium border-b-2 transition-colors',
+                  activeTab === tab.key
+                    ? 'border-green-500 text-foreground'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {tab.label}
+                <span
+                  className={cn(
+                    'text-xs rounded-full px-1.5 py-0.5',
+                    activeTab === tab.key
+                      ? 'bg-green-500/15 text-green-600'
+                      : 'bg-muted text-muted-foreground'
+                  )}
+                >
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          {displayedPosts.length > 0 ? (
+            displayedPosts.map((post) => <FeedPostCard key={post.id} post={post} />)
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <div className="text-3xl">⚽</div>
+              <p className="text-sm text-muted-foreground">
+                {activeTab === 'posts' ? 'No posts yet' : 'No bookmarks yet'}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </AppLayout>
+  )
+}

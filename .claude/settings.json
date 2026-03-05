@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs wc -l)",
+      "Bash(node -e \":*)",
+      "Bash(npm install prisma @prisma/client @anthropic-ai/sdk --save)",
+      "Bash(npx prisma init --datasource-provider sqlite)",
+      "Bash(npx prisma migrate dev --name init)",
+      "Bash(npm install tsx --save-dev)",
+      "Bash(npm run db:seed)",
+      "Bash(npx prisma generate)",
+      "Bash(npm install prisma@5 @prisma/client@5 --save)",
+      "Bash(npx next build)",
+      "Bash(npx prisma migrate dev --name add-replies-and-reposts)",
+      "Bash(npx prisma migrate dev --name add-replies-and-reposts --force-reset)",
+      "Bash(npx prisma db push --force-reset)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(del \"C:\\\\Users\\\\Admin\\\\Desktop\\\\Football\\\\lib\\\\generated\\\\prisma\\\\query_engine-windows.dll.node\")",
+      "Bash(ls /c/Users/Admin/Desktop/Football/app/api/posts/[id]/)",
+      "Bash(python3 _append_feed.py)",
+      "Bash(python3 _append_chat_live.py)",
+      "Bash(python3 _append_players_more.py)",
+      "Bash(python3 _append_main.py)",
+      "Bash(python3 -c \":*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(''main:'', d.get\\(''main''\\)\\); print\\(''exports:'', d.get\\(''exports''\\)\\); print\\(''style:'', d.get\\(''style''\\)\\)\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\Admin\\Desktop\\Football\\app\\player",
+      "C:\\Users\\Admin\\.claude\\projects\\c--Users-Admin-Desktop-Football",
+      "C:\\Users\\Admin\\Desktop\\Football\\app\\api\\posts",
+      "c:\\Users\\Admin\\Desktop\\Football\\app"
+    ]
+  }
+}

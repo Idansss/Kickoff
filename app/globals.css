@@ -1,0 +1,223 @@
+@import 'tailwindcss';
+
+/* Animations (inlined to avoid tw-animate-css resolution issues when workspace root is wrong) */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease-out forwards;
+}
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Glass / KICKOFF design tokens */
+  --bg-app: #f0f0f3;
+  --bg-sidebar: #f7f7f8;
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg-elevated: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-blur: blur(20px) saturate(180%);
+  --shadow-card: 0 2px 16px rgba(0, 0, 0, 0.06);
+  --shadow-elevated: 0 8px 40px rgba(0, 0, 0, 0.1);
+  --green-glow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+  --radius-card: 16px;
+  --radius-btn: 12px;
+  --transition-spring: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Premium minimal theme: off-white background, charcoal text, emerald accents */
+  --background: oklch(0.98 0.001 200);
+  --foreground: oklch(0.15 0.001 200);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0.001 200);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.001 200);
+  --primary: oklch(0.15 0.001 200);
+  --primary-foreground: oklch(0.98 0.001 200);
+  --secondary: oklch(0.96 0.001 200);
+  --secondary-foreground: oklch(0.15 0.001 200);
+  --muted: oklch(0.88 0.001 200);
+  --muted-foreground: oklch(0.45 0.001 200);
+  --accent: oklch(0.52 0.147 142.5);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.94 0.001 200);
+  --input: oklch(0.96 0.001 200);
+  --ring: oklch(0.52 0.147 142.5);
+  --chart-1: oklch(0.52 0.147 142.5);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.5rem;
+  --sidebar: oklch(0.98 0.001 200);
+  --sidebar-foreground: oklch(0.15 0.001 200);
+  --sidebar-primary: oklch(0.52 0.147 142.5);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.96 0.001 200);
+  --sidebar-accent-foreground: oklch(0.15 0.001 200);
+  --sidebar-border: oklch(0.94 0.001 200);
+  --sidebar-ring: oklch(0.52 0.147 142.5);
+}
+
+.dark {
+  /* Dark mode: charcoal background, off-white text, emerald accents */
+  --background: oklch(0.12 0.001 200);
+  --foreground: oklch(0.96 0.001 200);
+  --card: oklch(0.16 0.001 200);
+  --card-foreground: oklch(0.96 0.001 200);
+  --popover: oklch(0.16 0.001 200);
+  --popover-foreground: oklch(0.96 0.001 200);
+  --primary: oklch(0.96 0.001 200);
+  --primary-foreground: oklch(0.12 0.001 200);
+  --secondary: oklch(0.24 0.001 200);
+  --secondary-foreground: oklch(0.96 0.001 200);
+  --muted: oklch(0.28 0.001 200);
+  --muted-foreground: oklch(0.65 0.001 200);
+  --accent: oklch(0.62 0.147 142.5);
+  --accent-foreground: oklch(0.12 0.001 200);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.96 0.001 200);
+  --border: oklch(0.24 0.001 200);
+  --input: oklch(0.24 0.001 200);
+  --ring: oklch(0.62 0.147 142.5);
+  --chart-1: oklch(0.62 0.147 142.5);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.16 0.001 200);
+  --sidebar-foreground: oklch(0.96 0.001 200);
+  --sidebar-primary: oklch(0.62 0.147 142.5);
+  --sidebar-primary-foreground: oklch(0.12 0.001 200);
+  --sidebar-accent: oklch(0.24 0.001 200);
+  --sidebar-accent-foreground: oklch(0.96 0.001 200);
+  --sidebar-border: oklch(0.24 0.001 200);
+  --sidebar-ring: oklch(0.62 0.147 142.5);
+}
+
+@theme inline {
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply text-foreground;
+    background: var(--bg-app);
+  }
+}
+
+/* NewComponents keyframes (for ShowNewPostsBar, PostComposerModal, RepostToast, menus) */
+@keyframes nc-menuIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes nc-modalIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes nc-backdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes nc-toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes nc-toastOut {
+  from { opacity: 1; transform: translateX(-50%) translateY(0); }
+  to { opacity: 0; transform: translateX(-50%) translateY(8px); }
+}
+@keyframes nc-pillIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes nc-pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+@keyframes sidebar-search-dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.sidebar-search-dropdown {
+  animation: sidebar-search-dropdown-in 0.15s ease forwards;
+}
+
+/* Post card three-dot menu: visible on hover */
+.post-card .nc-dots-btn {
+  opacity: 0;
+}
+.post-card:hover .nc-dots-btn {
+  opacity: 1;
+}
+
+/* Sidebar glass-style background */
+.sidebar-kickoff {
+  background: var(--bg-sidebar);
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Sidebar collapsed state tooltip (used if custom tooltips are re-enabled) */
+.sidebar-collapsed-tooltip {
+  background-color: #1f1f1d;
+  color: #f2f2f2;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
