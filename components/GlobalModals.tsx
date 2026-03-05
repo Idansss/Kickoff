@@ -36,6 +36,8 @@ export function GlobalModals() {
     toastStore.getState().showToast({ message: '✓ Posted!', duration: 3000 })
   }
 
+  const undoAction = activeToast?.undoAction
+
   return (
     <>
       <PostComposerModal
@@ -47,9 +49,9 @@ export function GlobalModals() {
       {activeToast && (
         <RepostToast
           onUndo={
-            activeToast.undoAction
+            undoAction
               ? () => {
-                  activeToast.undoAction()
+                  undoAction()
                   hideToast()
                   toastStore.getState().showToast({
                     message: '↩ Repost undone',
