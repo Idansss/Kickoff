@@ -133,7 +133,7 @@ export default function FeedPage(): React.JSX.Element {
 
         <div className="px-4 sm:px-6 pt-2">
           <TrendingStrip
-            onFilter={(pill) => setActiveHashtag(pill ?? null)}
+            onFilter={(pill: string | null) => setActiveHashtag(pill ?? null)}
             topics={trendingTopics.length > 0 ? trendingTopics : undefined}
           />
         </div>
