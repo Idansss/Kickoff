@@ -108,17 +108,18 @@ function useGlobalStyles() {
 // ─────────────────────────────────────────────────────────────
 function GlassCard({ children, style, accentLeft }) {
   return (
-    <div style={{
-      background: T.glass,
-      backdropFilter: 'blur(20px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-      border: `1px solid ${T.border}`,
-      borderLeft: accentLeft ? `3px solid ${T.accent}` : undefined,
-      borderRadius: '16px',
-      boxShadow: T.shadowCard,
-      overflow: 'hidden',
-      ...style,
-    }}>
+    <div
+      className="nc-right-card"
+      style={{
+        background: '#111111',
+        border: '1px solid #222222',
+        borderLeft: accentLeft ? `3px solid ${T.accent}` : undefined,
+        borderRadius: '14px',
+        boxShadow: T.shadowCard,
+        overflow: 'hidden',
+        ...style,
+      }}
+    >
       {children}
     </div>
   );
@@ -126,15 +127,17 @@ function GlassCard({ children, style, accentLeft }) {
 
 function CardSectionHeader({ icon, label }) {
   return (
-    <div style={{
-      fontSize: '11px',
-      fontWeight: 700,
-      letterSpacing: '1px',
-      textTransform: 'uppercase',
-      color: icon === '⚽' ? T.accent : T.text,
-      marginBottom: '10px',
-      fontFamily: 'Inter, sans-serif',
-    }}>
+    <div
+      style={{
+        fontSize: '11px',
+        fontWeight: 700,
+        letterSpacing: '1px',
+        textTransform: 'uppercase',
+        color: '#ffffff',
+        marginBottom: '10px',
+        fontFamily: 'Inter, sans-serif',
+      }}
+    >
       {icon} {label}
     </div>
   );
@@ -430,22 +433,35 @@ export function RightSidebar({ liveMatches: liveMatchesProp, trendingList: trend
   };
 
   return (
-    <aside style={{
-      width: '280px',
-      flexShrink: 0,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '12px',
-      padding: '16px 0 16px 16px',
-      fontFamily: 'Inter, sans-serif',
-    }}>
+    <aside
+      className="nc-right-sidebar"
+      style={{
+        width: '280px',
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        padding: '12px 0 12px 12px',
+        fontFamily: 'Inter, sans-serif',
+        background: '#000000',
+        borderLeft: '1px solid #1a1a1a',
+        overflowY: 'auto',
+      }}
+    >
       {/* ── Search ── */}
       <div style={{ position: 'relative' }}>
         <span style={{
-          position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
-          color: T.subtle, fontSize: '14px', pointerEvents: 'none', zIndex: 1,
+          position: 'absolute',
+          left: '12px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          color: '#666666',
+          fontSize: '14px',
+          pointerEvents: 'none',
+          zIndex: 1,
         }}>🔍</span>
         <input
+          className="nc-right-search"
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={handleSearchKeyDown}
@@ -454,17 +470,17 @@ export function RightSidebar({ liveMatches: liveMatchesProp, trendingList: trend
           placeholder="Search KICKOFF..."
           style={{
             width: '100%',
-            background: 'rgba(255,255,255,0.60)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            border: `1px solid ${focused ? 'rgba(22,163,74,0.45)' : 'rgba(255,255,255,0.8)'}`,
+            background: '#111111',
+            border: focused ? '1px solid #16a34a' : '1px solid #222222',
             borderRadius: '12px',
             padding: '10px 12px 10px 38px',
             fontSize: '13px',
             fontFamily: 'Inter, sans-serif',
-            color: T.text,
+            color: '#f2f2f2',
             outline: 'none',
-            boxShadow: focused ? T.glow : '0 1px 6px rgba(0,0,0,0.04)',
+            boxShadow: focused
+              ? '0 0 0 2px rgba(22,163,74,0.15)'
+              : '0 1px 4px rgba(0,0,0,0.4)',
             transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
           }}
         />
@@ -472,17 +488,54 @@ export function RightSidebar({ liveMatches: liveMatchesProp, trendingList: trend
 
       {/* ── Live Now ── */}
       <GlassCard accentLeft>
-        <div style={{ padding: '14px' }}>
+        <div style={{ padding: '12px' }}>
           <CardSectionHeader icon="⚽" label="LIVE NOW" />
           {liveMatches.slice(0, 3).map((m, i) => (
             <div key={m.id ?? i}>
-              {i > 0 && <div style={{ height: '1px', background: 'rgba(0,0,0,0.05)', margin: '8px 0' }} />}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              {i > 0 && (
+                <div
+                  style={{
+                    height: '1px',
+                    background: '#1a1a1a',
+                    margin: '10px 0',
+                  }}
+                />
+              )}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  padding: '10px 0',
+                }}
+              >
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '12px', fontWeight: 700, color: T.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {m.home} <span style={{ color: T.accent }}>{m.hs}–{m.as}</span> {m.away}
+                  <div
+                    style={{
+                      fontSize: '14px',
+                      fontWeight: 800,
+                      color: '#ffffff',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {m.home}{' '}
+                    <span style={{ color: '#ffffff' }}>
+                      {m.hs}–{m.as}
+                    </span>{' '}
+                    {m.away}
                   </div>
-                  <div style={{ fontSize: '11px', color: T.subtle, marginTop: '2px' }}>{m.viewers ?? '—'} watching</div>
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      color: '#555555',
+                      marginTop: '2px',
+                    }}
+                  >
+                    {m.viewers ?? '—'} watching
+                  </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                   <span style={{
@@ -490,13 +543,35 @@ export function RightSidebar({ liveMatches: liveMatchesProp, trendingList: trend
                     background: '#ef4444', display: 'inline-block',
                     animation: 'nc-pulseDot 1.4s ease-in-out infinite',
                   }} />
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#ef4444' }}>{m.min}'</span>
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: '#ef4444',
+                    }}
+                  >
+                    {m.min}'
+                  </span>
                 </div>
               </div>
             </div>
           ))}
-          <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
-            <a href="/matches" style={{ fontSize: '12px', color: T.accent, textDecoration: 'none', fontWeight: 600 }}>
+          <div
+            style={{
+              marginTop: '10px',
+              paddingTop: '10px',
+              borderTop: '1px solid #1a1a1a',
+            }}
+          >
+            <a
+              href="/matches"
+              style={{
+                fontSize: '12px',
+                color: '#16a34a',
+                textDecoration: 'none',
+                fontWeight: 600,
+              }}
+            >
               View all live matches →
             </a>
           </div>
@@ -505,32 +580,86 @@ export function RightSidebar({ liveMatches: liveMatchesProp, trendingList: trend
 
       {/* ── Trending ── */}
       <GlassCard>
-        <div style={{ padding: '14px' }}>
+        <div style={{ padding: '12px' }}>
           <CardSectionHeader icon="🔥" label="TRENDING" />
           {trendingList.slice(0, 6).map((t, i) => (
             <div
               key={t.rank ?? i}
               className="nc-trend-row"
               style={{
-                display: 'flex', alignItems: 'center', gap: '10px',
-                padding: '6px 8px', margin: '0 -8px', borderRadius: '8px',
-                cursor: 'pointer', transition: 'background 0.15s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '10px 12px',
+                margin: '0 -4px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'background 0.15s ease',
+                borderBottom: '1px solid #1a1a1a',
               }}
             >
-              <span style={{ fontSize: '11px', color: T.subtle, width: '18px', textAlign: 'right', flexShrink: 0 }}>#{t.rank ?? i + 1}</span>
+              <span
+                style={{
+                  fontSize: '12px',
+                  color: '#333333',
+                  width: '18px',
+                  textAlign: 'right',
+                  flexShrink: 0,
+                  fontWeight: 700,
+                }}
+              >
+                #{t.rank ?? i + 1}
+              </span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: T.text }}>{t.tag}</div>
-                <div style={{ fontSize: '11px', color: T.muted }}>{typeof t.count === 'number' ? t.count : t.count} posts</div>
+                <div
+                  style={{
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    color: '#f2f2f2',
+                  }}
+                >
+                  {t.tag}
+                </div>
+                <div
+                  style={{
+                    fontSize: '12px',
+                    color: '#555555',
+                    marginTop: '1px',
+                  }}
+                >
+                  {typeof t.count === 'number' ? t.count : t.count} posts
+                </div>
               </div>
-              <span style={{ color: T.subtle, fontSize: '16px', lineHeight: 1 }}>›</span>
+              <span
+                style={{
+                  color: '#333333',
+                  fontSize: '16px',
+                  lineHeight: 1,
+                }}
+              >
+                ›
+              </span>
             </div>
           ))}
-          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
-            <button style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontSize: '12px', color: T.accent, fontWeight: 600,
-              padding: 0, fontFamily: 'Inter, sans-serif',
-            }}>
+          <div
+            style={{
+              marginTop: '8px',
+              paddingTop: '8px',
+              borderTop: '1px solid #1a1a1a',
+            }}
+          >
+            <button
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '12px',
+                color: '#16a34a',
+                fontWeight: 600,
+                padding: 0,
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
               Show more
             </button>
           </div>
@@ -539,25 +668,49 @@ export function RightSidebar({ liveMatches: liveMatchesProp, trendingList: trend
 
       {/* ── Today's Fixtures ── */}
       <GlassCard>
-        <div style={{ padding: '14px' }}>
+        <div style={{ padding: '12px' }}>
           <CardSectionHeader icon="📅" label="TODAY'S FIXTURES" />
           {fixtures.slice(0, 4).map((f, i) => (
             <div
               key={i}
               className="nc-fixture-row"
               style={{
-                padding: '7px 0', cursor: 'pointer',
-                borderRadius: '8px', transition: 'background 0.15s ease',
+                padding: '10px 0',
+                cursor: 'pointer',
+                borderRadius: '8px',
+                transition: 'background 0.15s ease',
+                borderBottom: '1px solid #1a1a1a',
               }}
             >
-              <div style={{ fontSize: '10px', color: T.subtle, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: '#555555',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                }}
+              >
                 {f.comp}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '3px' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: T.text }}>
-                  {f.home} vs {f.away}
+                <span
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#d4d4d4',
+                  }}
+                >
+                  {f.home} <span style={{ color: '#333333', fontSize: '11px' }}>vs</span> {f.away}
                 </span>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: T.accent, fontFamily: 'Sora, sans-serif' }}>
+                <span
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#16a34a',
+                    fontFamily: 'Sora, sans-serif',
+                  }}
+                >
                   {f.time}
                 </span>
               </div>

@@ -223,6 +223,36 @@
   border-right: 1px solid var(--sidebar-border);
 }
 
+.nc-right-card:hover {
+  background: #161616 !important;
+}
+
+.nc-right-sidebar::-webkit-scrollbar {
+  width: 3px;
+}
+
+.nc-right-sidebar::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+.nc-right-sidebar::-webkit-scrollbar-thumb {
+  background: #222222;
+  border-radius: 2px;
+}
+
+.nc-right-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #333333;
+}
+
+.nc-right-search::placeholder {
+  color: #444444;
+}
+
+.dark .sidebar-kickoff {
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--sidebar-border);
+}
+
 /* Sidebar collapsed state tooltip (used if custom tooltips are re-enabled) */
 .sidebar-collapsed-tooltip {
   background-color: #1f1f1d;

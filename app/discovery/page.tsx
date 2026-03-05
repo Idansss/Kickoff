@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { AppLayout } from '@/components/app-layout'
 import { Button } from '@/components/ui/button'
@@ -7,6 +8,7 @@ import { SkeletonLoader } from '@/components/shared/SkeletonLoader'
 import { getScoutReport } from '@/lib/claudeClient'
 import { cn } from '@/lib/utils'
 import { mockPlayers, mockStandings, mockTransfers } from '@/data/mockData'
+import { getClubHrefByName, getPlayerHrefByName } from '@/lib/entityLinks'
 import type { Player, Transfer } from '@/types'
 
 const TRENDING_HASHTAGS = [
@@ -86,9 +88,28 @@ const PlayerRow = memo(function PlayerRow({ player }: PlayerRowProps): React.JSX
           {initials}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-foreground">{player.name}</div>
+          {getPlayerHrefByName(player.name) ? (
+            <Link
+              href={getPlayerHrefByName(player.name)!}
+              className="font-semibold text-foreground hover:text-green-500 transition-colors"
+            >
+              {player.name}
+            </Link>
+          ) : (
+            <div className="font-semibold text-foreground">{player.name}</div>
+          )}
           <div className="text-xs text-muted-foreground">
-            {player.club} · {player.position} · {player.flag} {player.nationality}
+            {getClubHrefByName(player.club) ? (
+              <Link
+                href={getClubHrefByName(player.club)!}
+                className="hover:text-foreground underline-offset-2 hover:underline"
+              >
+                {player.club}
+              </Link>
+            ) : (
+              player.club
+            )}{' '}
+            · {player.position} · {player.flag} {player.nationality}
           </div>
         </div>
         <div className="text-right">
@@ -148,12 +169,45 @@ interface TransferCardProps {
 }
 
 const TransferCard = memo(function TransferCard({ transfer }: TransferCardProps): React.JSX.Element {
+  const playerHref = getPlayerHrefByName(transfer.playerName)
+  const fromHref = getClubHrefByName(transfer.from)
+  const toHref = getClubHrefByName(transfer.to)
+
   return (
     <li className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/30">
       <div>
-        <span className="font-medium">{transfer.playerName}</span>
+        {playerHref ? (
+          <Link
+            href={playerHref}
+            className="font-medium text-foreground hover:text-green-500 transition-colors"
+          >
+            {transfer.playerName}
+          </Link>
+        ) : (
+          <span className="font-medium">{transfer.playerName}</span>
+        )}
         <span className="text-muted-foreground text-sm ml-2">
-          {transfer.from} → {transfer.to}
+          {fromHref ? (
+            <Link
+              href={fromHref}
+              className="hover:text-foreground underline-offset-2 hover:underline"
+            >
+              {transfer.from}
+            </Link>
+          ) : (
+            transfer.from
+          )}{' '}
+          →{' '}
+          {toHref ? (
+            <Link
+              href={toHref}
+              className="hover:text-foreground underline-offset-2 hover:underline"
+            >
+              {transfer.to}
+            </Link>
+          ) : (
+            transfer.to
+          )}
         </span>
         {transfer.isHot ? (
           <span className="ml-2 text-xs bg-red-500/20 text-red-600 rounded px-1.5 py-0.5">Hot</span>
@@ -282,36 +336,51 @@ export default function DiscoveryPage(): React.JSX.Element {
                   </tr>
                 </thead>
                 <tbody>
-                  {mockStandings.map((row) => (
-                    <tr
-                      key={row.pos}
-                      className="border-b border-border last:border-0 hover:bg-muted/30"
-                    >
-                      <td className="py-2 px-3 font-medium">{row.pos}</td>
-                      <td className="py-2 px-3">{row.club}</td>
-                      <td className="text-center py-2 px-2">{row.played}</td>
-                      <td className="text-center py-2 px-2">{row.won}</td>
-                      <td className="text-center py-2 px-2">{row.drawn}</td>
-                      <td className="text-center py-2 px-2">{row.lost}</td>
-                      <td className="text-center py-2 px-2">{row.gd}</td>
-                      <td className="text-right py-2 px-3 font-semibold">{row.points}</td>
-                      <td className="py-2 px-2 flex gap-0.5">
-                        {row.form.map((formResult, index) => (
-                          <span
-                            key={`${row.club}-form-${index}`}
-                            className={cn(
-                              'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold',
-                              formResult === 'W' && 'bg-green-500 text-white',
-                              formResult === 'D' && 'bg-muted text-muted-foreground',
-                              formResult === 'L' && 'bg-red-500 text-white'
-                            )}
-                          >
-                            {formResult}
-                          </span>
-                        ))}
-                      </td>
-                    </tr>
-                  ))}
+                  {mockStandings.map((row) => {
+                    const clubHref = getClubHrefByName(row.club)
+
+                    return (
+                      <tr
+                        key={row.pos}
+                        className="border-b border-border last:border-0 hover:bg-muted/30"
+                      >
+                        <td className="py-2 px-3 font-medium">{row.pos}</td>
+                        <td className="py-2 px-3">
+                          {clubHref ? (
+                            <Link
+                              href={clubHref}
+                              className="hover:text-green-500 transition-colors"
+                            >
+                              {row.club}
+                            </Link>
+                          ) : (
+                            row.club
+                          )}
+                        </td>
+                        <td className="text-center py-2 px-2">{row.played}</td>
+                        <td className="text-center py-2 px-2">{row.won}</td>
+                        <td className="text-center py-2 px-2">{row.drawn}</td>
+                        <td className="text-center py-2 px-2">{row.lost}</td>
+                        <td className="text-center py-2 px-2">{row.gd}</td>
+                        <td className="text-right py-2 px-3 font-semibold">{row.points}</td>
+                        <td className="py-2 px-2 flex gap-0.5">
+                          {row.form.map((formResult, index) => (
+                            <span
+                              key={`${row.club}-form-${index}`}
+                              className={cn(
+                                'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold',
+                                formResult === 'W' && 'bg-green-500 text-white',
+                                formResult === 'D' && 'bg-muted text-muted-foreground',
+                                formResult === 'L' && 'bg-red-500 text-white'
+                              )}
+                            >
+                              {formResult}
+                            </span>
+                          ))}
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
