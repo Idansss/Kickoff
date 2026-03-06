@@ -1,16 +1,18 @@
 'use client'
 
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import Image from 'next/image'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { AppLayout } from '@/components/app-layout'
 import { Button } from '@/components/ui/button'
-import { CalendarDays, Link2, Lock } from 'lucide-react'
+import { CalendarDays, Camera, Link2, Lock, ImagePlus, X } from 'lucide-react'
 import { userStore } from '@/store/userStore'
 import { feedStore } from '@/store/feedStore'
 import { FeedPostCard } from '@/components/feed/FeedPostCard'
 import { cn, scrollToAndHighlight } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 
 const LEVEL_NAMES: Record<number, string> = {
   1: 'Grassroots',
@@ -55,6 +57,11 @@ function ProfilePageContent(): React.JSX.Element {
   const isEditMode = searchParams.get('edit') === 'true'
   const [editName, setEditName] = useState(currentUser?.name ?? '')
   const [editHandle, setEditHandle] = useState(currentUser?.handle ?? '')
+  const [editBio, setEditBio] = useState(currentUser?.bio ?? '')
+  const [editAvatarUrl, setEditAvatarUrl] = useState<string | null>(currentUser?.avatarImage ?? null)
+  const [editHeaderUrl, setEditHeaderUrl] = useState<string | null>(currentUser?.headerImage ?? null)
+  const headerInputRef = useRef<HTMLInputElement>(null)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!currentUser) {
@@ -67,12 +74,44 @@ function ProfilePageContent(): React.JSX.Element {
     if (isEditMode && currentUser) {
       setEditName(currentUser.name)
       setEditHandle(currentUser.handle)
+      setEditBio(currentUser.bio ?? '')
+      setEditAvatarUrl(currentUser.avatarImage ?? null)
+      setEditHeaderUrl(currentUser.headerImage ?? null)
     }
-  }, [isEditMode, currentUser?.name, currentUser?.handle])
+  }, [isEditMode, currentUser?.name, currentUser?.handle, currentUser?.bio, currentUser?.avatarImage, currentUser?.headerImage])
 
   const openEdit = () => router.push('/profile?edit=true')
   const closeEdit = () => router.replace('/profile')
+
+  const readFileAsDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+
+  const handleHeaderChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file && file.type.startsWith('image/')) {
+      const url = await readFileAsDataUrl(file)
+      setEditHeaderUrl(url)
+    }
+    e.target.value = ''
+  }
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file && file.type.startsWith('image/')) {
+      const url = await readFileAsDataUrl(file)
+      setEditAvatarUrl(url)
+    }
+    e.target.value = ''
+  }
+  const clearEditHeader = () => setEditHeaderUrl(null)
+  const clearEditAvatar = () => setEditAvatarUrl(null)
+
   const saveEdit = () => {
+    if (!currentUser) return
     const name = editName.trim() || currentUser.name
     const handle = editHandle.trim().replace(/^@/, '') || currentUser.handle
     const parts = name.split(/\s+/).filter(Boolean)
@@ -80,7 +119,14 @@ function ProfilePageContent(): React.JSX.Element {
       parts.length >= 2
         ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase().slice(0, 2)
         : name.slice(0, 2).toUpperCase() || currentUser.avatarInitials
-    updateCurrentUser({ name, handle, avatarInitials })
+    updateCurrentUser({
+      name,
+      handle,
+      avatarInitials,
+      bio: editBio.trim() || null,
+      avatarImage: editAvatarUrl,
+      headerImage: editHeaderUrl,
+    })
     closeEdit()
   }
 
@@ -123,28 +169,53 @@ function ProfilePageContent(): React.JSX.Element {
   return (
     <AppLayout>
       <div className="mx-auto max-w-2xl border-x border-border">
-        <div className="h-36 bg-gradient-to-br from-green-600/40 via-emerald-500/20 to-teal-500/10" />
+        {/* Cover / header */}
+        <div className="h-40 sm:h-44 relative overflow-hidden bg-gradient-to-br from-green-600/40 via-emerald-500/20 to-teal-500/10">
+          {currentUser.headerImage ? (
+            <Image
+              src={currentUser.headerImage}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 100vw, 672px"
+              unoptimized={currentUser.headerImage.startsWith('data:')}
+            />
+          ) : null}
+        </div>
 
         <div className="px-4 sm:px-6 pb-0 border-b border-border">
-          <div className="flex items-end justify-between -mt-12 mb-3">
+          <div className="flex items-end justify-between -mt-14 mb-3">
             <div className="relative">
-              <div
-                className="h-20 w-20 rounded-full border-4 border-background flex items-center justify-center text-2xl font-bold text-white"
-                style={{ backgroundColor: currentUser.avatarColor }}
-              >
-                {currentUser.avatarInitials}
+              <div className="h-24 w-24 rounded-full border-4 border-background overflow-hidden flex items-center justify-center text-2xl font-bold text-white bg-muted shrink-0">
+                {currentUser.avatarImage ? (
+                  <Image
+                    src={currentUser.avatarImage}
+                    alt={currentUser.name}
+                    width={96}
+                    height={96}
+                    className="object-cover w-full h-full"
+                    unoptimized={currentUser.avatarImage.startsWith('data:')}
+                  />
+                ) : (
+                  <span style={{ backgroundColor: currentUser.avatarColor }} className="w-full h-full flex items-center justify-center">
+                    {currentUser.avatarInitials}
+                  </span>
+                )}
               </div>
-              <div className="absolute bottom-0 right-0 h-5 w-5 rounded-full bg-green-500 border-2 border-background" />
+              <div className="absolute bottom-0 right-0 h-6 w-6 rounded-full bg-green-500 border-2 border-background" />
             </div>
-            <Button variant="outline" size="sm" onClick={openEdit}>
+            <Button variant="outline" size="sm" onClick={openEdit} className="shrink-0">
               Edit Profile
             </Button>
           </div>
 
-          <div className="space-y-1 mb-3">
+          <div className="space-y-1 mb-2">
             <h1 className="text-xl font-bold">{currentUser.name}</h1>
             <p className="text-muted-foreground text-sm">@{currentUser.handle}</p>
           </div>
+          {currentUser.bio ? (
+            <p className="text-sm text-foreground/90 mb-3 whitespace-pre-wrap">{currentUser.bio}</p>
+          ) : null}
 
           <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
             <div className="flex items-center gap-1">
@@ -267,42 +338,176 @@ function ProfilePageContent(): React.JSX.Element {
 
       {isEditMode && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto"
           onClick={closeEdit}
           role="presentation"
         >
           <div
-            className="w-full max-w-sm rounded-xl border border-border bg-card p-4 shadow-lg"
+            className="w-full max-w-lg rounded-2xl border border-border bg-card shadow-2xl overflow-hidden my-8"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-labelledby="edit-profile-title"
           >
-            <h2 id="edit-profile-title" className="text-lg font-semibold mb-3">Edit profile</h2>
-            <div className="space-y-3">
-              <div>
-                <Label htmlFor="edit-name" className="text-xs text-muted-foreground">Name</Label>
-                <Input
-                  id="edit-name"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="mt-1"
-                  placeholder="Your name"
-                />
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+              <button
+                type="button"
+                onClick={closeEdit}
+                className="rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <h2 id="edit-profile-title" className="text-lg font-bold text-foreground">Edit profile</h2>
+              <Button size="sm" onClick={saveEdit} className="rounded-full bg-green-600 hover:bg-green-700 text-white font-semibold px-4">
+                Save
+              </Button>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto">
+              {/* Cover photo */}
+              <div className="px-5 pt-5">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Cover photo</Label>
+                <label
+                  htmlFor="edit-cover-file"
+                  className={cn(
+                    'mt-2 h-32 rounded-xl border-2 border-dashed overflow-hidden transition-colors relative block cursor-pointer',
+                    'bg-muted/50 border-muted-foreground/25 hover:border-green-500/50 hover:bg-muted/80 flex items-center justify-center'
+                  )}
+                >
+                  <input
+                    id="edit-cover-file"
+                    ref={headerInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    aria-label="Upload cover photo"
+                    onChange={handleHeaderChange}
+                  />
+                  {editHeaderUrl ? (
+                    <div className="absolute inset-0 w-full h-full group">
+                      <Image
+                        src={editHeaderUrl}
+                        alt=""
+                        fill
+                        className="object-cover"
+                        unoptimized={editHeaderUrl.startsWith('data:')}
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 pointer-events-none">
+                        <ImagePlus className="h-6 w-6 text-white" />
+                        <span className="text-sm font-medium text-white">Change photo</span>
+                      </div>
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.preventDefault(); clearEditHeader() }}
+                        onKeyDown={(e) => e.key === 'Enter' && clearEditHeader()}
+                        className="absolute top-2 right-2 rounded-full bg-black/60 p-1.5 text-white hover:bg-black/80 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        aria-label="Remove cover photo"
+                      >
+                        <X className="h-4 w-4" />
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                      <ImagePlus className="h-8 w-8" />
+                      <span className="text-sm font-medium">Add cover photo</span>
+                    </div>
+                  )}
+                </label>
               </div>
-              <div>
-                <Label htmlFor="edit-handle" className="text-xs text-muted-foreground">Handle</Label>
-                <Input
-                  id="edit-handle"
-                  value={editHandle}
-                  onChange={(e) => setEditHandle(e.target.value)}
-                  className="mt-1"
-                  placeholder="@username"
-                />
+
+              {/* Profile photo */}
+              <div className="px-5 pt-6 flex items-end gap-4">
+                <div className="flex flex-col">
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Profile photo</Label>
+                  <label
+                    htmlFor="edit-avatar-file"
+                    className={cn(
+                      'w-24 h-24 rounded-full border-2 border-dashed overflow-hidden cursor-pointer flex items-center justify-center transition-colors block',
+                      'border-muted-foreground/25 hover:border-green-500/50 bg-muted/50 hover:bg-muted/80'
+                    )}
+                  >
+                    <input
+                      id="edit-avatar-file"
+                      ref={avatarInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      aria-label="Upload profile photo"
+                      onChange={handleAvatarChange}
+                    />
+                    {editAvatarUrl ? (
+                      <div className="relative w-full h-full group">
+                        <Image
+                          src={editAvatarUrl}
+                          alt=""
+                          width={96}
+                          height={96}
+                          className="object-cover w-full h-full"
+                          unoptimized={editAvatarUrl.startsWith('data:')}
+                        />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Camera className="h-6 w-6 text-white" />
+                        </div>
+                      </div>
+                    ) : (
+                      <Camera className="h-8 w-8 text-muted-foreground" />
+                    )}
+                  </label>
+                  {editAvatarUrl ? (
+                    <button
+                      type="button"
+                      onClick={clearEditAvatar}
+                      className="mt-1.5 text-xs text-red-500 hover:text-red-600 font-medium"
+                    >
+                      Remove photo
+                    </button>
+                  ) : null}
+                </div>
+                <p className="text-xs text-muted-foreground pb-3 max-w-[200px]">Square images work best. Max 5MB.</p>
+              </div>
+
+              {/* Name, Handle, Bio */}
+              <div className="px-5 pt-4 pb-6 space-y-4">
+                <div>
+                  <Label htmlFor="edit-name" className="text-xs font-medium text-muted-foreground">Name</Label>
+                  <Input
+                    id="edit-name"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="mt-1.5 rounded-lg"
+                    placeholder="Your name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-handle" className="text-xs font-medium text-muted-foreground">Handle</Label>
+                  <Input
+                    id="edit-handle"
+                    value={editHandle}
+                    onChange={(e) => setEditHandle(e.target.value)}
+                    className="mt-1.5 rounded-lg"
+                    placeholder="username"
+                  />
+                  <p className="text-[11px] text-muted-foreground mt-1">kickoff.football/@{editHandle || 'username'}</p>
+                </div>
+                <div>
+                  <Label htmlFor="edit-bio" className="text-xs font-medium text-muted-foreground">Bio</Label>
+                  <Textarea
+                    id="edit-bio"
+                    value={editBio}
+                    onChange={(e) => setEditBio(e.target.value)}
+                    className="mt-1.5 rounded-lg min-h-[100px] resize-none"
+                    placeholder="Tell us about yourself..."
+                    maxLength={160}
+                  />
+                  <p className="text-[11px] text-muted-foreground mt-1 text-right">{editBio.length}/160</p>
+                </div>
               </div>
             </div>
-            <div className="flex gap-2 mt-4 justify-end">
-              <Button variant="outline" size="sm" onClick={closeEdit}>Cancel</Button>
-              <Button size="sm" onClick={saveEdit}>Save</Button>
+
+            <div className="px-5 py-4 border-t border-border flex justify-end">
+              <Button variant="outline" size="sm" onClick={closeEdit} className="rounded-full">Cancel</Button>
+              <Button size="sm" onClick={saveEdit} className="rounded-full ml-2 bg-green-600 hover:bg-green-700 text-white">Save changes</Button>
             </div>
           </div>
         </div>

@@ -4,6 +4,12 @@ export interface User {
   handle: string
   avatarInitials: string
   avatarColor: string
+  /** Optional profile photo URL (data URL or external). Falls back to initials. */
+  avatarImage?: string | null
+  /** Optional cover/banner URL. Falls back to gradient. */
+  headerImage?: string | null
+  /** Short bio shown on profile */
+  bio?: string | null
   verified: boolean
   followers: number
   following: number

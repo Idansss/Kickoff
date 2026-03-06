@@ -38,7 +38,7 @@ export interface UserState {
   awardBadgeIfFirstPost: () => void
   awardBadgeIf10Likes: (totalLikes: number) => void
   initUser: () => void
-  updateCurrentUser: (updates: Partial<Pick<User, 'name' | 'handle' | 'avatarInitials' | 'avatarColor'>>) => void
+  updateCurrentUser: (updates: Partial<Pick<User, 'name' | 'handle' | 'avatarInitials' | 'avatarColor' | 'bio' | 'avatarImage' | 'headerImage'>>) => void
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
