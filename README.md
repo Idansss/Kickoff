@@ -53,6 +53,9 @@ npm run db:migrate
 npm run db:seed
 ```
 
+To seed the **production** database (e.g. on Vercel), set `DATABASE_URL` to your production connection string and run the same command once:  
+`DATABASE_URL="your-production-url" npm run db:seed`
+
 ### Run
 
 ```bash

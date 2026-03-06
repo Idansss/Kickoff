@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { AppLayout } from '@/components/app-layout'
 import { Button } from '@/components/ui/button'
 import { CalendarDays, Link2, Lock } from 'lucide-react'
@@ -9,6 +9,8 @@ import { userStore } from '@/store/userStore'
 import { feedStore } from '@/store/feedStore'
 import { FeedPostCard } from '@/components/feed/FeedPostCard'
 import { cn, scrollToAndHighlight } from '@/lib/utils'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 const LEVEL_NAMES: Record<number, string> = {
   1: 'Grassroots',
@@ -41,13 +43,39 @@ function xpProgress(xp: number): { current: number; next: number; pct: number } 
 }
 
 function ProfilePageContent(): React.JSX.Element {
+  const router = useRouter()
   const currentUser = userStore((s) => s.currentUser)
+  const updateCurrentUser = userStore((s) => s.updateCurrentUser)
   const posts = feedStore((s) => s.posts)
   const bookmarks = feedStore((s) => s.bookmarks)
   const [activeTab, setActiveTab] = useState<Tab>('posts')
   const searchParams = useSearchParams()
   const focusBadgeId = searchParams.get('badge') ?? ''
   const profileTab = searchParams.get('tab') ?? ''
+  const isEditMode = searchParams.get('edit') === 'true'
+  const [editName, setEditName] = useState(currentUser.name)
+  const [editHandle, setEditHandle] = useState(currentUser.handle)
+
+  useEffect(() => {
+    if (isEditMode) {
+      setEditName(currentUser.name)
+      setEditHandle(currentUser.handle)
+    }
+  }, [isEditMode, currentUser.name, currentUser.handle])
+
+  const openEdit = () => router.push('/profile?edit=true')
+  const closeEdit = () => router.replace('/profile')
+  const saveEdit = () => {
+    const name = editName.trim() || currentUser.name
+    const handle = editHandle.trim().replace(/^@/, '') || currentUser.handle
+    const parts = name.split(/\s+/).filter(Boolean)
+    const avatarInitials =
+      parts.length >= 2
+        ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase().slice(0, 2)
+        : name.slice(0, 2).toUpperCase() || currentUser.avatarInitials
+    updateCurrentUser({ name, handle, avatarInitials })
+    closeEdit()
+  }
 
   useEffect(() => {
     if (profileTab === 'badges') {
@@ -91,7 +119,7 @@ function ProfilePageContent(): React.JSX.Element {
               </div>
               <div className="absolute bottom-0 right-0 h-5 w-5 rounded-full bg-green-500 border-2 border-background" />
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={openEdit}>
               Edit Profile
             </Button>
           </div>
@@ -219,6 +247,49 @@ function ProfilePageContent(): React.JSX.Element {
           )}
         </div>
       </div>
+
+      {isEditMode && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={closeEdit}
+          role="presentation"
+        >
+          <div
+            className="w-full max-w-sm rounded-xl border border-border bg-card p-4 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-labelledby="edit-profile-title"
+          >
+            <h2 id="edit-profile-title" className="text-lg font-semibold mb-3">Edit profile</h2>
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="edit-name" className="text-xs text-muted-foreground">Name</Label>
+                <Input
+                  id="edit-name"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="mt-1"
+                  placeholder="Your name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-handle" className="text-xs text-muted-foreground">Handle</Label>
+                <Input
+                  id="edit-handle"
+                  value={editHandle}
+                  onChange={(e) => setEditHandle(e.target.value)}
+                  className="mt-1"
+                  placeholder="@username"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-4 justify-end">
+              <Button variant="outline" size="sm" onClick={closeEdit}>Cancel</Button>
+              <Button size="sm" onClick={saveEdit}>Save</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   )
 }

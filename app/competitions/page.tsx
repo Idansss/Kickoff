@@ -107,10 +107,14 @@ export default async function CompetitionsPage() {
           <Section title="Cups" competitions={data.cups} />
           <Section title="International" competitions={data.international} />
           {data.leagues.length === 0 && data.cups.length === 0 && data.international.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              No competitions available right now. If you&apos;re running locally, seed data with{' '}
-              <code className="rounded bg-muted px-1 py-0.5 text-xs">npx prisma db seed</code>.
-            </p>
+            <div className="rounded-lg border border-border bg-muted/30 px-4 py-6 text-center">
+              <p className="text-sm font-medium text-foreground">No competitions yet</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Seed the database with sample data: run{' '}
+                <code className="rounded bg-muted px-1 py-0.5">npm run db:seed</code> locally, or
+                with <code className="rounded bg-muted px-1 py-0.5">DATABASE_URL</code> set for production.
+              </p>
+            </div>
           )}
         </main>
       </div>
