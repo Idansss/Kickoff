@@ -1,4 +1,12 @@
-import { PrismaClient, MatchStatus } from '../lib/generated/prisma'
+import { PrismaClient } from '../lib/generated/prisma'
+
+const MatchStatus = {
+  SCHEDULED: 'SCHEDULED',
+  LIVE: 'LIVE',
+  FINISHED: 'FINISHED',
+  POSTPONED: 'POSTPONED',
+  CANCELLED: 'CANCELLED',
+} as const
 
 const prisma = new PrismaClient()
 

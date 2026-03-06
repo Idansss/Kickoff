@@ -27,3 +27,8 @@ export async function getAuthedUserId(): Promise<string> {
   if (!user) throw new Error('No demo user found. Seed the database first.')
   return user.id
 }
+
+// Backwards-compatible alias used by older route handlers.
+export async function getCurrentUserId(): Promise<string> {
+  return getAuthedUserId()
+}

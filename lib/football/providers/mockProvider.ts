@@ -11,6 +11,31 @@ import type {
   TeamOverviewDTO,
 } from './types'
 
+function parseJson<T>(value: unknown): T | null {
+  if (value == null) return null
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value) as T
+    } catch {
+      return null
+    }
+  }
+  return value as T
+}
+
+function toMatchStatus(status: unknown): CalendarMatchDTO['status'] {
+  switch (status) {
+    case 'SCHEDULED':
+    case 'LIVE':
+    case 'FINISHED':
+    case 'POSTPONED':
+    case 'CANCELLED':
+      return status
+    default:
+      return 'SCHEDULED'
+  }
+}
+
 export const mockProvider: FootballProvider = {
   async getMatchesByDate(dateISO, competitionId) {
     const date = new Date(dateISO)
@@ -33,7 +58,7 @@ export const mockProvider: FootballProvider = {
     return matches.map<CalendarMatchDTO>((m) => ({
       id: m.id,
       kickoff: m.kickoff.toISOString(),
-      status: m.status,
+      status: toMatchStatus(m.status),
       competition: {
         id: m.competitionId ?? '',
         name: m.competition?.name ?? 'Unknown competition',
@@ -80,7 +105,7 @@ export const mockProvider: FootballProvider = {
     const matchCore: CalendarMatchDTO & { venue?: string | null } = {
       id: m.id,
       kickoff: m.kickoff.toISOString(),
-      status: m.status,
+      status: toMatchStatus(m.status),
       competition: {
         id: m.competitionId ?? '',
         name: m.competition?.name ?? 'Unknown competition',
@@ -139,7 +164,8 @@ export const mockProvider: FootballProvider = {
       const side = l.teamId === m.homeTeamId ? 'home' : 'away'
       const container = lineups[side]
 
-      const goalsAssists = (l.g_aJson as { goals?: number; assists?: number } | null) ?? null
+      const goalsAssists = parseJson<{ goals?: number; assists?: number }>(l.g_aJson)
+      const cards = parseJson<unknown>(l.cardsJson)
 
       const playerEntry: MatchLineupPlayerDTO = {
         id: l.playerId,
@@ -150,7 +176,7 @@ export const mockProvider: FootballProvider = {
         inMin: l.inMin,
         outMin: l.outMin,
         rating: l.rating,
-        cards: l.cardsJson ?? undefined,
+        cards: cards ?? undefined,
         goals: goalsAssists?.goals ?? null,
         assists: goalsAssists?.assists ?? null,
       }
@@ -162,7 +188,7 @@ export const mockProvider: FootballProvider = {
       }
     }
 
-    const rawStats = m.statsJson as Record<string, any> | null
+    const rawStats = parseJson<Record<string, any>>(m.statsJson)
     const normalized: MatchStatsNormalizedDTO = {
       shotsHome: rawStats?.shots?.home ?? null,
       shotsAway: rawStats?.shots?.away ?? null,

@@ -11,21 +11,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum FollowEntityType {
-  TEAM
-  PLAYER
-  MATCH
-  COMPETITION
-}
-
-enum MatchStatus {
-  SCHEDULED
-  LIVE
-  FINISHED
-  POSTPONED
-  CANCELLED
-}
-
 model User {
   id        String    @id @default(cuid())
   name      String
@@ -198,7 +183,7 @@ model Match {
   competition   Competition? @relation(fields: [competitionId], references: [id])
 
   kickoff    DateTime
-  status     MatchStatus @default(SCHEDULED)
+  status     String   @default("SCHEDULED")
   homeTeamId String
   awayTeamId String
   homeTeam   Team @relation("HomeTeam", fields: [homeTeamId], references: [id])
@@ -208,7 +193,7 @@ model Match {
   awayScore Int? @default(0)
 
   venue     String?
-  statsJson Json?
+  statsJson String?
 
   events  MatchEvent[]
   lineups MatchLineup[]
@@ -229,7 +214,7 @@ model MatchEvent {
   teamId   String?
   playerId String?
   assistId String?
-  metaJson Json?
+  metaJson String?
 
   match  Match  @relation(fields: [matchId], references: [id])
   team   Team?  @relation(fields: [teamId], references: [id])
@@ -247,8 +232,8 @@ model MatchLineup {
   inMin      Int?
   outMin     Int?
   rating     Float?
-  cardsJson  Json?
-  g_aJson    Json?
+  cardsJson  String?
+  g_aJson    String?
 
   match  Match  @relation(fields: [matchId], references: [id])
   team   Team   @relation(fields: [teamId], references: [id])
@@ -281,15 +266,9 @@ model StandingRow {
   @@index([competitionId, seasonId])
 }
 
-enum NewsScope {
-  LATEST
-  TRANSFERS
-  LEAGUE
-}
-
 model NewsItem {
   id            String     @id @default(cuid())
-  scope         NewsScope
+  scope         String     @default("LATEST")
   title         String
   summary       String?
   source        String?
@@ -318,7 +297,7 @@ model Transfer {
   type       String
   fee        String?
   date       DateTime?
-  metaJson   Json?
+  metaJson   String?
 
   player   Player @relation(fields: [playerId], references: [id])
   fromTeam Team?  @relation("TransferFrom", fields: [fromTeamId], references: [id])
@@ -357,7 +336,7 @@ model TeamNewsItem {
 model Follow {
   id          String          @id @default(cuid())
   userId      String
-  entityType  FollowEntityType
+  entityType  String
   entityId    String
   createdAt   DateTime        @default(now())
 

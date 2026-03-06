@@ -3,6 +3,18 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 
+function parseJson<T>(value: unknown): T | null {
+  if (value == null) return null
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value) as T
+    } catch {
+      return null
+    }
+  }
+  return value as T
+}
+
 const ParamsSchema = z.object({
   id: z.string().min(1),
 })
@@ -94,7 +106,7 @@ export async function GET(
     let yellowCards = 0
     let redCards = 0
 
-    const gaStats = (l.g_aJson as { goals?: number; assists?: number } | null) ?? null
+    const gaStats = parseJson<{ goals?: number; assists?: number }>(l.g_aJson)
     if (gaStats) {
       goals = gaStats.goals ?? 0
       assists = gaStats.assists ?? 0
@@ -109,7 +121,7 @@ export async function GET(
       }
     }
 
-    const cards = (l.cardsJson as { yellow?: number; red?: number } | null) ?? null
+    const cards = parseJson<{ yellow?: number; red?: number }>(l.cardsJson)
     if (cards) {
       yellowCards = cards.yellow ?? yellowCards
       redCards = cards.red ?? redCards
