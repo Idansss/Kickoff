@@ -52,6 +52,9 @@ export const feedStore = create<FeedState>()(
       hiddenPosts: [],
 
       initPosts: (): void => {
+        const state = get()
+        // Only seed mock data when there are no posts (first visit). Otherwise keep persisted posts.
+        if (state.posts.length > 0) return
         const posts = buildMockPosts(mockUsers)
         set({ posts })
       },

@@ -24,6 +24,16 @@ export const ANTHROPIC = {
   maxRetries: 1,
 } as const
 
+export const XAI = {
+  model: 'grok-2-1212',
+  apiUrl: 'https://api.x.ai/v1/chat/completions',
+  timeoutMs: 15_000,
+  retryDelayMs: 2_000,
+  maxRetries: 1,
+} as const
+
+export type AiProvider = 'claude' | 'xai'
+
 export const USER_MESSAGES = {
   connectionError: "Couldn't connect. Try again.",
   timeoutError: "Couldn't connect. Try again.",

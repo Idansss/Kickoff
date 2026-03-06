@@ -42,9 +42,12 @@ Create `.env` from `.env.example`:
 cp .env.example .env
 ```
 
-Set values:
-- `DATABASE_URL` (default SQLite works locally)
-- `ANTHROPIC_API_KEY` (required for live AI responses)
+Set values (see `.env.example` for a full template):
+
+- `DATABASE_URL` – Prisma (default SQLite: `file:./dev.db`)
+- `ANTHROPIC_API_KEY` – FootballGPT with **Claude** ([Anthropic Console](https://console.anthropic.com/))
+- `XAI_API_KEY` – FootballGPT with **xAI (Grok)** ([xAI Console](https://console.x.ai/))
+- `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` – optional; for [Supabase](https://supabase.com) (Auth/DB). From project **Settings → API**.
 
 ### Database
 
@@ -55,6 +58,12 @@ npm run db:seed
 
 To seed the **production** database (e.g. on Vercel), set `DATABASE_URL` to your production connection string and run the same command once:  
 `DATABASE_URL="your-production-url" npm run db:seed`
+
+### Persistence (profile, posts, comments)
+
+Profile (name, handle, bio, avatar, header), posts, bookmarks, likes, and comments are stored in the browser via **Zustand + localStorage**. Reloading the page keeps your data on the same device.
+
+For **cross-device** sync and **real multi-user** behaviour (e.g. other users see your posts, one account on phone and desktop), add a backend such as **Supabase**. The app includes `@supabase/supabase-js` and a client in `lib/supabase/client.ts`. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env` (from the Supabase dashboard → Settings → API), then use `getSupabaseClient()` where Supabase is optional or `createClient()` where it is required.
 
 ### Run
 

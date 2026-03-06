@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { askFootballGPT } from '@/lib/claudeClient'
+import type { AiProvider } from '@/lib/constants'
 import { INPUT_LIMITS } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 
@@ -40,9 +41,15 @@ function TypingIndicator(): React.JSX.Element {
   )
 }
 
+const PROVIDERS: { id: AiProvider; label: string }[] = [
+  { id: 'claude', label: 'Claude' },
+  { id: 'xai', label: 'xAI (Grok)' },
+]
+
 export default function AIPage(): React.JSX.Element {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
+  const [provider, setProvider] = useState<AiProvider>('claude')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -87,7 +94,8 @@ export default function AIPage(): React.JSX.Element {
       setError(null)
 
       try {
-        const reply = await askFootballGPT(content)
+        const history = messages.map((m) => ({ role: m.role, content: m.content }))
+        const reply = await askFootballGPT(content, { provider, history })
         if (reply === "Couldn't connect. Try again.") {
           setError(reply)
         } else {
@@ -100,7 +108,7 @@ export default function AIPage(): React.JSX.Element {
         setIsLoading(false)
       }
     },
-    [appendAssistantMessage, isLoading]
+    [appendAssistantMessage, isLoading, messages, provider]
   )
 
   const handleKeyDown = useCallback(
@@ -122,13 +130,34 @@ export default function AIPage(): React.JSX.Element {
     <AppLayout>
       <div className="mx-auto max-w-2xl border-x border-border flex flex-col h-[calc(100dvh-64px)] md:h-screen">
         <div className="border-b border-border bg-background/80 backdrop-blur px-4 py-4 sm:px-6 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-500/20 text-green-500">
-              <Sparkles className="h-5 w-5" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-500/20 text-green-500">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold">FootballGPT</h1>
+                <p className="text-xs text-muted-foreground">Expert AI football analyst · Claude & xAI</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-lg font-bold">FootballGPT</h1>
-              <p className="text-xs text-muted-foreground">Expert AI football analyst</p>
+            <div className="flex rounded-lg border border-border bg-muted/30 p-0.5">
+              {PROVIDERS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setProvider(p.id)}
+                  className={cn(
+                    'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                    provider === p.id
+                      ? 'bg-background text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                  aria-pressed={provider === p.id ? 'true' : 'false'}
+                  aria-label={`Use ${p.label}`}
+                >
+                  {p.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
