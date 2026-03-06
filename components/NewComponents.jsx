@@ -88,8 +88,8 @@ const GLOBAL_CSS = `
   .nc-menu-item:hover { background: rgba(0,0,0,0.04) !important; }
   .nc-fixture-row:hover { background: #ffffff !important; }
 
-  .dark .nc-trend-row:hover { background: #1a1a1a !important; }
-  .dark .nc-fixture-row:hover { background: #1a1a1a !important; }
+  .dark .nc-trend-row:hover { background: #0a0a0a !important; }
+  .dark .nc-fixture-row:hover { background: #0a0a0a !important; }
 
   @media (min-width: 1200px) {
     .nc-right-sidebar { display: flex !important; }
@@ -456,16 +456,16 @@ export function RightSidebar({
   const palette = {
     sidebarBg: isLight ? '#ffffff' : '#000000',
     sidebarBorder: divider,
-    cardBg: isLight ? '#ffffff' : '#111111',
-    cardBorder: isLight ? divider : '#222222',
+    cardBg: isLight ? '#ffffff' : '#000000',
+    cardBorder: isLight ? divider : '#1a1a1a',
     header: isLight ? '#000000' : '#ffffff',
-    primary: isLight ? '#000000' : '#f2f2f2',
-    secondary: isLight ? '#000000' : '#555555',
-    rank: isLight ? '#000000' : '#333333',
-    searchBg: isLight ? '#ffffff' : '#111111',
-    searchBorder: isLight ? divider : '#222222',
-    searchText: isLight ? '#000000' : '#f2f2f2',
-    rowHover: isLight ? '#ffffff' : '#1a1a1a',
+    primary: isLight ? '#000000' : '#e5e5e5',
+    secondary: isLight ? '#000000' : '#a3a3a3',
+    rank: isLight ? '#000000' : '#525252',
+    searchBg: isLight ? '#ffffff' : '#000000',
+    searchBorder: isLight ? divider : '#1a1a1a',
+    searchText: isLight ? '#000000' : '#e5e5e5',
+    rowHover: isLight ? '#ffffff' : '#0a0a0a',
     separator: divider,
   };
 

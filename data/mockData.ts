@@ -42,7 +42,7 @@ export const mockUsers: User[] = [
     name: 'Fabrizio Romano',
     handle: 'fabrizioromano',
     avatarInitials: 'FR',
-    avatarColor: '#2563eb',
+    avatarColor: '#404040',
     verified: true,
     followers: 12000000,
     following: 42,

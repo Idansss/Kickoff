@@ -37,12 +37,12 @@ export interface MentionableClub {
 }
 
 export const MENTIONABLE_USERS: MentionableUser[] = [
-  { id: 'u1', name: 'Fabrizio Romano', handle: 'fabrizioromano', verified: true, avatarColor: '#3b82f6' },
+  { id: 'u1', name: 'Fabrizio Romano', handle: 'fabrizioromano', verified: true, avatarColor: '#404040' },
   { id: 'u2', name: 'OptaJoe', handle: 'OptaJoe', verified: true, avatarColor: '#ef4444' },
   { id: 'u3', name: 'The Athletic', handle: 'TheAthletic', verified: true, avatarColor: '#16a34a' },
   { id: 'u4', name: 'Tactical Times', handle: 'tactimes', verified: false, avatarColor: '#8b5cf6' },
   { id: 'u5', name: 'Football Daily', handle: 'footballdaily', verified: true, avatarColor: '#f59e0b' },
-  { id: 'u6', name: 'SerieA Daily', handle: 'serieadaily', verified: false, avatarColor: '#06b6d4' },
+  { id: 'u6', name: 'SerieA Daily', handle: 'serieadaily', verified: false, avatarColor: '#525252' },
 ]
 
 export const MENTIONABLE_CLUBS: MentionableClub[] = [
