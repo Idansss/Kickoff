@@ -53,15 +53,22 @@ function ProfilePageContent(): React.JSX.Element {
   const focusBadgeId = searchParams.get('badge') ?? ''
   const profileTab = searchParams.get('tab') ?? ''
   const isEditMode = searchParams.get('edit') === 'true'
-  const [editName, setEditName] = useState(currentUser.name)
-  const [editHandle, setEditHandle] = useState(currentUser.handle)
+  const [editName, setEditName] = useState(currentUser?.name ?? '')
+  const [editHandle, setEditHandle] = useState(currentUser?.handle ?? '')
 
   useEffect(() => {
-    if (isEditMode) {
+    if (!currentUser) {
+      router.replace('/feed')
+      return
+    }
+  }, [currentUser, router])
+
+  useEffect(() => {
+    if (isEditMode && currentUser) {
       setEditName(currentUser.name)
       setEditHandle(currentUser.handle)
     }
-  }, [isEditMode, currentUser.name, currentUser.handle])
+  }, [isEditMode, currentUser?.name, currentUser?.handle])
 
   const openEdit = () => router.push('/profile?edit=true')
   const closeEdit = () => router.replace('/profile')
@@ -85,6 +92,16 @@ function ProfilePageContent(): React.JSX.Element {
       scrollToAndHighlight('profile-achievements', '#16a34a')
     }
   }, [profileTab])
+
+  if (!currentUser) {
+    return (
+      <AppLayout>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <p className="text-sm text-muted-foreground">Loading profile…</p>
+        </div>
+      </AppLayout>
+    )
+  }
 
   const myPosts = useMemo(
     () => posts.filter((post) => post.author.id === currentUser.id),

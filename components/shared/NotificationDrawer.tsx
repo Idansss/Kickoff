@@ -104,7 +104,7 @@ export function NotificationDrawer({
     }
     if (n.type === 'follow') {
       const userId = n.userId
-      router.push(userId ? `/profile?user=${encodeURIComponent(userId)}` : '/profile')
+      router.push(userId ? `/user/${encodeURIComponent(userId)}` : '/profile')
       onClose()
       return
     }
