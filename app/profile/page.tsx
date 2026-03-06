@@ -13,6 +13,7 @@ import { cn, scrollToAndHighlight } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { useImageUpload } from '@/hooks/useImageUpload'
 
 const LEVEL_NAMES: Record<number, string> = {
   1: 'Grassroots',
@@ -62,6 +63,10 @@ function ProfilePageContent(): React.JSX.Element {
   const [editHeaderUrl, setEditHeaderUrl] = useState<string | null>(currentUser?.headerImage ?? null)
   const headerInputRef = useRef<HTMLInputElement>(null)
   const avatarInputRef = useRef<HTMLInputElement>(null)
+  const [pendingHeaderFile, setPendingHeaderFile] = useState<File | null>(null)
+  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const { upload: uploadImage } = useImageUpload({ bucket: 'profiles' })
 
   useEffect(() => {
     if (!currentUser) {
@@ -94,6 +99,7 @@ function ProfilePageContent(): React.JSX.Element {
   const handleHeaderChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file && file.type.startsWith('image/')) {
+      setPendingHeaderFile(file)
       const url = await readFileAsDataUrl(file)
       setEditHeaderUrl(url)
     }
@@ -102,16 +108,18 @@ function ProfilePageContent(): React.JSX.Element {
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file && file.type.startsWith('image/')) {
+      setPendingAvatarFile(file)
       const url = await readFileAsDataUrl(file)
       setEditAvatarUrl(url)
     }
     e.target.value = ''
   }
-  const clearEditHeader = () => setEditHeaderUrl(null)
-  const clearEditAvatar = () => setEditAvatarUrl(null)
+  const clearEditHeader = () => { setEditHeaderUrl(null); setPendingHeaderFile(null) }
+  const clearEditAvatar = () => { setEditAvatarUrl(null); setPendingAvatarFile(null) }
 
-  const saveEdit = () => {
-    if (!currentUser) return
+  const saveEdit = async () => {
+    if (!currentUser || isSaving) return
+    setIsSaving(true)
     const name = editName.trim() || currentUser.name
     const handle = editHandle.trim().replace(/^@/, '') || currentUser.handle
     const parts = name.split(/\s+/).filter(Boolean)
@@ -119,14 +127,26 @@ function ProfilePageContent(): React.JSX.Element {
       parts.length >= 2
         ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase().slice(0, 2)
         : name.slice(0, 2).toUpperCase() || currentUser.avatarInitials
+
+    // Upload new files to Supabase Storage if selected
+    const avatarUrl = pendingAvatarFile
+      ? (await uploadImage(pendingAvatarFile)) ?? editAvatarUrl
+      : editAvatarUrl
+    const headerUrl = pendingHeaderFile
+      ? (await uploadImage(pendingHeaderFile)) ?? editHeaderUrl
+      : editHeaderUrl
+
     updateCurrentUser({
       name,
       handle,
       avatarInitials,
-      bio: editBio.trim() || null,
-      avatarImage: editAvatarUrl,
-      headerImage: editHeaderUrl,
+      bio: editBio.trim() || undefined,
+      avatarImage: avatarUrl ?? undefined,
+      headerImage: headerUrl ?? undefined,
     })
+    setPendingAvatarFile(null)
+    setPendingHeaderFile(null)
+    setIsSaving(false)
     closeEdit()
   }
 
@@ -358,8 +378,8 @@ function ProfilePageContent(): React.JSX.Element {
                 <X className="h-5 w-5" />
               </button>
               <h2 id="edit-profile-title" className="text-lg font-bold text-foreground">Edit profile</h2>
-              <Button size="sm" onClick={saveEdit} className="rounded-full bg-green-600 hover:bg-green-700 text-white font-semibold px-4">
-                Save
+              <Button size="sm" onClick={saveEdit} disabled={isSaving} className="rounded-full bg-green-600 hover:bg-green-700 text-white font-semibold px-4">
+                {isSaving ? 'Saving…' : 'Save'}
               </Button>
             </div>
 
@@ -417,14 +437,18 @@ function ProfilePageContent(): React.JSX.Element {
               </div>
 
               {/* Profile photo */}
-              <div className="px-5 pt-6 flex items-end gap-4">
-                <div className="flex flex-col">
-                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Profile photo</Label>
+              <div className="px-5 pt-6">
+                <Label className="text-xs font-semibold text-foreground/90 uppercase tracking-wider mb-3 block">
+                  Profile photo
+                </Label>
+                <div className="flex flex-wrap items-start gap-5">
                   <label
                     htmlFor="edit-avatar-file"
                     className={cn(
-                      'w-24 h-24 rounded-full border-2 border-dashed overflow-hidden cursor-pointer flex items-center justify-center transition-colors block',
-                      'border-muted-foreground/25 hover:border-green-500/50 bg-muted/50 hover:bg-muted/80'
+                      'w-28 h-28 rounded-full overflow-hidden cursor-pointer flex items-center justify-center transition-all duration-200 block shrink-0',
+                      'border-2 border-dashed border-muted-foreground/20 hover:border-green-500/60',
+                      'bg-gradient-to-br from-muted/60 to-muted/30 hover:from-green-500/10 hover:to-green-500/5',
+                      'shadow-sm hover:shadow-md ring-2 ring-transparent hover:ring-green-500/20'
                     )}
                   >
                     <input
@@ -441,30 +465,38 @@ function ProfilePageContent(): React.JSX.Element {
                         <Image
                           src={editAvatarUrl}
                           alt=""
-                          width={96}
-                          height={96}
+                          width={112}
+                          height={112}
                           className="object-cover w-full h-full"
                           unoptimized={editAvatarUrl.startsWith('data:')}
                         />
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Camera className="h-6 w-6 text-white" />
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <span className="rounded-full bg-white/20 p-2.5 backdrop-blur-sm">
+                            <Camera className="h-6 w-6 text-white" />
+                          </span>
                         </div>
                       </div>
                     ) : (
-                      <Camera className="h-8 w-8 text-muted-foreground" />
+                      <span className="rounded-full bg-muted/80 p-4 text-muted-foreground hover:text-green-600 hover:bg-green-500/10 transition-colors duration-200">
+                        <Camera className="h-8 w-8" strokeWidth={1.5} />
+                      </span>
                     )}
                   </label>
-                  {editAvatarUrl ? (
-                    <button
-                      type="button"
-                      onClick={clearEditAvatar}
-                      className="mt-1.5 text-xs text-red-500 hover:text-red-600 font-medium"
-                    >
-                      Remove photo
-                    </button>
-                  ) : null}
+                  <div className="flex-1 min-w-0 pt-1">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Square images work best. Max 5MB. JPG, PNG or WebP.
+                    </p>
+                    {editAvatarUrl ? (
+                      <button
+                        type="button"
+                        onClick={clearEditAvatar}
+                        className="mt-2.5 text-sm text-red-500 hover:text-red-600 font-medium underline underline-offset-2"
+                      >
+                        Remove photo
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground pb-3 max-w-[200px]">Square images work best. Max 5MB.</p>
               </div>
 
               {/* Name, Handle, Bio */}
@@ -507,7 +539,7 @@ function ProfilePageContent(): React.JSX.Element {
 
             <div className="px-5 py-4 border-t border-border flex justify-end">
               <Button variant="outline" size="sm" onClick={closeEdit} className="rounded-full">Cancel</Button>
-              <Button size="sm" onClick={saveEdit} className="rounded-full ml-2 bg-green-600 hover:bg-green-700 text-white">Save changes</Button>
+              <Button size="sm" onClick={saveEdit} disabled={isSaving} className="rounded-full ml-2 bg-green-600 hover:bg-green-700 text-white">{isSaving ? 'Saving…' : 'Save changes'}</Button>
             </div>
           </div>
         </div>

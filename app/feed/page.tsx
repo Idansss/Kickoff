@@ -13,9 +13,12 @@ import { SkeletonLoader } from '@/components/shared/SkeletonLoader'
 import { INPUT_LIMITS } from '@/lib/constants'
 import { cn, scrollToAndHighlight } from '@/lib/utils'
 import { TrendingStrip } from '@/components/NewComponents'
+import { StoriesBar } from '@/components/stories/StoriesBar'
 import { useComposerTokens } from '@/hooks/useComposerTokens'
 import { highlightMatch } from '@/lib/highlightMatch'
 import { PostToolbar } from '@/components/composer/PostToolbar'
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll'
+import { useRealTimeFeed } from '@/hooks/useRealTimeFeed'
 
 const MAX_LENGTH = INPUT_LIMITS.postMaxLength
 const TAGS = ['General', 'PL', 'UCL', 'Transfer', 'Stats', 'SerieA', 'LaLiga'] as const
@@ -23,9 +26,79 @@ type FeedTag = (typeof TAGS)[number]
 
 type FeedTab = 'foryou' | 'following'
 
+function InfiniteFeedList({
+  posts,
+  loading,
+  activeTab,
+  focusPostId,
+  shouldHighlight,
+  shouldOpenReplies,
+  onDiscoverPeople,
+}: {
+  posts: ReturnType<typeof feedStore.getState>['posts']
+  loading: boolean
+  activeTab: FeedTab
+  focusPostId: string
+  shouldHighlight: boolean
+  shouldOpenReplies: boolean
+  onDiscoverPeople: () => void
+}) {
+  const { displayed, hasMore, sentinelRef } = useInfiniteScroll(posts, 20)
+
+  if (loading) {
+    return (
+      <div className="space-y-0">
+        <SkeletonLoader variant="post" />
+        <SkeletonLoader variant="post" />
+        <SkeletonLoader variant="post" />
+      </div>
+    )
+  }
+
+  if (posts.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-3">
+        <div className="text-3xl">⚽</div>
+        <p className="text-muted-foreground text-sm">
+          {activeTab === 'following'
+            ? "You're not following anyone yet. Follow users to see their posts here."
+            : 'No posts yet'}
+        </p>
+        {activeTab === 'following' && (
+          <button
+            type="button"
+            onClick={onDiscoverPeople}
+            className="mt-1 text-sm font-semibold text-green-600 hover:underline"
+          >
+            Discover People →
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <>
+      {displayed.map((post) => (
+        <FeedPostCard
+          key={post.id}
+          post={post}
+          focusPostId={focusPostId || undefined}
+          highlightFocus={shouldHighlight}
+          openRepliesForFocus={shouldOpenReplies}
+        />
+      ))}
+      {hasMore && (
+        <div ref={sentinelRef} className="py-4 flex justify-center">
+          <SkeletonLoader variant="post" />
+        </div>
+      )}
+    </>
+  )
+}
+
 function FeedPageInner(): React.JSX.Element {
   const posts = feedStore((s) => s.posts)
-  const initPosts = feedStore((s) => s.initPosts)
   const addPost = feedStore((s) => s.addPost)
   const mutedUsers = feedStore((s) => s.mutedUsers)
   const blockedUsers = feedStore((s) => s.blockedUsers)
@@ -46,10 +119,14 @@ function FeedPageInner(): React.JSX.Element {
   const [showPoll, setShowPoll] = useState(false)
   const [pollA, setPollA] = useState('')
   const [pollB, setPollB] = useState('')
+  const [aiRanked, setAiRanked] = useState(false)
+  const [aiRankedIds, setAiRankedIds] = useState<string[]>([])
+  const [aiRanking, setAiRanking] = useState(false)
 
   const composerRef = useRef<HTMLDivElement | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const { newCount, clearNewCount } = useRealTimeFeed(true)
   const searchParams = useSearchParams()
   const router = useRouter()
   const focusPostId = searchParams.get('post') ?? ''
@@ -70,10 +147,9 @@ function FeedPageInner(): React.JSX.Element {
   const isNearLimit = charsLeft <= 30 && !isOverLimit
 
   useEffect(() => {
-    initPosts()
-    const t = setTimeout(() => setLoading(false), 600)
+    const t = setTimeout(() => setLoading(false), 400)
     return () => clearTimeout(t)
-  }, [initPosts])
+  }, [])
 
   useEffect(() => {
     if (!focusPostId) return
@@ -170,7 +246,12 @@ function FeedPageInner(): React.JSX.Element {
       )
     }
 
-    // For You: verified first, then engagement, then recency
+    // For You: if AI ranked, use AI order; else engagement + verified
+    if (aiRanked && aiRankedIds.length > 0) {
+      const orderMap = new Map(aiRankedIds.map((id, i) => [id, i]))
+      return list.sort((a, b) => (orderMap.get(a.id) ?? 9999) - (orderMap.get(b.id) ?? 9999))
+    }
+
     return list.sort((a, b) => {
       const va = a.author.verified ? 1 : 0
       const vb = b.author.verified ? 1 : 0
@@ -188,6 +269,8 @@ function FeedPageInner(): React.JSX.Element {
     hiddenPosts,
     activeHashtag,
     followingIds,
+    aiRanked,
+    aiRankedIds,
   ])
 
   const handlePost = useCallback((): void => {
@@ -267,6 +350,33 @@ function FeedPageInner(): React.JSX.Element {
     { key: 'following', label: 'Following' },
   ]
 
+  const rankWithAI = useCallback(async () => {
+    if (aiRanking) return
+    setAiRanking(true)
+    try {
+      const postsToRank = posts.slice(0, 50).map((p) => ({
+        id: p.id,
+        content: p.content,
+        likes: p.likes,
+        reposts: p.reposts,
+        tag: p.tag,
+        authorVerified: p.author.verified ?? false,
+      }))
+      const interests = currentUser?.favoriteTeams ?? []
+      const res = await fetch('/api/ai/rank-feed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ posts: postsToRank, interests }),
+      })
+      const data = await res.json() as { rankedIds: string[] }
+      setAiRankedIds(data.rankedIds ?? [])
+      setAiRanked(true)
+    } catch {
+      // ignore
+    }
+    setAiRanking(false)
+  }, [aiRanking, currentUser, posts])
+
   const getTrendingTopics = feedStore((s) => s.getTrendingTopics)
   const trendingTopics = useMemo(
     () => getTrendingTopics().map((t) => t.tag),
@@ -288,7 +398,7 @@ function FeedPageInner(): React.JSX.Element {
           <div className="px-4 pt-4 pb-0 sm:px-6">
             <h1 className="text-xl font-bold mb-3">Feed</h1>
           </div>
-          <div className="flex px-4 sm:px-6 -mb-px">
+          <div className="flex items-center px-4 sm:px-6 -mb-px">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
@@ -303,6 +413,22 @@ function FeedPageInner(): React.JSX.Element {
                 {tab.label}
               </button>
             ))}
+            {activeTab === 'foryou' && (
+              <button
+                type="button"
+                onClick={aiRanked ? () => { setAiRanked(false); setAiRankedIds([]) } : rankWithAI}
+                disabled={aiRanking}
+                className={cn(
+                  'ml-auto mb-1 flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition-colors',
+                  aiRanked
+                    ? 'bg-green-600 text-white'
+                    : 'border border-border text-muted-foreground hover:text-green-600 hover:border-green-500'
+                )}
+                title={aiRanked ? 'AI ranking active — click to reset' : 'Rank feed with AI'}
+              >
+                {aiRanking ? '...' : aiRanked ? '✦ AI On' : '✦ AI'}
+              </button>
+            )}
           </div>
         </div>
 
@@ -322,6 +448,7 @@ function FeedPageInner(): React.JSX.Element {
               </button>
             </div>
           ) : null}
+          <StoriesBar />
           <TrendingStrip
             onFilter={(pill: string | null) => setActiveHashtag(pill ?? null)}
             topics={trendingTopics.length > 0 ? trendingTopics : undefined}
@@ -513,6 +640,7 @@ function FeedPageInner(): React.JSX.Element {
                   onInsertEmoji={(e) => insertAtCursor(e)}
                   pollOn={showPoll}
                   onTogglePoll={() => setShowPoll((v) => !v)}
+                  onHotTake={(text) => setContent(text)}
                 />
                 <div className="mt-1 text-xs text-muted-foreground hidden sm:block">
                   Ctrl+Enter to post
@@ -522,43 +650,25 @@ function FeedPageInner(): React.JSX.Element {
           </div>
         </div>
 
-        <div>
-          {loading ? (
-            <div className="space-y-0">
-              <SkeletonLoader variant="post" />
-              <SkeletonLoader variant="post" />
-              <SkeletonLoader variant="post" />
-            </div>
-          ) : displayedPosts.length > 0 ? (
-            displayedPosts.map((post) => (
-              <FeedPostCard
-                key={post.id}
-                post={post}
-                focusPostId={focusPostId || undefined}
-                highlightFocus={shouldHighlight}
-                openRepliesForFocus={shouldOpenReplies}
-              />
-            ))
-          ) : (
-            <div className="flex flex-col items-center justify-center py-16 gap-3">
-              <div className="text-3xl">⚽</div>
-              <p className="text-muted-foreground text-sm">
-                {activeTab === 'following'
-                  ? "You're not following anyone yet. Follow users to see their posts here."
-                  : 'No posts yet'}
-              </p>
-              {activeTab === 'following' && (
-                <button
-                  type="button"
-                  onClick={() => router.push('/discovery')}
-                  className="mt-1 text-sm font-semibold text-green-600 hover:underline"
-                >
-                  Discover People →
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+        {newCount > 0 && (
+          <button
+            type="button"
+            onClick={() => { clearNewCount(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+            className="mx-auto my-2 flex items-center gap-2 rounded-full bg-green-600 hover:bg-green-700 px-4 py-2 text-sm font-semibold text-white shadow-lg transition-all animate-fade-in-up"
+          >
+            <span>↑</span>
+            {newCount} new post{newCount !== 1 ? 's' : ''}
+          </button>
+        )}
+        <InfiniteFeedList
+          posts={displayedPosts}
+          loading={loading}
+          activeTab={activeTab}
+          focusPostId={focusPostId}
+          shouldHighlight={shouldHighlight}
+          shouldOpenReplies={shouldOpenReplies}
+          onDiscoverPeople={() => router.push('/discovery')}
+        />
       </div>
     </AppLayout>
   )

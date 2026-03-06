@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Search, Zap, MessageCircle, Sparkles } from 'lucide-react'
+import { Home, Search, Zap, Target, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function MobileNav() {
@@ -10,9 +10,9 @@ export function MobileNav() {
 
   const links = [
     { href: '/feed', label: 'Feed', icon: Home },
-    { href: '/discovery', label: 'Search', icon: Search },
+    { href: '/search', label: 'Search', icon: Search },
     { href: '/matches', label: 'Matches', icon: Zap },
-    { href: '/chat', label: 'Chat', icon: MessageCircle },
+    { href: '/predict', label: 'Predict', icon: Target },
     { href: '/ai', label: 'AI', icon: Sparkles },
   ]
 

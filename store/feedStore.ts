@@ -353,6 +353,13 @@ export const feedStore = create<FeedState>()(
         blockedUsers: state.blockedUsers,
         hiddenPosts: state.hiddenPosts,
       }),
+      onRehydrateStorage: () => (state, err) => {
+        if (err) return
+        const posts = state?.posts
+        if (!posts || posts.length === 0) {
+          setTimeout(() => feedStore.getState().initPosts(), 0)
+        }
+      },
     }
   )
 )

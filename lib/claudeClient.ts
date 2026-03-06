@@ -1,10 +1,9 @@
 /**
  * Client for FootballGPT and scout/preview APIs.
  * Calls app API routes to keep provider keys server-side.
- * Supports Claude and xAI (Grok).
+ * Claude and xAI run together and produce one combined answer.
  */
 
-import type { AiProvider } from '@/lib/constants'
 import { ANTHROPIC, ROUTES, USER_MESSAGES } from '@/lib/constants'
 
 interface ApiResponseShape {
@@ -63,12 +62,11 @@ async function callApi(path: string, body: Record<string, unknown>): Promise<str
 
 export async function askFootballGPT(
   question: string,
-  options?: { provider?: AiProvider; history?: readonly { role: 'user' | 'assistant'; content: string }[] }
+  options?: { history?: readonly { role: 'user' | 'assistant'; content: string }[] }
 ): Promise<string> {
   return callApi(ROUTES.footballGpt, {
     message: question,
     history: options?.history ?? [],
-    provider: options?.provider ?? 'claude',
   })
 }
 

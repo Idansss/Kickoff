@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import type { MatchDTO } from '@/lib/football/providers/types'
 import { FollowButton } from '@/components/common/FollowButton'
+import { MatchNotifyButton } from '@/components/football/match/MatchNotifyButton'
 
 type MatchCore = MatchDTO['match']
 
@@ -92,8 +93,17 @@ export function MatchHeader({ match }: MatchHeaderProps) {
         </Link>
       </div>
 
-      <div className="flex justify-center sm:justify-end">
+      <div className="flex items-center justify-center gap-3 sm:justify-end flex-wrap">
         <FollowButton entityType="MATCH" entityId={match.id} size="md" />
+        {match.status === 'SCHEDULED' && (
+          <MatchNotifyButton
+            homeTeam={match.homeTeam.name}
+            awayTeam={match.awayTeam.name}
+            competition={match.competition.name}
+            kickoffTime={`${dateLabel} ${timeLabel}`}
+            matchId={match.id}
+          />
+        )}
       </div>
     </header>
   )

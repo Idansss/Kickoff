@@ -15,6 +15,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Compass,
+  ArrowLeftRight,
+  Trophy,
+  Target,
+  TrendingUp,
+  Newspaper,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { userStore } from '@/store/userStore'
@@ -39,10 +44,15 @@ export function Sidebar() {
 
   const links = [
     { href: '/feed', label: 'Feed', icon: Home },
+    { href: '/search', label: 'Search', icon: Search },
     { href: '/discovery', label: 'Discovery', icon: Compass },
-    { href: '/competitions', label: 'Competitions', icon: Search },
-    { href: '/news', label: 'News', icon: Zap },
     { href: '/matches', label: 'Live Matches', icon: Zap },
+    { href: '/competitions', label: 'Competitions', icon: Trophy },
+    { href: '/predict', label: 'Predictions', icon: Target },
+    { href: '/fantasy', label: 'Fantasy', icon: TrendingUp },
+    { href: '/transfers', label: 'Transfers', icon: ArrowLeftRight },
+    { href: '/compare', label: 'Compare', icon: ArrowLeftRight },
+    { href: '/news', label: 'News', icon: Newspaper },
     { href: '/chat', label: 'Chat Rooms', icon: MessageCircle },
     { href: '/ai', label: 'FootballGPT', icon: Sparkles },
     { href: '/profile', label: 'Profile', icon: User },

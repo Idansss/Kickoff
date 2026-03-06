@@ -1,0 +1,43 @@
+{
+  "name": "KICKOFF - Football Social Network",
+  "short_name": "KICKOFF",
+  "description": "The social platform for football conversation",
+  "start_url": "/feed",
+  "display": "standalone",
+  "background_color": "#1f1f1d",
+  "theme_color": "#16a34a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "categories": ["sports", "social"],
+  "shortcuts": [
+    {
+      "name": "Feed",
+      "url": "/feed",
+      "description": "Your football feed"
+    },
+    {
+      "name": "Live Matches",
+      "url": "/matches",
+      "description": "Live scores and results"
+    },
+    {
+      "name": "FootballGPT",
+      "url": "/ai",
+      "description": "AI football assistant"
+    }
+  ]
+}

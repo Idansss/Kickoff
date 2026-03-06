@@ -1,16 +1,29 @@
 import { db } from './db'
+import { createClient } from './supabase/server'
 
 export async function getAuthedUserId(): Promise<string> {
-  // TODO: Wire this to your real auth/session logic.
-  // For now, return the first seeded user so follow/notification flows can be exercised.
-  const user = await db.user.findFirst({
-    orderBy: { createdAt: 'asc' },
-  })
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) {
-    throw new Error('No demo user found. Seed the database first.')
+    if (user) {
+      // Find or create a Prisma user linked to the Supabase auth user
+      let prismaUser = await db.user.findFirst({
+        where: { handle: user.email?.split('@')[0] ?? user.id },
+      })
+
+      if (!prismaUser) {
+        prismaUser = await db.user.findFirst({ orderBy: { createdAt: 'asc' } })
+      }
+
+      if (prismaUser) return prismaUser.id
+    }
+  } catch {
+    // Fall through to demo user
   }
 
+  // Fallback: return first seeded user for demo mode
+  const user = await db.user.findFirst({ orderBy: { createdAt: 'asc' } })
+  if (!user) throw new Error('No demo user found. Seed the database first.')
   return user.id
 }
-

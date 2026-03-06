@@ -422,6 +422,8 @@ function FeedPostCardInner({
     const originalPostId = post.repostOfPostId ?? post.id
     repostPost(originalPostId)
     setRepostMenuOpen(false)
+    // Fire-and-forget API persistence
+    fetch(`/api/posts/${originalPostId}/repost`, { method: 'POST' }).catch(() => {})
     toastStore.getState().showToast({
       message: '🔁 Reposted',
       undoAction: () => feedStore.getState().undoRepost(originalPostId),
@@ -590,9 +592,9 @@ function FeedPostCardInner({
               part.type === 'text' ? (
                 <span key={i}>{part.value}</span>
               ) : part.type === 'hashtag' ? (
-                <span key={i} className="text-green-600 cursor-pointer">
+                <Link key={i} href={`/hashtag/${encodeURIComponent(part.value.replace(/^#/, ''))}`} className="text-green-600 hover:underline">
                   {part.value}
-                </span>
+                </Link>
               ) : (
                 <span key={i} className="text-green-600 cursor-pointer">
                   {part.value}
@@ -809,7 +811,11 @@ function FeedPostCardInner({
             </div>
 
             <button
-              onClick={() => toggleLike(post.id)}
+              onClick={() => {
+                toggleLike(post.id)
+                // Fire-and-forget API persistence
+                fetch(`/api/posts/${post.id}/like`, { method: 'POST' }).catch(() => {})
+              }}
               className={cn(
                 'flex items-center gap-1.5 text-xs transition-colors group',
                 post.likedByMe ? 'text-red-500' : 'hover:text-red-500'

@@ -22,6 +22,7 @@ export interface PostToolbarProps {
   onTogglePoll?: () => void
 
   onInsertEmoji?: (emoji: string) => void
+  onHotTake?: (text: string) => void
 }
 
 export function PostToolbar({
@@ -37,9 +38,23 @@ export function PostToolbar({
   pollOn = false,
   onTogglePoll,
   onInsertEmoji,
+  onHotTake,
 }: PostToolbarProps) {
   const [emojiOpen, setEmojiOpen] = useState(false)
+  const [hotTakeLoading, setHotTakeLoading] = useState(false)
   const emojiRef = useRef<HTMLDivElement | null>(null)
+
+  const handleHotTake = async () => {
+    if (!onHotTake || hotTakeLoading) return
+    setHotTakeLoading(true)
+    try {
+      const res = await fetch('/api/ai/hot-take', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
+      const data = await res.json() as { hotTake: string }
+      onHotTake(data.hotTake)
+    } finally {
+      setHotTakeLoading(false)
+    }
+  }
 
   const overWarning = charCount >= 240
   const overDanger = charCount >= 270
@@ -200,6 +215,29 @@ export function PostToolbar({
         >
           📊
         </button>
+
+        {onHotTake && (
+          <button
+            type="button"
+            title="AI Hot Take"
+            onClick={handleHotTake}
+            disabled={hotTakeLoading}
+            style={{
+              padding: '4px 10px',
+              border: '1px solid #16a34a',
+              color: '#16a34a',
+              borderRadius: 999,
+              fontSize: 11,
+              fontWeight: 700,
+              background: 'none',
+              cursor: hotTakeLoading ? 'wait' : 'pointer',
+              fontFamily: 'Inter, sans-serif',
+              opacity: hotTakeLoading ? 0.6 : 1,
+            }}
+          >
+            {hotTakeLoading ? '...' : '🔥 Hot Take'}
+          </button>
+        )}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { AppLayout } from '@/components/app-layout'
 import { TeamHeader } from '@/components/football/team/TeamHeader'
 import { TeamTabs } from '@/components/football/team/TeamTabs'
@@ -8,8 +9,24 @@ interface ClubPageProps {
   }
 }
 
-export const metadata = {
-  title: 'Club Profile - KICKOFF',
+export async function generateMetadata({ params }: ClubPageProps): Promise<Metadata> {
+  try {
+    const base = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+    const res = await fetch(`${base}/api/football/teams/${params.id}/overview`, { next: { revalidate: 300 } })
+    if (!res.ok) return { title: 'Club - KICKOFF' }
+    const data = await res.json() as { team: { name?: string; country?: string } }
+    const t = data.team
+    const title = `${t.name ?? 'Club'} - KICKOFF`
+    const description = t.country ? `${t.name} · ${t.country} football club on KICKOFF` : `${t.name} on KICKOFF`
+    return {
+      title,
+      description,
+      openGraph: { title, description, siteName: 'KICKOFF' },
+      twitter: { card: 'summary', title, description },
+    }
+  } catch {
+    return { title: 'Club - KICKOFF' }
+  }
 }
 
 async function fetchTeamOverview(id: string) {

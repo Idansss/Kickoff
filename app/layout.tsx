@@ -7,6 +7,7 @@ import { Toaster as AppToaster } from '@/components/ui/toaster'
 import { StoreInitializer } from '@/components/StoreInitializer'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { GlobalModals } from '@/components/GlobalModals'
+import { AuthProvider } from '@/components/AuthProvider'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans' })
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' })
@@ -15,6 +16,18 @@ export const metadata: Metadata = {
   title: 'KICKOFF - Football Social Network',
   description: 'The social platform for football conversation. Connect with fans, follow players, explore clubs, and stay updated on live matches.',
   generator: 'v0.app',
+  manifest: '/manifest.json',
+  openGraph: {
+    type: 'website',
+    siteName: 'KICKOFF',
+    title: 'KICKOFF - Football Social Network',
+    description: 'The social platform for football conversation.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'KICKOFF - Football Social Network',
+    description: 'The social platform for football conversation.',
+  },
   icons: {
     icon: [
       {
@@ -60,7 +73,9 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <StoreInitializer />
-          <ErrorBoundary>{children}</ErrorBoundary>
+          <AuthProvider>
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </AuthProvider>
           <GlobalModals />
           <AppToaster />
           <Analytics />

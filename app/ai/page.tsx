@@ -1,13 +1,14 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { Send, Sparkles, User } from 'lucide-react'
 import { AppLayout } from '@/components/app-layout'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { askFootballGPT } from '@/lib/claudeClient'
-import type { AiProvider } from '@/lib/constants'
 import { INPUT_LIMITS } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 
@@ -41,15 +42,9 @@ function TypingIndicator(): React.JSX.Element {
   )
 }
 
-const PROVIDERS: { id: AiProvider; label: string }[] = [
-  { id: 'claude', label: 'Claude' },
-  { id: 'xai', label: 'xAI (Grok)' },
-]
-
 export default function AIPage(): React.JSX.Element {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
-  const [provider, setProvider] = useState<AiProvider>('claude')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -95,7 +90,7 @@ export default function AIPage(): React.JSX.Element {
 
       try {
         const history = messages.map((m) => ({ role: m.role, content: m.content }))
-        const reply = await askFootballGPT(content, { provider, history })
+        const reply = await askFootballGPT(content, { history })
         if (reply === "Couldn't connect. Try again.") {
           setError(reply)
         } else {
@@ -108,7 +103,7 @@ export default function AIPage(): React.JSX.Element {
         setIsLoading(false)
       }
     },
-    [appendAssistantMessage, isLoading, messages, provider]
+    [appendAssistantMessage, isLoading, messages]
   )
 
   const handleKeyDown = useCallback(
@@ -130,34 +125,13 @@ export default function AIPage(): React.JSX.Element {
     <AppLayout>
       <div className="mx-auto max-w-2xl border-x border-border flex flex-col h-[calc(100dvh-64px)] md:h-screen">
         <div className="border-b border-border bg-background/80 backdrop-blur px-4 py-4 sm:px-6 flex-shrink-0">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-500/20 text-green-500">
-                <Sparkles className="h-5 w-5" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold">FootballGPT</h1>
-                <p className="text-xs text-muted-foreground">Expert AI football analyst · Claude & xAI</p>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-500/15 text-green-500 ring-1 ring-green-500/20">
+              <Sparkles className="h-5 w-5" />
             </div>
-            <div className="flex rounded-lg border border-border bg-muted/30 p-0.5">
-              {PROVIDERS.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => setProvider(p.id)}
-                  className={cn(
-                    'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                    provider === p.id
-                      ? 'bg-background text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  )}
-                  aria-pressed={provider === p.id ? 'true' : 'false'}
-                  aria-label={`Use ${p.label}`}
-                >
-                  {p.label}
-                </button>
-              ))}
+            <div>
+              <h1 className="text-lg font-bold tracking-tight">FootballGPT</h1>
+              <p className="text-xs text-muted-foreground">Expert football analyst · powered by Claude & xAI</p>
             </div>
           </div>
         </div>
@@ -218,13 +192,21 @@ export default function AIPage(): React.JSX.Element {
 
               <div
                 className={cn(
-                  'max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap',
+                  'max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed',
                   message.role === 'user'
-                    ? 'rounded-tr-sm bg-primary text-primary-foreground'
-                    : 'rounded-tl-sm bg-muted text-foreground'
+                    ? 'rounded-tr-sm bg-primary text-primary-foreground whitespace-pre-wrap'
+                    : 'rounded-tl-sm bg-muted/80 text-foreground border border-border/50'
                 )}
               >
-                {message.content}
+                {message.role === 'assistant' ? (
+                  <div className="ai-markdown [&_h1]:text-base [&_h2]:text-sm [&_h3]:text-sm [&_h1]:font-bold [&_h2]:font-bold [&_h3]:font-semibold [&_h1]:mt-2 [&_h2]:mt-2 [&_h3]:mt-2 [&_p]:my-1.5 [&_ul]:my-2 [&_ol]:my-2 [&_li]:my-0.5 [&_strong]:font-semibold [&_strong]:text-foreground [&_a]:text-green-600 [&_a]:underline">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  message.content
+                )}
               </div>
             </div>
           ))}

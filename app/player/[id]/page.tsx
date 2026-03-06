@@ -1,9 +1,30 @@
+import type { Metadata } from 'next'
 import { PlayerHeader } from '@/components/football/player/PlayerHeader'
 import { PlayerTabs } from '@/components/football/player/PlayerTabs'
 
 interface PlayerPageProps {
   params: {
     id: string
+  }
+}
+
+export async function generateMetadata({ params }: PlayerPageProps): Promise<Metadata> {
+  try {
+    const base = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+    const res = await fetch(`${base}/api/football/players/${params.id}`, { next: { revalidate: 300 } })
+    if (!res.ok) return { title: 'Player - KICKOFF' }
+    const data = await res.json() as { player: { name?: string; position?: string; nationality?: string } }
+    const p = data.player
+    const title = `${p.name ?? 'Player'} - KICKOFF`
+    const description = [p.position, p.nationality].filter(Boolean).join(' · ')
+    return {
+      title,
+      description,
+      openGraph: { title, description, siteName: 'KICKOFF' },
+      twitter: { card: 'summary', title, description },
+    }
+  } catch {
+    return { title: 'Player - KICKOFF' }
   }
 }
 

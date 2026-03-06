@@ -398,3 +398,31 @@ model PushSubscription {
 
   @@index([userId])
 }
+
+model FantasyTeam {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  squadJson   String   // JSON array of player slots
+  budget      Float    @default(100.0)
+  teamName    String   @default("My Fantasy XI")
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+}
+
+model MatchPrediction {
+  id           String   @id @default(cuid())
+  userId       String
+  matchId      String
+  homeGoals    Int
+  awayGoals    Int
+  confidence   Int      @default(3)
+  outcome      String   // "home" | "draw" | "away"
+  correct      Boolean?
+  pointsEarned Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, matchId])
+  @@index([userId])
+  @@index([matchId])
+}
