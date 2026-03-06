@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef } from 'react'
 import { formatDistanceToNow } from 'date-fns'
-import { X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import type { Notification } from '@/types'
@@ -73,15 +72,15 @@ export function NotificationDrawer({
     }
   }, [isOpen, onClose])
 
-  if (!isOpen) return null
-
-  const unreadCount = notifications.filter((n) => !n.read).length
-
   const grouped = useMemo(() => {
     const unread = notifications.filter((n) => !n.read)
     const read = notifications.filter((n) => n.read)
     return { unread, read }
   }, [notifications])
+
+  const unreadCount = grouped.unread.length
+
+  if (!isOpen) return null
 
   const navigateFor = (n: Notification) => {
     onMarkRead?.(n.id)
