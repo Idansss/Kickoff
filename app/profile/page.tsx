@@ -93,19 +93,9 @@ function ProfilePageContent(): React.JSX.Element {
     }
   }, [profileTab])
 
-  if (!currentUser) {
-    return (
-      <AppLayout>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <p className="text-sm text-muted-foreground">Loading profile…</p>
-        </div>
-      </AppLayout>
-    )
-  }
-
   const myPosts = useMemo(
-    () => posts.filter((post) => post.author.id === currentUser.id),
-    [currentUser.id, posts]
+    () => (currentUser ? posts.filter((post) => post.author.id === currentUser.id) : []),
+    [currentUser, posts]
   )
   const tabs = useMemo<{ key: Tab; label: string; count: number }[]>(
     () => [
@@ -118,7 +108,17 @@ function ProfilePageContent(): React.JSX.Element {
     () => (activeTab === 'posts' ? myPosts : bookmarks),
     [activeTab, bookmarks, myPosts]
   )
-  const progress = xpProgress(currentUser.xp)
+  const progress = xpProgress(currentUser?.xp ?? 0)
+
+  if (!currentUser) {
+    return (
+      <AppLayout>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <p className="text-sm text-muted-foreground">Loading profile…</p>
+        </div>
+      </AppLayout>
+    )
+  }
 
   return (
     <AppLayout>
