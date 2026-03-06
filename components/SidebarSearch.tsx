@@ -208,16 +208,15 @@ export function SidebarSearch({ isOpen }: SidebarSearchProps) {
       {dropdownOpen && (
         <div
           ref={listRef}
-          className="sidebar-search-dropdown absolute left-0 right-0 z-[200] mt-1.5 overflow-hidden rounded-xl border border-black/[0.08] bg-white/92 backdrop-blur-[20px]"
+          className="sidebar-search-dropdown absolute left-0 right-0 z-[200] mt-1.5 overflow-hidden rounded-xl border border-border bg-background/95 backdrop-blur-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.2)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
           style={{
             maxHeight: 420,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
           }}
         >
           <div className="max-h-[420px] overflow-y-auto">
             {showRecent && (
               <>
-                <div className="px-3.5 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#9ca3af]">
+                <div className="px-3.5 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   Recent searches
                 </div>
                 {recentList.length === 0 ? (
@@ -229,14 +228,14 @@ export function SidebarSearch({ isOpen }: SidebarSearchProps) {
                     <button
                       key={term}
                       type="button"
-                      className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-sm hover:bg-black/[0.04]"
+                      className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left text-sm text-foreground hover:bg-muted/60"
                       onClick={() => handleRecentSelect(term)}
                     >
                       <span className="text-muted-foreground">🕐</span>
                       <span className="flex-1 truncate">{term}</span>
                       <button
                         type="button"
-                        className="rounded p-1 hover:bg-black/10"
+                        className="rounded p-1 hover:bg-muted text-foreground"
                         onClick={(e) => {
                           e.stopPropagation()
                           removeRecentSearch(term)
@@ -250,7 +249,7 @@ export function SidebarSearch({ isOpen }: SidebarSearchProps) {
                   ))
                 )}
                 {recentList.length > 0 && (
-                  <div className="border-t border-black/[0.06] px-3.5 py-2">
+                  <div className="border-t border-border px-3.5 py-2">
                     <button
                       type="button"
                       className="text-xs text-green-600 hover:underline"
@@ -276,7 +275,7 @@ export function SidebarSearch({ isOpen }: SidebarSearchProps) {
 
                 {suggestions.players.length > 0 && (
                   <>
-                    <div className="px-3.5 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#9ca3af]">
+                    <div className="px-3.5 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       Players
                     </div>
                     {suggestions.players.map((p, i) => {
@@ -321,7 +320,7 @@ export function SidebarSearch({ isOpen }: SidebarSearchProps) {
 
                 {suggestions.clubs.length > 0 && (
                   <>
-                    <div className="px-3.5 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#9ca3af]">
+                    <div className="px-3.5 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       Clubs
                     </div>
                     {suggestions.clubs.map((c) => {
@@ -360,7 +359,7 @@ export function SidebarSearch({ isOpen }: SidebarSearchProps) {
 
                 {suggestions.hashtags.length > 0 && (
                   <>
-                    <div className="px-3.5 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#9ca3af]">
+                    <div className="px-3.5 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       Hashtags
                     </div>
                     {suggestions.hashtags.map((tag) => {
@@ -398,7 +397,7 @@ export function SidebarSearch({ isOpen }: SidebarSearchProps) {
 
                 {suggestions.posts.length > 0 && (
                   <>
-                    <div className="px-3.5 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#9ca3af]">
+                    <div className="px-3.5 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       Posts
                     </div>
                     {suggestions.posts.map((post) => {
@@ -428,7 +427,7 @@ export function SidebarSearch({ isOpen }: SidebarSearchProps) {
                             {post.author.avatarInitials}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-[13px] text-foreground">{content}</p>
+                            <p className="truncate text-[13px] font-medium text-foreground">{content}</p>
                             <p className="text-xs text-muted-foreground">
                               @{post.author.handle}
                             </p>
@@ -440,7 +439,7 @@ export function SidebarSearch({ isOpen }: SidebarSearchProps) {
                 )}
 
                 {hasQuery && (
-                  <div className="border-t border-black/[0.06]">
+                  <div className="border-t border-border">
                     <button
                       type="button"
                       className={cn(

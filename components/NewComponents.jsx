@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useTheme } from 'next-themes';
 import { getCursorOffset, setCursorOffset } from '@/lib/contentEditable';
 import { toRichHtml } from '@/lib/richComposerHtml';
@@ -289,20 +290,48 @@ export function ShowNewPostsBar({ count = 0, onLoad }) {
 // ─────────────────────────────────────────────────────────────
 // COMPONENT 2 — Three-Dot Post Menu
 // ─────────────────────────────────────────────────────────────
+const MENU_WIDTH = 224;
+const MENU_GAP = 4;
+const MENU_MAX_HEIGHT = 320;
+
 export function PostMenu({ handle = 'username', postId = '1', isFollowing: initFollowing = false, onCopyLink, onMute, onBlock, onNotInterested, onFollowToggle, onReport }) {
   useGlobalStyles();
   const [open, setOpen] = useState(false);
   const [following, setFollowing] = useState(initFollowing);
   const [copied, setCopied] = useState(false);
-  const containerRef = useRef(null);
+  const [menuPlace, setMenuPlace] = useState({ top: 0, left: 0, openUp: false, ready: false });
+  const triggerRef = useRef(null);
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setMenuPlace((p) => ({ ...p, ready: false }));
+      return;
+    }
+    if (!triggerRef.current || typeof document === 'undefined') return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const openUp = spaceBelow < MENU_MAX_HEIGHT + MENU_GAP && rect.top > spaceBelow;
+    const top = openUp ? rect.top - MENU_GAP : rect.bottom + MENU_GAP;
+    const left = Math.max(8, Math.min(rect.right - MENU_WIDTH, window.innerWidth - MENU_WIDTH - 8));
+    setMenuPlace({
+      top: openUp ? undefined : top,
+      bottom: openUp ? window.innerHeight - rect.top + MENU_GAP : undefined,
+      left,
+      openUp,
+      ready: true,
+    });
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
-    const onDown = (e) => { if (!containerRef.current?.contains(e.target)) setOpen(false); };
     const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
-    document.addEventListener('mousedown', onDown);
+    const onScroll = () => setOpen(false);
     document.addEventListener('keydown', onKey);
-    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+    document.addEventListener('scroll', onScroll, true);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('scroll', onScroll, true);
+    };
   }, [open]);
 
   const copyLink = () => {
@@ -328,9 +357,83 @@ export function PostMenu({ handle = 'username', postId = '1', isFollowing: initF
     { icon: '😶', label: 'Not interested in this', action: () => { onNotInterested?.(); setOpen(false); } },
   ];
 
+  const menuEl = open && menuPlace.ready && typeof document !== 'undefined' && (
+    <>
+      <div
+        role="presentation"
+        aria-hidden
+        onClick={() => setOpen(false)}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 9998,
+          background: 'rgba(0,0,0,0.35)',
+          animation: 'nc-menuIn 0.15s ease forwards',
+        }}
+      />
+      <div
+        role="menu"
+        style={{
+          position: 'fixed',
+          left: menuPlace.left,
+          ...(menuPlace.openUp ? { bottom: menuPlace.bottom } : { top: menuPlace.top }),
+          width: MENU_WIDTH,
+          maxHeight: MENU_MAX_HEIGHT,
+          overflowY: 'auto',
+          background: T.glassDrop,
+          backdropFilter: 'blur(24px) saturate(200%)',
+          WebkitBackdropFilter: 'blur(24px) saturate(200%)',
+          border: `1px solid ${T.borderStrong}`,
+          borderRadius: '14px',
+          boxShadow: T.shadowDrop,
+          zIndex: 9999,
+          animation: menuPlace.openUp ? 'nc-menuUp 0.15s ease forwards' : 'nc-menuIn 0.15s ease forwards',
+          padding: '4px 0',
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        {MENU.map((item, i) => {
+          if (item.sep) return (
+            <div key={`sep-${i}`} style={{ height: '1px', background: 'rgba(0,0,0,0.06)', margin: '4px 0' }} />
+          );
+          return (
+            <button
+              key={i}
+              type="button"
+              role="menuitem"
+              className="nc-menu-item"
+              onClick={item.action}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                width: '100%',
+                padding: '11px 16px',
+                fontSize: '13px',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 500,
+                color: item.danger ? T.danger : T.text,
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'background 0.12s ease',
+              }}
+            >
+              <span style={{ width: '20px', textAlign: 'center', fontSize: '15px', lineHeight: 1 }}>{item.icon}</span>
+              {item.label}
+            </button>
+          );
+        })}
+      </div>
+    </>
+  );
+
   return (
-    <div ref={containerRef} style={{ position: 'relative' }}>
+    <div style={{ position: 'relative' }}>
       <button
+        ref={triggerRef}
+        type="button"
         className="nc-dots-btn"
         onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
         style={{
@@ -350,63 +453,13 @@ export function PostMenu({ handle = 'username', postId = '1', isFollowing: initF
         onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.07)'; e.currentTarget.style.opacity = '1'; }}
         onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
         title="More options"
+        aria-haspopup="menu"
+        aria-expanded={open}
       >
         •••
       </button>
 
-      {open && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 4px)',
-            right: 0,
-            minWidth: '224px',
-            background: T.glassDrop,
-            backdropFilter: 'blur(24px) saturate(200%)',
-            WebkitBackdropFilter: 'blur(24px) saturate(200%)',
-            border: `1px solid ${T.borderStrong}`,
-            borderRadius: '14px',
-            boxShadow: T.shadowDrop,
-            zIndex: 100,
-            overflow: 'hidden',
-            animation: 'nc-menuIn 0.15s ease forwards',
-            padding: '4px 0',
-          }}
-          onClick={e => e.stopPropagation()}
-        >
-          {MENU.map((item, i) => {
-            if (item.sep) return (
-              <div key={`sep-${i}`} style={{ height: '1px', background: 'rgba(0,0,0,0.06)', margin: '4px 0' }} />
-            );
-            return (
-              <button
-                key={i}
-                className="nc-menu-item"
-                onClick={item.action}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  width: '100%',
-                  padding: '11px 16px',
-                  fontSize: '13px',
-                  fontFamily: 'Inter, sans-serif',
-                  fontWeight: 500,
-                  color: item.danger ? T.danger : T.text,
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'background 0.12s ease',
-                }}
-              >
-                <span style={{ width: '20px', textAlign: 'center', fontSize: '15px', lineHeight: 1 }}>{item.icon}</span>
-                {item.label}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {menuEl && createPortal(menuEl, document.body)}
     </div>
   );
 }
@@ -459,13 +512,13 @@ export function RightSidebar({
     cardBg: isLight ? '#ffffff' : '#000000',
     cardBorder: isLight ? divider : '#1a1a1a',
     header: isLight ? '#000000' : '#ffffff',
-    primary: isLight ? '#000000' : '#e5e5e5',
-    secondary: isLight ? '#000000' : '#a3a3a3',
-    rank: isLight ? '#000000' : '#525252',
+    primary: isLight ? '#000000' : '#f5f5f5',
+    secondary: isLight ? '#6b7280' : '#b5b5b5',
+    rank: isLight ? '#374151' : '#737373',
     searchBg: isLight ? '#ffffff' : '#000000',
     searchBorder: isLight ? divider : '#1a1a1a',
-    searchText: isLight ? '#000000' : '#e5e5e5',
-    rowHover: isLight ? '#ffffff' : '#0a0a0a',
+    searchText: isLight ? '#000000' : '#f5f5f5',
+    rowHover: isLight ? '#f5f5f5' : '#0a0a0a',
     separator: divider,
   };
 
@@ -632,8 +685,8 @@ export function RightSidebar({
               marginTop: 6,
               borderRadius: 12,
               border: `1px solid ${palette.sidebarBorder}`,
-              background: isLight ? 'rgba(255,255,255,0.96)' : 'rgba(17,17,17,0.98)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+              background: isLight ? 'rgba(255,255,255,0.98)' : 'rgba(0,0,0,0.98)',
+              boxShadow: isLight ? '0 8px 32px rgba(0,0,0,0.12)' : '0 8px 32px rgba(0,0,0,0.5)',
               overflow: 'hidden',
               zIndex: 40,
             }}
