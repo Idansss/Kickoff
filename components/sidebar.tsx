@@ -25,7 +25,7 @@ import { NotificationDrawer } from '@/components/shared/NotificationDrawer'
 import { useSidebarState } from '@/hooks/useSidebarState'
 import { FloatingPostButton, ProfileCard } from '@/components/NewComponents'
 
-const ICON_ROW_HEIGHT = 'h-12 min-h-12' // 48px
+const ICON_ROW_HEIGHT = 'h-10 min-h-10' // 40px — compact like X/TikTok
 const COLLAPSED_WIDTH = 'md:w-16' // 64px
 
 export function Sidebar() {
@@ -62,14 +62,14 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'sidebar-kickoff hidden md:flex md:flex-col md:h-screen md:border-r transition-[width] duration-300 ease-in-out',
+        'sidebar-kickoff hidden md:flex md:flex-col md:h-screen md:border-r md:overflow-hidden transition-[width] duration-300 ease-in-out',
         isOpen ? 'md:w-64' : COLLAPSED_WIDTH
       )}
     >
         <div
           className={cn(
-            'flex flex-col h-full min-h-0 w-full min-w-0',
-            isOpen ? 'p-6 gap-6' : 'py-6 gap-1 px-0 w-16'
+            'flex flex-col h-full min-h-0 w-full min-w-0 overflow-hidden',
+            isOpen ? 'p-4 gap-3' : 'py-4 gap-1 px-0 w-16'
           )}
         >
         {/* Logo + Toggle — collapsed: column centered; expanded: row */}
@@ -143,11 +143,11 @@ export function Sidebar() {
           )}
         </div>
 
-        {/* Navigation links: scroll within nav if viewport is short so bottom actions stay visible */}
+        {/* Navigation links — no scroll; fixed list like X/TikTok */}
         <nav
           className={cn(
-            'flex flex-1 min-h-0 flex-col overflow-y-auto',
-            isOpen ? 'gap-1 pr-1' : 'gap-0'
+            'flex flex-shrink-0 flex-col overflow-hidden',
+            isOpen ? 'gap-0.5' : 'gap-0'
           )}
         >
           {links.map(({ href, label, icon: Icon }) => {
@@ -161,7 +161,7 @@ export function Sidebar() {
                 className={cn(
                   'group relative flex items-center rounded-xl text-sm font-medium transition-all min-w-0',
                   !isOpen && ICON_ROW_HEIGHT,
-                  isOpen ? 'gap-3 px-3 py-2.5' : 'justify-center w-full px-0',
+                  isOpen ? 'gap-3 px-3 py-2' : 'justify-center w-full px-0',
                   isActive
                     ? isAI
                       ? 'bg-green-500/15 text-green-600 dark:text-green-400'
@@ -200,7 +200,7 @@ export function Sidebar() {
 
         {/* Floating Post Button — above profile */}
         {isOpen && (
-          <div className="flex-shrink-0 px-0 py-2">
+          <div className="flex-shrink-0 py-1">
             <FloatingPostButton onClick={openPostModal} />
           </div>
         )}
@@ -208,8 +208,8 @@ export function Sidebar() {
         {/* Notifications + Settings */}
         <div
           className={cn(
-            'flex flex-col flex-shrink-0 pt-2 border-t border-border',
-            isOpen ? 'gap-1' : 'gap-0'
+            'flex flex-col flex-shrink-0 pt-1.5 border-t border-border',
+            isOpen ? 'gap-0.5' : 'gap-0'
           )}
         >
           <button
@@ -218,7 +218,7 @@ export function Sidebar() {
             className={cn(
               'group flex w-full items-center rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted hover:text-foreground relative min-w-0',
               !isOpen && ICON_ROW_HEIGHT,
-              isOpen ? 'gap-3 px-3 py-2.5' : 'justify-center px-0'
+              isOpen ? 'gap-3 px-3 py-2' : 'justify-center px-0'
             )}
             title={!isOpen ? 'Notifications' : undefined}
             aria-label="Notifications"
@@ -257,7 +257,7 @@ export function Sidebar() {
             className={cn(
               'group flex items-center rounded-xl text-sm font-medium transition-all min-w-0',
               !isOpen && ICON_ROW_HEIGHT,
-              isOpen ? 'gap-3 px-3 py-2.5' : 'justify-center w-full px-0',
+              isOpen ? 'gap-3 px-3 py-2' : 'justify-center w-full px-0',
               pathname === '/settings'
                 ? 'bg-accent text-accent-foreground'
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'

@@ -13,6 +13,42 @@ const QuerySchema = z.object({
     .transform((value) => value === 'true'),
 })
 
+type NewsScopeDb = 'LATEST' | 'TRANSFERS' | 'LEAGUE'
+
+type NewsWhere = {
+  scope: NewsScopeDb
+  competitionId?: string
+  teamId?: string
+  OR?: Array<
+    | {
+        competitionId: { in: string[] }
+      }
+    | {
+        teamId: { in: string[] }
+      }
+  >
+}
+
+type NewsItemRow = {
+  id: string
+  title: string
+  summary?: string | null
+  source?: string | null
+  url?: string | null
+  imageUrl?: string | null
+  publishedAt?: Date | string | null
+  teamId?: string | null
+  competitionId?: string | null
+}
+
+type NewsItemDelegate = {
+  findMany?: (args: {
+    where: NewsWhere
+    orderBy: { publishedAt: 'desc' }
+    take: number
+  }) => Promise<NewsItemRow[]>
+}
+
 export async function GET(req: Request) {
   const url = new URL(req.url)
 
@@ -33,18 +69,22 @@ export async function GET(req: Request) {
   let followedTeamIds: string[] | undefined
 
   if (followedOnly) {
-    const userId = await getAuthedUserId()
-    const follows = await db.follow.findMany({
-      where: { userId },
-    })
+    try {
+      const userId = await getAuthedUserId()
+      const follows = await db.follow.findMany({
+        where: { userId },
+      })
 
-    followedCompetitionIds = follows
-      .filter((f) => f.entityType === 'COMPETITION')
-      .map((f) => f.entityId)
-    followedTeamIds = follows.filter((f) => f.entityType === 'TEAM').map((f) => f.entityId)
+      followedCompetitionIds = follows
+        .filter((f) => f.entityType === 'COMPETITION')
+        .map((f) => f.entityId)
+      followedTeamIds = follows.filter((f) => f.entityType === 'TEAM').map((f) => f.entityId)
+    } catch {
+      return NextResponse.json({ items: [] })
+    }
   }
 
-  const where: any = {
+  const where: NewsWhere = {
     scope: scope === 'latest' ? 'LATEST' : scope === 'transfers' ? 'TRANSFERS' : 'LEAGUE',
   }
 
@@ -56,42 +96,56 @@ export async function GET(req: Request) {
   }
 
   if (followedOnly) {
-    where.OR = [
-      followedCompetitionIds && followedCompetitionIds.length > 0
-        ? { competitionId: { in: followedCompetitionIds } }
-        : undefined,
-      followedTeamIds && followedTeamIds.length > 0
-        ? { teamId: { in: followedTeamIds } }
-        : undefined,
-    ].filter(Boolean)
+    const orFilters: NonNullable<NewsWhere['OR']> = []
+    if (followedCompetitionIds && followedCompetitionIds.length > 0) {
+      orFilters.push({ competitionId: { in: followedCompetitionIds } })
+    }
+    if (followedTeamIds && followedTeamIds.length > 0) {
+      orFilters.push({ teamId: { in: followedTeamIds } })
+    }
 
     // If there are no followed competition or team ids, return empty immediately
-    if (where.OR.length === 0) {
+    if (orFilters.length === 0) {
       return NextResponse.json({ items: [] })
     }
+    where.OR = orFilters
   }
 
-  const items = await (db as any).newsItem?.findMany?.({
-    where,
-    orderBy: {
-      publishedAt: 'desc',
-    },
-    take: 50,
-  })
+  const newsItemDelegate = (db as unknown as { newsItem?: NewsItemDelegate }).newsItem
+  let items: NewsItemRow[] = []
+  try {
+    items =
+      (await newsItemDelegate?.findMany?.({
+        where,
+        orderBy: {
+          publishedAt: 'desc',
+        },
+        take: 50,
+      })) ?? []
+  } catch {
+    return NextResponse.json({ items: [] })
+  }
 
-  const mapped =
-    (items ?? []).map((item: any) => ({
+  const mapped = items.map((item) => {
+    const date =
+      item.publishedAt instanceof Date
+        ? item.publishedAt
+        : new Date(item.publishedAt ?? Date.now())
+
+    return {
       id: item.id,
       title: item.title,
       summary: item.summary ?? undefined,
       source: item.source ?? undefined,
       url: item.url ?? undefined,
       imageUrl: item.imageUrl ?? undefined,
-      publishedAt: (item.publishedAt as Date).toISOString(),
+      publishedAt: Number.isNaN(date.getTime())
+        ? new Date().toISOString()
+        : date.toISOString(),
       teamId: item.teamId ?? undefined,
       competitionId: item.competitionId ?? undefined,
-    })) ?? []
+    }
+  })
 
   return NextResponse.json({ items: mapped })
 }
-

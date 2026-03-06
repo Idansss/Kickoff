@@ -18,6 +18,8 @@ interface NewsFiltersProps {
   onTeamQueryChange: (value: string) => void
 }
 
+const ALL_COMPETITIONS_VALUE = '__all__'
+
 export function NewsFilters({
   competitions,
   competitionId,
@@ -28,7 +30,7 @@ export function NewsFilters({
   onTeamQueryChange,
 }: NewsFiltersProps) {
   const handleCompetitionChange = (value: string) => {
-    onCompetitionChange(value === '' ? null : value)
+    onCompetitionChange(value === ALL_COMPETITIONS_VALUE ? null : value)
   }
 
   const handleFollowedChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -44,12 +46,15 @@ export function NewsFilters({
       <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
         <label className="flex items-center gap-2">
           <span className="whitespace-nowrap text-[11px] text-muted-foreground">Competition</span>
-          <Select value={competitionId ?? ''} onValueChange={handleCompetitionChange}>
+          <Select
+            value={competitionId ?? ALL_COMPETITIONS_VALUE}
+            onValueChange={handleCompetitionChange}
+          >
             <SelectTrigger className="h-8 min-w-[140px]">
               <SelectValue placeholder="All" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All</SelectItem>
+              <SelectItem value={ALL_COMPETITIONS_VALUE}>All</SelectItem>
               {competitions.map((c) => (
                 <SelectItem key={c.id} value={c.id}>
                   {c.name}
@@ -83,4 +88,3 @@ export function NewsFilters({
     </div>
   )
 }
-

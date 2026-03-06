@@ -1,4 +1,5 @@
 import { AppLayout } from '@/components/app-layout'
+import { db } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,19 +17,21 @@ interface CompetitionsResponse {
   international: CompetitionSummary[]
 }
 
-async function fetchCompetitions(): Promise<CompetitionsResponse> {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-  try {
-    const res = await fetch(`${base}/api/football/competitions`, {
-      cache: 'no-store',
-    })
-    if (!res.ok) {
-      return { leagues: [], cups: [], international: [] }
-    }
-    return (await res.json()) as CompetitionsResponse
-  } catch {
-    return { leagues: [], cups: [], international: [] }
-  }
+async function getCompetitions(): Promise<CompetitionsResponse> {
+  const competitions = await db.competition.findMany({
+    select: {
+      id: true,
+      name: true,
+      country: true,
+      type: true,
+      logoUrl: true,
+    },
+    orderBy: { name: 'asc' },
+  })
+  const leagues = competitions.filter((c) => c.type === 'league')
+  const cups = competitions.filter((c) => c.type === 'cup')
+  const international = competitions.filter((c) => c.type === 'international')
+  return { leagues, cups, international }
 }
 
 function Section({
@@ -78,7 +81,7 @@ function Section({
 }
 
 export default async function CompetitionsPage() {
-  const data = await fetchCompetitions()
+  const data = await getCompetitions()
 
   return (
     <AppLayout>
@@ -93,6 +96,11 @@ export default async function CompetitionsPage() {
           <Section title="Leagues" competitions={data.leagues} />
           <Section title="Cups" competitions={data.cups} />
           <Section title="International" competitions={data.international} />
+          {data.leagues.length === 0 && data.cups.length === 0 && data.international.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              No competitions yet. Run <code className="rounded bg-muted px-1 py-0.5 text-xs">npx prisma db seed</code> to populate the database.
+            </p>
+          )}
         </main>
       </div>
     </AppLayout>
