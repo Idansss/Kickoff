@@ -143,11 +143,11 @@ export function Sidebar() {
           )}
         </div>
 
-        {/* Navigation links — collapsed: 48px rows, one icon each; expanded: normal without inner scroll */}
+        {/* Navigation links: scroll within nav if viewport is short so bottom actions stay visible */}
         <nav
           className={cn(
-            'flex flex-col flex-shrink-0',
-            isOpen ? 'gap-1' : 'gap-0'
+            'flex flex-1 min-h-0 flex-col overflow-y-auto',
+            isOpen ? 'gap-1 pr-1' : 'gap-0'
           )}
         >
           {links.map(({ href, label, icon: Icon }) => {

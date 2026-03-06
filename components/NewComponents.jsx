@@ -565,12 +565,14 @@ export function RightSidebar({
       className="nc-right-sidebar"
       ref={containerRef}
       style={{
-        width: '280px',
+        width: '320px',
+        maxWidth: 'calc(100vw - 32px)', // keep inside viewport with margin
+        boxSizing: 'border-box',
         flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
         gap: '10px',
-        padding: '12px 0 12px 12px',
+        padding: '12px 12px 12px 12px',
         fontFamily: 'Inter, sans-serif',
         background: palette.sidebarBg,
         borderLeft: `1px solid ${palette.sidebarBorder}`,
