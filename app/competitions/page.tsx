@@ -18,20 +18,31 @@ interface CompetitionsResponse {
 }
 
 async function getCompetitions(): Promise<CompetitionsResponse> {
-  const competitions = await db.competition.findMany({
-    select: {
-      id: true,
-      name: true,
-      country: true,
-      type: true,
-      logoUrl: true,
-    },
-    orderBy: { name: 'asc' },
-  })
-  const leagues = competitions.filter((c) => c.type === 'league')
-  const cups = competitions.filter((c) => c.type === 'cup')
-  const international = competitions.filter((c) => c.type === 'international')
-  return { leagues, cups, international }
+  try {
+    const competitions = await db.competition.findMany({
+      select: {
+        id: true,
+        name: true,
+        country: true,
+        type: true,
+        logoUrl: true,
+      },
+      orderBy: { name: 'asc' },
+    })
+
+    const leagues = competitions.filter((c) => (c.type ?? '').toLowerCase() === 'league')
+    const cups = competitions.filter((c) => (c.type ?? '').toLowerCase() === 'cup')
+    const international = competitions.filter(
+      (c) => (c.type ?? '').toLowerCase() === 'international',
+    )
+    return { leagues, cups, international }
+  } catch {
+    return {
+      leagues: [],
+      cups: [],
+      international: [],
+    }
+  }
 }
 
 function Section({
@@ -55,7 +66,6 @@ function Section({
           >
             <div className="flex items-center gap-3">
               {c.logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={c.logoUrl}
                   alt={c.name}
@@ -98,7 +108,8 @@ export default async function CompetitionsPage() {
           <Section title="International" competitions={data.international} />
           {data.leagues.length === 0 && data.cups.length === 0 && data.international.length === 0 && (
             <p className="text-sm text-muted-foreground">
-              No competitions yet. Run <code className="rounded bg-muted px-1 py-0.5 text-xs">npx prisma db seed</code> to populate the database.
+              No competitions available right now. If you&apos;re running locally, seed data with{' '}
+              <code className="rounded bg-muted px-1 py-0.5 text-xs">npx prisma db seed</code>.
             </p>
           )}
         </main>
