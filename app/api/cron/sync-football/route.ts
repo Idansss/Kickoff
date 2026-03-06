@@ -3,12 +3,12 @@ import { db } from '@/lib/db'
 
 /**
  * Cron endpoint to sync football data from football-data.org.
- * Called by Vercel Cron or an external scheduler (e.g. every 30min for live matches).
+ * Called by Vercel Cron (daily on Hobby; use external scheduler for more frequent runs).
  *
- * Configure in vercel.json:
+ * Configure in vercel.json (Hobby: once per day only, e.g. 0 6 * * * = 6:00 UTC):
  * {
  *   "crons": [
- *     { "path": "/api/cron/sync-football", "schedule": "*/30 * * * *" }
+ *     { "path": "/api/cron/sync-football", "schedule": "0 6 * * *" }
  *   ]
  * }
  *
