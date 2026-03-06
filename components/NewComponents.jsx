@@ -296,11 +296,32 @@ const MENU_MAX_HEIGHT = 320;
 
 export function PostMenu({ handle = 'username', postId = '1', isFollowing: initFollowing = false, onCopyLink, onMute, onBlock, onNotInterested, onFollowToggle, onReport }) {
   useGlobalStyles();
+  const { theme, systemTheme } = useTheme();
+  const resolvedTheme = theme === 'system' ? systemTheme : theme;
+  const isDark = resolvedTheme === 'dark';
   const [open, setOpen] = useState(false);
   const [following, setFollowing] = useState(initFollowing);
   const [copied, setCopied] = useState(false);
   const [menuPlace, setMenuPlace] = useState({ top: 0, left: 0, openUp: false, ready: false });
   const triggerRef = useRef(null);
+
+  const menuStyle = isDark
+    ? {
+        menuBg: 'rgba(0,0,0,0.95)',
+        menuBorder: '#1a1a1a',
+        menuShadow: '0 8px 32px rgba(0,0,0,0.5)',
+        menuText: '#f5f5f5',
+        menuDanger: '#f87171',
+        menuSep: 'rgba(255,255,255,0.08)',
+      }
+    : {
+        menuBg: T.glassDrop,
+        menuBorder: T.borderStrong,
+        menuShadow: T.shadowDrop,
+        menuText: T.text,
+        menuDanger: T.danger,
+        menuSep: 'rgba(0,0,0,0.06)',
+      };
 
   useLayoutEffect(() => {
     if (!open) {
@@ -380,12 +401,12 @@ export function PostMenu({ handle = 'username', postId = '1', isFollowing: initF
           width: MENU_WIDTH,
           maxHeight: MENU_MAX_HEIGHT,
           overflowY: 'auto',
-          background: T.glassDrop,
+          background: menuStyle.menuBg,
           backdropFilter: 'blur(24px) saturate(200%)',
           WebkitBackdropFilter: 'blur(24px) saturate(200%)',
-          border: `1px solid ${T.borderStrong}`,
+          border: `1px solid ${menuStyle.menuBorder}`,
           borderRadius: '14px',
-          boxShadow: T.shadowDrop,
+          boxShadow: menuStyle.menuShadow,
           zIndex: 9999,
           animation: menuPlace.openUp ? 'nc-menuUp 0.15s ease forwards' : 'nc-menuIn 0.15s ease forwards',
           padding: '4px 0',
@@ -394,7 +415,7 @@ export function PostMenu({ handle = 'username', postId = '1', isFollowing: initF
       >
         {MENU.map((item, i) => {
           if (item.sep) return (
-            <div key={`sep-${i}`} style={{ height: '1px', background: 'rgba(0,0,0,0.06)', margin: '4px 0' }} />
+            <div key={`sep-${i}`} style={{ height: '1px', background: menuStyle.menuSep, margin: '4px 0' }} />
           );
           return (
             <button
@@ -412,7 +433,7 @@ export function PostMenu({ handle = 'username', postId = '1', isFollowing: initF
                 fontSize: '13px',
                 fontFamily: 'Inter, sans-serif',
                 fontWeight: 500,
-                color: item.danger ? T.danger : T.text,
+                color: item.danger ? menuStyle.menuDanger : menuStyle.menuText,
                 background: 'transparent',
                 border: 'none',
                 cursor: 'pointer',
@@ -442,7 +463,7 @@ export function PostMenu({ handle = 'username', postId = '1', isFollowing: initF
           cursor: 'pointer',
           padding: '5px 7px',
           borderRadius: '8px',
-          color: T.muted,
+          color: isDark ? '#a3a3a3' : T.muted,
           fontSize: '18px',
           lineHeight: 1,
           transition: T.spring,
@@ -450,7 +471,10 @@ export function PostMenu({ handle = 'username', postId = '1', isFollowing: initF
           opacity: 0,
           transition: 'opacity 0.15s ease, background 0.15s ease',
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.07)'; e.currentTarget.style.opacity = '1'; }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
+          e.currentTarget.style.opacity = '1';
+        }}
         onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
         title="More options"
         aria-haspopup="menu"
@@ -487,6 +511,24 @@ const FIXTURES = [
   { id: 'fx4', comp: 'Bundesliga',     home: 'Dortmund',   away: 'Leverkusen', time: '20:30' },
 ];
 
+// Palette using CSS variables so RightSidebar follows .dark class from DOM
+// (avoids useTheme hydration delay that caused white flash on reload/navigation)
+const RIGHT_SIDEBAR_PALETTE = {
+  sidebarBg: 'var(--sidebar)',
+  sidebarBorder: 'var(--sidebar-border)',
+  cardBg: 'var(--card)',
+  cardBorder: 'var(--border)',
+  header: 'var(--sidebar-foreground)',
+  primary: 'var(--foreground)',
+  secondary: 'var(--muted-foreground)',
+  rank: 'var(--chart-1)',
+  searchBg: 'var(--background)',
+  searchBorder: 'var(--border)',
+  searchText: 'var(--foreground)',
+  rowHover: 'var(--sidebar-hover)',
+  separator: 'var(--border)',
+};
+
 export function RightSidebar({
   liveMatches: liveMatchesProp,
   trendingList: trendingListProp,
@@ -501,26 +543,7 @@ export function RightSidebar({
   onClickFixture,
 }) {
   useGlobalStyles();
-  const { theme, systemTheme } = useTheme();
-  const resolvedTheme = theme === 'system' ? systemTheme : theme;
-  const isLight = resolvedTheme !== 'dark';
-  const divider = isLight ? '#d6dee4' : '#1a1a1a';
-
-  const palette = {
-    sidebarBg: isLight ? '#ffffff' : '#000000',
-    sidebarBorder: divider,
-    cardBg: isLight ? '#ffffff' : '#000000',
-    cardBorder: isLight ? divider : '#1a1a1a',
-    header: isLight ? '#000000' : '#ffffff',
-    primary: isLight ? '#000000' : '#f5f5f5',
-    secondary: isLight ? '#6b7280' : '#b5b5b5',
-    rank: isLight ? '#374151' : '#737373',
-    searchBg: isLight ? '#ffffff' : '#000000',
-    searchBorder: isLight ? divider : '#1a1a1a',
-    searchText: isLight ? '#000000' : '#f5f5f5',
-    rowHover: isLight ? '#f5f5f5' : '#0a0a0a',
-    separator: divider,
-  };
+  const palette = RIGHT_SIDEBAR_PALETTE;
 
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(false);
@@ -685,8 +708,8 @@ export function RightSidebar({
               marginTop: 6,
               borderRadius: 12,
               border: `1px solid ${palette.sidebarBorder}`,
-              background: isLight ? 'rgba(255,255,255,0.98)' : 'rgba(0,0,0,0.98)',
-              boxShadow: isLight ? '0 8px 32px rgba(0,0,0,0.12)' : '0 8px 32px rgba(0,0,0,0.5)',
+              background: 'var(--popover)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
               overflow: 'hidden',
               zIndex: 40,
             }}

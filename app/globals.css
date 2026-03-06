@@ -60,6 +60,7 @@
   --radius: 0.5rem;
   --sidebar: #ffffff;
   --sidebar-foreground: #000000;
+  --sidebar-hover: #f5f5f5;
   --sidebar-primary: oklch(0.52 0.147 142.5);
   --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: #ffffff;
@@ -101,6 +102,7 @@
   --chart-5: #262626;
   --sidebar: #000000;
   --sidebar-foreground: #e5e5e5;
+  --sidebar-hover: #0a0a0a;
   --sidebar-primary: #22c55e;
   --sidebar-primary-foreground: #000000;
   --sidebar-accent: #0a0a0a;
