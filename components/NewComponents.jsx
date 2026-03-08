@@ -1409,7 +1409,7 @@ export function FloatingPostButton({ onClick }) {
 // ─────────────────────────────────────────────────────────────
 // COMPONENT 5 — Profile Card (Sidebar Bottom)
 // ─────────────────────────────────────────────────────────────
-export function ProfileCard({ user = { name: 'Alex Turner', handle: 'alexturner', initials: 'AT' }, onViewProfile, onEditProfile, onSignOut }) {
+export function ProfileCard({ user = { name: 'Alex Turner', handle: 'alexturner', initials: 'AT', color: '#16a34a' }, onViewProfile, onEditProfile, onSignOut }) {
   useGlobalStyles();
   const [menuOpen, setMenuOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
