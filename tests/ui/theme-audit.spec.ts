@@ -106,4 +106,51 @@ test.describe('Dark Mode UI Audit', () => {
       })
     })
   }
+
+  test.describe('Profile page', () => {
+    test('dark mode: Edit Profile button is visible and has sufficient contrast', async ({
+      page,
+    }) => {
+      await page.emulateMedia({ colorScheme: 'dark' })
+      await page.addInitScript(() => {
+        window.localStorage.setItem('theme', 'dark')
+      })
+      await page.goto('/profile', { waitUntil: 'domcontentloaded', timeout: 20000 })
+      await page.waitForLoadState('load')
+      await page.evaluate(() => {
+        document.documentElement.classList.add('dark')
+      })
+      await page.waitForTimeout(300)
+
+      const editBtn = page.getByRole('button', { name: 'Edit Profile' })
+      await expect(editBtn).toBeVisible()
+
+      const hasContrast = await editBtn.evaluate((el) => {
+        const style = window.getComputedStyle(el)
+        const color = style.color
+        const bg = style.backgroundColor
+        if (!color || !bg) return true
+        const parse = (s: string) => {
+          const m = s.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
+          if (m) return [parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10)]
+          return null
+        }
+        const c = parse(color)
+        const b = parse(bg)
+        if (!c || !b) return true
+        const same =
+          c[0] === b[0] && c[1] === b[1] && c[2] === b[2]
+        return !same
+      })
+      expect(hasContrast, 'Edit Profile button text and background must not be the same color').toBe(
+        true
+      )
+
+      await expect(page).toHaveScreenshot('profile-dark-edit-visible.png', {
+        fullPage: true,
+        maxDiffPixels: 500,
+        timeout: 15000,
+      })
+    })
+  })
 })
