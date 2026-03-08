@@ -550,7 +550,7 @@ function FeedPostCardInner({
             <div className="flex items-center gap-1.5 flex-wrap">
               <Link
                 href={`/user/${post.author.id}`}
-                className="font-semibold text-sm hover:underline"
+                className="font-semibold text-sm text-foreground hover:underline"
               >
                 {post.author.name}
               </Link>
@@ -592,11 +592,11 @@ function FeedPostCardInner({
               part.type === 'text' ? (
                 <span key={i}>{part.value}</span>
               ) : part.type === 'hashtag' ? (
-                <Link key={i} href={`/hashtag/${encodeURIComponent(part.value.replace(/^#/, ''))}`} className="text-green-600 hover:underline">
+                <Link key={i} href={`/hashtag/${encodeURIComponent(part.value.replace(/^#/, ''))}`} className="text-green-700 underline decoration-green-700/60 hover:decoration-green-700">
                   {part.value}
                 </Link>
               ) : (
-                <span key={i} className="text-green-600 cursor-pointer">
+                <span key={i} className="text-green-700 underline decoration-green-700/60 cursor-pointer">
                   {part.value}
                 </span>
               )

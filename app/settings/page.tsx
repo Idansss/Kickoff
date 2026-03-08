@@ -47,7 +47,7 @@ function ToggleSwitch({
     >
       <Switch.Thumb
         className={cn(
-          'pointer-events-none block h-[18px] w-[18px] rounded-full bg-white ring-0',
+          'pointer-events-none block h-[18px] w-[18px] rounded-full bg-background ring-0',
           'shadow-[0_1px_4px_rgba(0,0,0,0.3)] transition-transform duration-200 ease',
           checked ? 'translate-x-[22px]' : 'translate-x-[2px]'
         )}
@@ -361,7 +361,7 @@ export default function SettingsPage(): React.JSX.Element {
               />
               {canShowTeamDropdown && (
                 <div
-                  className="absolute left-0 right-0 z-[200] mt-1.5 overflow-hidden rounded-xl border border-black/[0.08] bg-white/92 backdrop-blur-[20px] dark:bg-[#111111]/95 dark:border-white/[0.08]"
+                  className="absolute left-0 right-0 z-[200] mt-1.5 overflow-hidden rounded-xl border border-border bg-popover/95 backdrop-blur-[20px]"
                   style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }}
                 >
                   <div className="max-h-[220px] overflow-y-auto">
@@ -374,7 +374,7 @@ export default function SettingsPage(): React.JSX.Element {
                           disabled={already}
                           className={cn(
                             'flex w-full items-center justify-between gap-2 px-3.5 py-2.5 text-left text-sm transition-colors',
-                            already ? 'opacity-60 cursor-not-allowed' : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+                            already ? 'opacity-60 cursor-not-allowed' : 'hover:bg-muted'
                           )}
                           onClick={() => {
                             if (already) return

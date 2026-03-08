@@ -201,8 +201,6 @@ export function SidebarSearch({ isOpen }: SidebarSearchProps) {
         placeholder="Search players, clubs..."
         className="pl-10 bg-muted border-0 focus-visible:ring-1"
         aria-label="Search"
-        aria-expanded={dropdownOpen}
-        aria-autocomplete="list"
       />
 
       {dropdownOpen && (

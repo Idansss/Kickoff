@@ -99,7 +99,7 @@ export function Sidebar() {
           >
             <div
               className={cn(
-                'flex shrink-0 items-center justify-center rounded-lg bg-green-500 text-white font-bold text-lg shadow-lg shadow-green-500/20',
+                'flex shrink-0 items-center justify-center rounded-lg bg-green-700 text-white font-bold text-lg shadow-lg shadow-green-700/20',
                 isOpen ? 'h-9 w-9 rounded-xl' : 'h-9 w-9'
               )}
             >
@@ -174,8 +174,8 @@ export function Sidebar() {
                   isOpen ? 'gap-3 px-3 py-2' : 'justify-center w-full px-0',
                   isActive
                     ? isAI
-                      ? 'bg-green-500/15 text-green-600 dark:text-green-400'
-                      : 'bg-[#16a34a] text-white'
+                      ? 'bg-green-500/15 text-green-700 dark:text-green-400'
+                      : 'bg-green-700 text-white'
                     : 'text-muted-foreground hover:bg-black/[0.04] hover:text-foreground'
                 )}
               >
@@ -196,7 +196,7 @@ export function Sidebar() {
                 {isAI && (
                   <span
                     className={cn(
-                      'sidebar-label ml-auto text-xs bg-green-500/15 text-green-600 dark:text-green-400 px-1.5 py-0.5 rounded-full font-semibold overflow-hidden transition-opacity duration-150 ease',
+                      'sidebar-label ml-auto text-xs bg-green-500/15 text-green-700 dark:text-green-400 px-1.5 py-0.5 rounded-full font-semibold overflow-hidden transition-opacity duration-150 ease',
                       !isOpen ? 'opacity-0 w-0 min-w-0 overflow-hidden pointer-events-none hidden' : 'opacity-100'
                     )}
                   >
@@ -237,7 +237,7 @@ export function Sidebar() {
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && !isOpen && (
                 <span
-                  className="absolute -top-0.5 -right-0.5 rounded-full bg-green-500 text-white text-xs font-semibold min-w-5 h-5 flex items-center justify-center overflow-hidden"
+                  className="absolute -top-0.5 -right-0.5 rounded-full bg-green-700 text-white text-xs font-semibold min-w-5 h-5 flex items-center justify-center overflow-hidden"
                   aria-label={`${unreadCount} unread notifications`}
                 >
                   {unreadCount > 99 ? '99+' : unreadCount}
@@ -254,7 +254,7 @@ export function Sidebar() {
             </span>
             {unreadCount > 0 && isOpen && (
               <span
-                className="ml-auto rounded-full bg-green-500 text-white text-xs font-semibold min-w-5 h-5 flex items-center justify-center flex-shrink-0 overflow-hidden"
+                className="ml-auto rounded-full bg-green-700 text-white text-xs font-semibold min-w-5 h-5 flex items-center justify-center flex-shrink-0 overflow-hidden"
                 aria-label={`${unreadCount} unread notifications`}
               >
                 {unreadCount > 99 ? '99+' : unreadCount}
@@ -295,6 +295,7 @@ export function Sidebar() {
               name: currentUser.name,
               handle: currentUser.handle,
               initials: currentUser.avatarInitials,
+              color: currentUser.avatarColor,
             }}
             onViewProfile={() => router.push('/profile')}
             onEditProfile={() => router.push('/profile?edit=true')}

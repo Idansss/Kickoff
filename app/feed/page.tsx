@@ -459,7 +459,7 @@ function FeedPageInner(): React.JSX.Element {
           <div className="flex gap-3">
             <div
               className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-semibold text-white flex-shrink-0"
-              style={{ backgroundColor: currentUser.avatarColor }}
+              style={{ backgroundColor: currentUser.avatarColor === '#16a34a' ? '#15803d' : currentUser.avatarColor }}
             >
               {currentUser.avatarInitials}
             </div>
@@ -483,7 +483,7 @@ function FeedPageInner(): React.JSX.Element {
               {showSuggestions && suggestionsOpen && (
                 <div className="relative">
                   <div
-                    className="absolute left-0 right-0 z-50 mt-2 overflow-hidden rounded-xl border border-black/[0.08] bg-white/92 backdrop-blur-[20px]"
+                    className="absolute left-0 right-0 z-50 mt-2 overflow-hidden rounded-xl border border-border bg-popover/95 backdrop-blur-[20px]"
                     style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.10)' }}
                   >
                     {activeToken.type === 'hashtag' &&

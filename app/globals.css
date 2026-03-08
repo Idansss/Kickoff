@@ -70,7 +70,7 @@
 }
 
 .dark {
-  /* Full black theme: all surfaces black, no blue/slate tints */
+  /* Full black theme: all surfaces black, no blue/slate tints. WCAG 2 AA: 4.5:1 on #000 for normal text. */
   --bg-app: #000000;
   --bg-sidebar: #000000;
   --glass-bg: rgba(0, 0, 0, 0.85);
@@ -95,7 +95,7 @@
   --border: #1a1a1a;
   --input: #0a0a0a;
   --ring: #22c55e;
-  --chart-1: #525252;
+  --chart-1: #a3a3a3;
   --chart-2: #737373;
   --chart-3: #a3a3a3;
   --chart-4: #404040;

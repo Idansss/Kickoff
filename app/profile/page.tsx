@@ -206,7 +206,7 @@ function ProfilePageContent(): React.JSX.Element {
         <div className="px-4 sm:px-6 pb-0 border-b border-border">
           <div className="flex items-end justify-between -mt-14 mb-3">
             <div className="relative">
-              <div className="h-24 w-24 rounded-full border-4 border-background overflow-hidden flex items-center justify-center text-2xl font-bold text-white bg-muted shrink-0">
+              <div className="h-24 w-24 rounded-full border-4 border-background overflow-hidden flex items-center justify-center text-2xl font-bold text-muted-foreground bg-muted shrink-0">
                 {currentUser.avatarImage ? (
                   <Image
                     src={currentUser.avatarImage}
@@ -217,7 +217,7 @@ function ProfilePageContent(): React.JSX.Element {
                     unoptimized={currentUser.avatarImage.startsWith('data:')}
                   />
                 ) : (
-                  <span style={{ backgroundColor: currentUser.avatarColor }} className="w-full h-full flex items-center justify-center">
+                  <span style={{ backgroundColor: currentUser.avatarColor }} className="w-full h-full flex items-center justify-center text-white">
                     {currentUser.avatarInitials}
                   </span>
                 )}
@@ -244,7 +244,7 @@ function ProfilePageContent(): React.JSX.Element {
             </div>
             <div className="flex items-center gap-1">
               <Link2 className="h-4 w-4" />
-              <span className="text-green-600">kickoff.football</span>
+              <span className="text-green-700 dark:text-green-400">kickoff.football</span>
             </div>
           </div>
 
@@ -307,7 +307,7 @@ function ProfilePageContent(): React.JSX.Element {
                   title={b.description}
                 >
                   <span>{b.emoji}</span>
-                  <span className="text-xs font-medium">{b.name}</span>
+                  <span className="text-xs font-medium text-gray-900 dark:text-foreground">{b.name}</span>
                   {!b.earned && <Lock className="h-3 w-3 text-muted-foreground" />}
                 </div>
               ))}
@@ -421,7 +421,7 @@ function ProfilePageContent(): React.JSX.Element {
                         tabIndex={0}
                         onClick={(e) => { e.preventDefault(); clearEditHeader() }}
                         onKeyDown={(e) => e.key === 'Enter' && clearEditHeader()}
-                        className="absolute top-2 right-2 rounded-full bg-black/60 p-1.5 text-white hover:bg-black/80 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className="absolute top-2 right-2 rounded-full bg-foreground/60 p-1.5 text-background hover:bg-foreground/80 focus:outline-none focus:ring-2 focus:ring-green-500"
                         aria-label="Remove cover photo"
                       >
                         <X className="h-4 w-4" />
@@ -470,9 +470,9 @@ function ProfilePageContent(): React.JSX.Element {
                           className="object-cover w-full h-full"
                           unoptimized={editAvatarUrl.startsWith('data:')}
                         />
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                          <span className="rounded-full bg-white/20 p-2.5 backdrop-blur-sm">
-                            <Camera className="h-6 w-6 text-white" />
+                        <div className="absolute inset-0 bg-foreground/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <span className="rounded-full bg-background/20 p-2.5 backdrop-blur-sm">
+                            <Camera className="h-6 w-6 text-foreground" />
                           </span>
                         </div>
                       </div>

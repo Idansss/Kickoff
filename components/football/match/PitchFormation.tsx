@@ -67,7 +67,7 @@ function PlayerDot({
       {player.rating != null && (
         <span className={cn(
           'text-[8px] font-bold rounded px-1',
-          player.rating >= 7.5 ? 'bg-green-500 text-white' : player.rating >= 6.5 ? 'bg-yellow-500 text-black' : 'bg-red-500 text-white'
+          player.rating >= 7.5 ? 'bg-green-500 text-white' : player.rating >= 6.5 ? 'bg-yellow-500 text-gray-900' : 'bg-red-500 text-white'
         )}>
           {player.rating.toFixed(1)}
         </span>

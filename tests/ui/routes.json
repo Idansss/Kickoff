@@ -1,0 +1,123 @@
+{
+  "generatedAt": "2026-03-08T11:49:49.048Z",
+  "baseUrl": "http://localhost:3000",
+  "routes": [
+    {
+      "path": "http://localhost:3000/ai",
+      "pathname": "/ai"
+    },
+    {
+      "path": "http://localhost:3000/auth/login",
+      "pathname": "/auth/login"
+    },
+    {
+      "path": "http://localhost:3000/auth/reset",
+      "pathname": "/auth/reset"
+    },
+    {
+      "path": "http://localhost:3000/auth/signup",
+      "pathname": "/auth/signup"
+    },
+    {
+      "path": "http://localhost:3000/calendar",
+      "pathname": "/calendar"
+    },
+    {
+      "path": "http://localhost:3000/chat",
+      "pathname": "/chat"
+    },
+    {
+      "path": "http://localhost:3000/chat/1",
+      "pathname": "/chat/[id]"
+    },
+    {
+      "path": "http://localhost:3000/club/1",
+      "pathname": "/club/[id]"
+    },
+    {
+      "path": "http://localhost:3000/compare",
+      "pathname": "/compare"
+    },
+    {
+      "path": "http://localhost:3000/competitions",
+      "pathname": "/competitions"
+    },
+    {
+      "path": "http://localhost:3000/competitions/1",
+      "pathname": "/competitions/[id]"
+    },
+    {
+      "path": "http://localhost:3000/design",
+      "pathname": "/design"
+    },
+    {
+      "path": "http://localhost:3000/discovery",
+      "pathname": "/discovery"
+    },
+    {
+      "path": "http://localhost:3000/fantasy",
+      "pathname": "/fantasy"
+    },
+    {
+      "path": "http://localhost:3000/feed",
+      "pathname": "/feed"
+    },
+    {
+      "path": "http://localhost:3000/following",
+      "pathname": "/following"
+    },
+    {
+      "path": "http://localhost:3000/hashtag/premierleague",
+      "pathname": "/hashtag/[tag]"
+    },
+    {
+      "path": "http://localhost:3000/kickoff",
+      "pathname": "/kickoff"
+    },
+    {
+      "path": "http://localhost:3000/match/1",
+      "pathname": "/match/[id]"
+    },
+    {
+      "path": "http://localhost:3000/matches",
+      "pathname": "/matches"
+    },
+    {
+      "path": "http://localhost:3000/news",
+      "pathname": "/news"
+    },
+    {
+      "path": "http://localhost:3000/",
+      "pathname": "/"
+    },
+    {
+      "path": "http://localhost:3000/player/1",
+      "pathname": "/player/[id]"
+    },
+    {
+      "path": "http://localhost:3000/predict",
+      "pathname": "/predict"
+    },
+    {
+      "path": "http://localhost:3000/profile",
+      "pathname": "/profile"
+    },
+    {
+      "path": "http://localhost:3000/search",
+      "pathname": "/search"
+    },
+    {
+      "path": "http://localhost:3000/settings",
+      "pathname": "/settings",
+      "skipReason": "Requires auth (redirects to login); add test user or run with auth state to include."
+    },
+    {
+      "path": "http://localhost:3000/transfers",
+      "pathname": "/transfers"
+    },
+    {
+      "path": "http://localhost:3000/user/1",
+      "pathname": "/user/[id]"
+    }
+  ]
+}

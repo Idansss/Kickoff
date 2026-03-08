@@ -9,6 +9,9 @@
     "lint": "eslint .",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
+    "test:ui": "playwright test",
+    "discover-routes": "npx tsx scripts/discoverRoutes.ts",
+    "audit:theme": "npm run discover-routes && playwright test tests/ui/theme-audit.spec.ts",
     "db:migrate": "prisma migrate dev",
     "db:seed": "npx tsx prisma/seed.ts",
     "db:studio": "prisma studio",
@@ -75,7 +78,9 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
     "@eslint/js": "^9.39.3",
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4.2.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

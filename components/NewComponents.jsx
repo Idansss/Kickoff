@@ -988,6 +988,7 @@ export function RightSidebar({
           </div>
           <div
             className="nc-right-scroll"
+            tabIndex={0}
             style={{
               maxHeight: 220,
               overflowY: 'auto',
@@ -1094,7 +1095,7 @@ export function RightSidebar({
               href="/matches"
               style={{
                 fontSize: '12px',
-                color: '#16a34a',
+                color: '#15803d',
                 textDecoration: 'none',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -1123,6 +1124,7 @@ export function RightSidebar({
           </div>
           <div
             className="nc-right-scroll"
+            tabIndex={0}
             style={{
               maxHeight: 320,
               overflowY: 'auto',
@@ -1236,7 +1238,7 @@ export function RightSidebar({
                 border: 'none',
                 cursor: 'pointer',
                 fontSize: '12px',
-                color: '#16a34a',
+                color: '#15803d',
                 fontWeight: 600,
                 padding: 0,
                 fontFamily: 'Inter, sans-serif',
@@ -1265,6 +1267,7 @@ export function RightSidebar({
           </div>
           <div
             className="nc-right-scroll"
+            tabIndex={0}
             style={{
               maxHeight: 250,
               overflowY: 'auto',
@@ -1371,14 +1374,14 @@ export function FloatingPostButton({ onClick }) {
       }}
       onMouseLeave={e => {
         setDown(false);
-        e.currentTarget.style.background = T.accent;
+        e.currentTarget.style.background = T.accentDark;
         e.currentTarget.style.boxShadow = '0 2px 12px rgba(22,163,74,0.22)';
         e.currentTarget.style.transform = 'scale(1)';
       }}
       style={{
         width: 'calc(100% - 32px)',
         margin: '0 16px',
-        background: T.accent,
+        background: T.accentDark,
         border: 'none',
         borderRadius: '12px',
         padding: '13px',
@@ -1483,7 +1486,7 @@ export function ProfileCard({ user = { name: 'Alex Turner', handle: 'alexturner'
       >
         <div style={{
           width: '36px', height: '36px', borderRadius: '50%',
-          background: T.accent,
+          background: (user.color != null ? user.color : T.accentDark),
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           color: 'white', fontSize: '13px', fontWeight: 700,
           flexShrink: 0, fontFamily: 'Inter, sans-serif',
@@ -1911,8 +1914,8 @@ export function PostComposerModal({ isOpen, onClose, onPost }) {
 
           {showPoll && (
             <div style={{ marginTop: 12, paddingLeft: 52, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <input value={pollA} onChange={e => setPollA(e.target.value)} placeholder="Option A" style={{ width: '100%', background: 'rgba(255,255,255,0.65)', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 10, padding: '9px 12px', fontSize: 13, fontFamily: 'Inter, sans-serif' }} />
-              <input value={pollB} onChange={e => setPollB(e.target.value)} placeholder="Option B" style={{ width: '100%', background: 'rgba(255,255,255,0.65)', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 10, padding: '9px 12px', fontSize: 13, fontFamily: 'Inter, sans-serif' }} />
+              <input value={pollA} onChange={e => setPollA(e.target.value)} placeholder="Option A" className="w-full rounded-[10px] px-3 py-[9px] text-[13px] bg-muted border border-border text-foreground placeholder:text-muted-foreground" style={{ fontFamily: 'Inter, sans-serif' }} />
+              <input value={pollB} onChange={e => setPollB(e.target.value)} placeholder="Option B" className="w-full rounded-[10px] px-3 py-[9px] text-[13px] bg-muted border border-border text-foreground placeholder:text-muted-foreground" style={{ fontFamily: 'Inter, sans-serif' }} />
             </div>
           )}
 
@@ -1927,8 +1930,8 @@ export function PostComposerModal({ isOpen, onClose, onPost }) {
                   style={{
                     padding: '5px 13px',
                     borderRadius: '999px',
-                    border: active ? '1px solid rgba(22,163,74,0.5)' : '1px solid rgba(0,0,0,0.1)',
-                    background: active ? 'rgba(22,163,74,0.12)' : 'rgba(255,255,255,0.65)',
+                    border: active ? '1px solid rgba(22,163,74,0.5)' : '1px solid var(--border)',
+                    background: active ? 'rgba(22,163,74,0.12)' : 'var(--muted)',
                     backdropFilter: active ? 'none' : 'blur(8px)',
                     color: active ? T.accent : T.muted,
                     fontSize: '12px', fontWeight: 600, fontFamily: 'Inter, sans-serif',

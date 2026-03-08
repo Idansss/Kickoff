@@ -144,10 +144,10 @@ export function NotificationDrawer({
         <div
           className={cn(
             'rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.12)] overflow-hidden',
-            'bg-white dark:bg-[#111111]'
+            'bg-popover'
           )}
         >
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0f0f0] dark:border-[#1f1f1f]">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
             <h2 className="text-[18px] font-extrabold">Notifications</h2>
             <div className="flex items-center gap-3">
               {unreadCount > 0 && (
@@ -178,7 +178,7 @@ export function NotificationDrawer({
           ) : (
             <div>
               {grouped.unread.length > 0 && (
-                <div className="px-5 pt-2.5 pb-1 text-[10px] font-bold tracking-[1px] text-[#9ca3af]">
+                <div className="px-5 pt-2.5 pb-1 text-[10px] font-bold tracking-[1px] text-muted-foreground">
                   NEW
                 </div>
               )}
@@ -189,10 +189,10 @@ export function NotificationDrawer({
                   onClick={() => navigateFor(n)}
                   className={cn(
                     'relative w-full text-left px-5 py-3.5 flex gap-3 items-start border-b',
-                    'border-[#f5f5f5] dark:border-[#1a1a1a]',
+                    'border-border',
                     'transition-[background] duration-150 cursor-pointer',
                     'bg-[rgba(22,163,74,0.04)] dark:bg-[rgba(22,163,74,0.06)]',
-                    'hover:bg-[rgba(0,0,0,0.03)] dark:hover:bg-[#1a1a1a]'
+                    'hover:bg-muted'
                   )}
                 >
                   <div
@@ -203,7 +203,7 @@ export function NotificationDrawer({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[14px] leading-[1.45] text-foreground">{n.text}</p>
-                    <p className="text-[11px] text-[#9ca3af] mt-[3px]">
+                    <p className="text-[11px] text-muted-foreground mt-[3px]">
                       {formatDistanceToNow(new Date(n.timestamp), { addSuffix: true })}
                     </p>
                   </div>
@@ -212,7 +212,7 @@ export function NotificationDrawer({
               ))}
 
               {grouped.read.length > 0 && (
-                <div className="px-5 pt-3 pb-1 text-[10px] font-bold tracking-[1px] text-[#9ca3af]">
+                <div className="px-5 pt-3 pb-1 text-[10px] font-bold tracking-[1px] text-muted-foreground">
                   EARLIER
                 </div>
               )}
@@ -223,9 +223,9 @@ export function NotificationDrawer({
                   onClick={() => navigateFor(n)}
                   className={cn(
                     'relative w-full text-left px-5 py-3.5 flex gap-3 items-start border-b',
-                    'border-[#f5f5f5] dark:border-[#1a1a1a]',
+                    'border-border',
                     'transition-[background] duration-150 cursor-pointer',
-                    'hover:bg-[rgba(0,0,0,0.03)] dark:hover:bg-[#1a1a1a]'
+                    'hover:bg-muted'
                   )}
                 >
                   <div
@@ -236,7 +236,7 @@ export function NotificationDrawer({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[14px] leading-[1.45] text-foreground">{n.text}</p>
-                    <p className="text-[11px] text-[#9ca3af] mt-[3px]">
+                    <p className="text-[11px] text-muted-foreground mt-[3px]">
                       {formatDistanceToNow(new Date(n.timestamp), { addSuffix: true })}
                     </p>
                   </div>

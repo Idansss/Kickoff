@@ -47,3 +47,7 @@ dist-ssr
 *.sw?
 
 /lib/generated/prisma
+
+# Playwright
+test-results/
+playwright-report/
