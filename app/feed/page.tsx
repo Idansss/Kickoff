@@ -261,14 +261,21 @@ function FeedPageInner(): React.JSX.Element {
       )
     }
 
-    // For You: if AI ranked, use AI order; else engagement + verified
+    // For You: newest posts should always appear first.
     if (aiRanked && aiRankedIds.length > 0) {
       const orderMap = new Map(aiRankedIds.map((id, i) => [id, i]))
-      return list.sort((a, b) => (orderMap.get(a.id) ?? 9999) - (orderMap.get(b.id) ?? 9999))
+      return list.sort((a, b) => {
+        const recency = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        if (recency !== 0) return recency
+        return (orderMap.get(a.id) ?? 9999) - (orderMap.get(b.id) ?? 9999)
+      })
     }
 
-    // Current user's own posts always float to top (most recent first)
+    // Default For You ordering keeps the latest post at the top.
     return list.sort((a, b) => {
+      const recency = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      if (recency !== 0) return recency
+
       const aIsMe = currentUser && a.author.id === currentUser.id
       const bIsMe = currentUser && b.author.id === currentUser.id
       if (aIsMe && !bIsMe) return -1
@@ -279,7 +286,7 @@ function FeedPageInner(): React.JSX.Element {
       const ea = (a.likes ?? 0) + (a.reposts ?? 0)
       const eb = (b.likes ?? 0) + (b.reposts ?? 0)
       if (eb !== ea) return eb - ea
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      return 0
     })
   }, [
     activeTab,
@@ -291,6 +298,7 @@ function FeedPageInner(): React.JSX.Element {
     followingIds,
     aiRanked,
     aiRankedIds,
+    currentUser,
   ])
 
   const handlePost = useCallback((): void => {
