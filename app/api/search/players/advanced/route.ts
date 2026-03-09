@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
+import { Prisma } from '@/lib/generated/prisma'
 
 const QuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -218,12 +219,12 @@ export async function GET(request: Request) {
 
   // Prisma does not support direct orderBy on relations with filtering "latest value",
   // so we fetch plus latest value separately and sort in JS for value_desc.
-  const baseOrderBy =
+  const baseOrderBy: Prisma.PlayerOrderByWithRelationInput =
     sort === 'name_asc'
-      ? { name: 'asc' as const }
+      ? { name: Prisma.SortOrder.asc }
       : sort === 'age_asc' || sort === 'age_desc'
-      ? { dob: sort === 'age_asc' ? 'desc' : 'asc' } // younger age => later dob
-      : { name: 'asc' as const }
+      ? { dob: sort === 'age_asc' ? Prisma.SortOrder.desc : Prisma.SortOrder.asc } // younger age => later dob
+      : { name: Prisma.SortOrder.asc }
 
   const [players, total] = await Promise.all([
     db.player.findMany({
