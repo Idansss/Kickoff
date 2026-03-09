@@ -40,7 +40,12 @@ function syncSupabaseUser(user: { id: string; email?: string; user_metadata?: Re
   const name: string = meta.full_name ?? meta.name ?? user.email?.split('@')[0] ?? 'User'
   const handle = (meta.preferred_username ?? name.toLowerCase().replace(/\s+/g, ''))
 
-  const updates: Parameters<typeof userStore.getState().updateCurrentUser>[0] = {
+  const updates: {
+    name: string
+    handle: string
+    bio?: string
+    avatarImage?: string
+  } = {
     name,
     handle,
   }
