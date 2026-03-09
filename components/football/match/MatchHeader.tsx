@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { ClubIdentity } from '@/components/common/ClubIdentity'
 import type { MatchDTO } from '@/lib/football/providers/types'
 import { FollowButton } from '@/components/common/FollowButton'
 import { MatchNotifyButton } from '@/components/football/match/MatchNotifyButton'
@@ -57,12 +57,16 @@ export function MatchHeader({ match }: MatchHeaderProps) {
       </div>
 
       <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-        <Link href={`/club/${match.homeTeam.id}`} className="flex flex-1 flex-col items-center gap-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full border bg-background">
-            <span className="text-xs font-semibold">{match.homeTeam.name.charAt(0)}</span>
-          </div>
-          <span className="text-sm font-semibold">{match.homeTeam.name}</span>
-        </Link>
+        <div className="flex flex-1 justify-center">
+          <ClubIdentity
+            name={match.homeTeam.name}
+            badgeUrl={match.homeTeam.badgeUrl}
+            href={`/club/${match.homeTeam.id}`}
+            size="lg"
+            className="flex-col gap-2"
+            textClassName="text-sm font-semibold"
+          />
+        </div>
 
         <div className="flex flex-col items-center gap-1">
           <div className="flex items-center gap-2 text-xs">
@@ -85,12 +89,16 @@ export function MatchHeader({ match }: MatchHeaderProps) {
           </div>
         </div>
 
-        <Link href={`/club/${match.awayTeam.id}`} className="flex flex-1 flex-col items-center gap-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full border bg-background">
-            <span className="text-xs font-semibold">{match.awayTeam.name.charAt(0)}</span>
-          </div>
-          <span className="text-sm font-semibold">{match.awayTeam.name}</span>
-        </Link>
+        <div className="flex flex-1 justify-center">
+          <ClubIdentity
+            name={match.awayTeam.name}
+            badgeUrl={match.awayTeam.badgeUrl}
+            href={`/club/${match.awayTeam.id}`}
+            size="lg"
+            className="flex-col gap-2"
+            textClassName="text-sm font-semibold"
+          />
+        </div>
       </div>
 
       <div className="flex items-center justify-center gap-3 sm:justify-end flex-wrap">
@@ -108,4 +116,3 @@ export function MatchHeader({ match }: MatchHeaderProps) {
     </header>
   )
 }
-

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { AppLayout } from '@/components/app-layout'
+import { ClubIdentity } from '@/components/common/ClubIdentity'
 import { FollowButton } from '@/components/common/FollowButton'
 
 type FollowTab = 'teams' | 'players' | 'matches' | 'competitions'
@@ -11,8 +12,8 @@ interface FollowData {
     id: string
     kickoff: string
     competitionName: string | null
-    homeTeamName: string
-    awayTeamName: string
+    homeTeam: { id: string; name: string; badgeUrl?: string | null }
+    awayTeam: { id: string; name: string; badgeUrl?: string | null }
   }[]
   competitions: { id: string; name: string; logoUrl?: string | null }[]
 }
@@ -34,8 +35,8 @@ async function fetchFollowData(): Promise<FollowData> {
       id: string
       kickoff: string
       competitionName: string | null
-      homeTeamName: string
-      awayTeamName: string
+      homeTeam: { id: string; name: string; badgeUrl?: string | null }
+      awayTeam: { id: string; name: string; badgeUrl?: string | null }
     }[]
     competitions?: { id: string; name: string; logoUrl?: string | null }[]
   }
@@ -177,8 +178,20 @@ export default async function FollowingPage() {
                         className="flex items-center justify-between gap-3 rounded-lg border bg-background px-3 py-2"
                       >
                         <Link href={`/match/${match.id}`} className="flex flex-col gap-0.5">
-                          <div className="text-sm font-medium">
-                            {match.homeTeamName} vs {match.awayTeamName}
+                          <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                            <ClubIdentity
+                              name={match.homeTeam.name}
+                              badgeUrl={match.homeTeam.badgeUrl}
+                              size="sm"
+                              textClassName="font-medium"
+                            />
+                            <span className="text-muted-foreground">vs</span>
+                            <ClubIdentity
+                              name={match.awayTeam.name}
+                              badgeUrl={match.awayTeam.badgeUrl}
+                              size="sm"
+                              textClassName="font-medium"
+                            />
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {match.competitionName ?? 'Match'}
@@ -236,4 +249,3 @@ export default async function FollowingPage() {
     </AppLayout>
   )
 }
-

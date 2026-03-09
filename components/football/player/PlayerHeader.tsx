@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { ClubIdentity } from '@/components/common/ClubIdentity'
 import { FollowButton } from '@/components/common/FollowButton'
 
 interface PlayerHeaderProps {
@@ -67,9 +67,14 @@ export function PlayerHeader({ player, transferStatus, value, recentForm }: Play
           {player.currentTeam && (
             <div className="mt-1 text-xs">
               <span className="text-muted-foreground">Club: </span>
-              <Link href={`/club/${player.currentTeam.id}`} className="font-medium hover:underline">
-                {player.currentTeam.name}
-              </Link>
+              <ClubIdentity
+                name={player.currentTeam.name}
+                badgeUrl={player.currentTeam.badgeUrl}
+                href={`/club/${player.currentTeam.id}`}
+                size="sm"
+                className="align-middle"
+                textClassName="font-medium hover:underline"
+              />
             </div>
           )}
           {player.preferredFoot && (
@@ -122,4 +127,3 @@ export function PlayerHeader({ player, transferStatus, value, recentForm }: Play
     </section>
   )
 }
-

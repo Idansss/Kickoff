@@ -47,11 +47,14 @@ export async function GET(
         position: t.player.position,
         nationality: t.player.nationality,
       },
-      fromTeam: t.fromTeam ? { id: t.fromTeam.id, name: t.fromTeam.name } : null,
-      toTeam: t.toTeam ? { id: t.toTeam.id, name: t.toTeam.name } : null,
+      fromTeam: t.fromTeam
+        ? { id: t.fromTeam.id, name: t.fromTeam.name, badgeUrl: t.fromTeam.badgeUrl }
+        : null,
+      toTeam: t.toTeam
+        ? { id: t.toTeam.id, name: t.toTeam.name, badgeUrl: t.toTeam.badgeUrl }
+        : null,
     }
   })
 
   return NextResponse.json({ transfers: items })
 }
-

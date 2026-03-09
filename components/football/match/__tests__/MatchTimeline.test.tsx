@@ -26,7 +26,13 @@ const baseEvents: MatchEventDTO[] = [
 
 describe('Football MatchTimeline', () => {
   it('renders goal and card events with minutes and player names', () => {
-    render(<MatchTimeline events={baseEvents} homeTeamName="Home FC" awayTeamName="Away FC" />)
+    render(
+      <MatchTimeline
+        events={baseEvents}
+        homeTeam={{ id: 'home-team', name: 'Home FC', badgeUrl: null }}
+        awayTeam={{ id: 'away-team', name: 'Away FC', badgeUrl: null }}
+      />,
+    )
 
     expect(screen.getByText("15'")).toBeInTheDocument()
     expect(screen.getByText('Striker One')).toBeInTheDocument()
@@ -34,4 +40,3 @@ describe('Football MatchTimeline', () => {
     expect(screen.getByText('Defender Two')).toBeInTheDocument()
   })
 })
-

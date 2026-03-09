@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { ClubIdentity } from '@/components/common/ClubIdentity'
 
 type Scope = 'played' | 'upcoming'
 
@@ -91,7 +92,6 @@ export function TeamMatchesTab({ teamId }: Props) {
             hour: '2-digit',
             minute: '2-digit',
           })
-          const vsLabel = m.isHome ? `vs ${m.opponent.name}` : `@ ${m.opponent.name}`
           return (
             <li key={m.id}>
               <Link
@@ -100,7 +100,15 @@ export function TeamMatchesTab({ teamId }: Props) {
               >
                 <div className="flex flex-col">
                   <span className="text-xs text-muted-foreground">{m.competition.name}</span>
-                  <span className="text-sm font-medium">{vsLabel}</span>
+                  <span className="flex items-center gap-1.5 text-sm font-medium">
+                    <span>{m.isHome ? 'vs' : '@'}</span>
+                    <ClubIdentity
+                      name={m.opponent.name}
+                      badgeUrl={m.opponent.badgeUrl}
+                      size="sm"
+                      textClassName="font-medium"
+                    />
+                  </span>
                 </div>
                 <div className="flex flex-col items-end text-xs">
                   <span className="tabular-nums">
@@ -116,4 +124,3 @@ export function TeamMatchesTab({ teamId }: Props) {
     </section>
   )
 }
-

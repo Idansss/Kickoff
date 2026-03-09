@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
+import { ClubIdentity } from '@/components/common/ClubIdentity'
 
 interface TransferItem {
   id: string
@@ -14,8 +15,8 @@ interface TransferItem {
     position?: string | null
     nationality?: string | null
   }
-  fromTeam: { id: string; name: string } | null
-  toTeam: { id: string; name: string } | null
+  fromTeam: { id: string; name: string; badgeUrl?: string | null } | null
+  toTeam: { id: string; name: string; badgeUrl?: string | null } | null
 }
 
 interface Props {
@@ -66,9 +67,29 @@ export function TeamTransfersTab({ teamId }: Props) {
           >
             <div>
               <div className="font-semibold">{t.player.name}</div>
-              <div className="text-[11px] text-muted-foreground">
-                {t.direction === 'in' ? 'In from ' : 'Out to '}
-                {t.direction === 'in' ? t.fromTeam?.name ?? 'Unknown' : t.toTeam?.name ?? 'Unknown'}
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <span>{t.direction === 'in' ? 'In from' : 'Out to'}</span>
+                {t.direction === 'in' ? (
+                  t.fromTeam ? (
+                    <ClubIdentity
+                      name={t.fromTeam.name}
+                      badgeUrl={t.fromTeam.badgeUrl}
+                      href={`/club/${t.fromTeam.id}`}
+                      size="xs"
+                    />
+                  ) : (
+                    <span>Unknown</span>
+                  )
+                ) : t.toTeam ? (
+                  <ClubIdentity
+                    name={t.toTeam.name}
+                    badgeUrl={t.toTeam.badgeUrl}
+                    href={`/club/${t.toTeam.id}`}
+                    size="xs"
+                  />
+                ) : (
+                  <span>Unknown</span>
+                )}
               </div>
             </div>
             <div className="text-right">
@@ -83,4 +104,3 @@ export function TeamTransfersTab({ teamId }: Props) {
     </section>
   )
 }
-

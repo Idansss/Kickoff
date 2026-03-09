@@ -1,12 +1,19 @@
 'use client'
 
+import { ClubIdentity } from '@/components/common/ClubIdentity'
 import { cn } from '@/lib/utils'
 import type { MatchLineupsDTO, MatchLineupPlayerDTO } from '@/lib/football/providers/types'
 
+type MatchTeam = {
+  id: string
+  name: string
+  badgeUrl?: string | null
+}
+
 interface Props {
   lineups: MatchLineupsDTO
-  homeTeamName: string
-  awayTeamName: string
+  homeTeam: MatchTeam
+  awayTeam: MatchTeam
   homeColor?: string
   awayColor?: string
 }
@@ -103,8 +110,8 @@ function TeamHalf({
 
 export function PitchFormation({
   lineups,
-  homeTeamName,
-  awayTeamName,
+  homeTeam,
+  awayTeam,
   homeColor = '#16a34a',
   awayColor = '#2563eb',
 }: Props) {
@@ -119,11 +126,21 @@ export function PitchFormation({
       <div className="flex items-center justify-between px-4 py-3 bg-card border-b border-border">
         <div className="flex items-center gap-2">
           <div className="h-3 w-3 rounded-full" style={{ backgroundColor: homeColor }} />
-          <span className="text-sm font-semibold">{homeTeamName}</span>
+          <ClubIdentity
+            name={homeTeam.name}
+            badgeUrl={homeTeam.badgeUrl}
+            size="sm"
+            textClassName="text-sm font-semibold"
+          />
         </div>
         <span className="text-xs text-muted-foreground font-medium">Formation</span>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold">{awayTeamName}</span>
+          <ClubIdentity
+            name={awayTeam.name}
+            badgeUrl={awayTeam.badgeUrl}
+            size="sm"
+            textClassName="text-sm font-semibold"
+          />
           <div className="h-3 w-3 rounded-full" style={{ backgroundColor: awayColor }} />
         </div>
       </div>
@@ -172,7 +189,9 @@ export function PitchFormation({
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Bench</p>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <p className="text-[10px] font-semibold mb-1" style={{ color: homeColor }}>{homeTeamName}</p>
+              <p className="mb-1 text-[10px] font-semibold" style={{ color: homeColor }}>
+                {homeTeam.name}
+              </p>
               <div className="flex flex-wrap gap-1">
                 {lineups.home.bench.map((p) => (
                   <span key={p.id} className="text-[10px] bg-muted rounded px-1.5 py-0.5 font-medium">
@@ -182,7 +201,9 @@ export function PitchFormation({
               </div>
             </div>
             <div>
-              <p className="text-[10px] font-semibold mb-1 text-right" style={{ color: awayColor }}>{awayTeamName}</p>
+              <p className="mb-1 text-[10px] font-semibold text-right" style={{ color: awayColor }}>
+                {awayTeam.name}
+              </p>
               <div className="flex flex-wrap gap-1 justify-end">
                 {lineups.away.bench.map((p) => (
                   <span key={p.id} className="text-[10px] bg-muted rounded px-1.5 py-0.5 font-medium">

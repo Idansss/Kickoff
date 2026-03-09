@@ -63,13 +63,13 @@ export default async function MatchPage({ params }: { params: { id: string } }) 
             <div className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1.3fr)]">
               <MatchTimeline
                 events={current.events}
-                homeTeamName={current.match.homeTeam.name}
-                awayTeamName={current.match.awayTeam.name}
+                homeTeam={current.match.homeTeam}
+                awayTeam={current.match.awayTeam}
               />
               <MatchStats
                 stats={current.stats}
-                homeTeamName={current.match.homeTeam.name}
-                awayTeamName={current.match.awayTeam.name}
+                homeTeam={current.match.homeTeam}
+                awayTeam={current.match.awayTeam}
               />
             </div>
 
@@ -77,15 +77,15 @@ export default async function MatchPage({ params }: { params: { id: string } }) 
             {(current.lineups.home.startingXI.length > 0 || current.lineups.away.startingXI.length > 0) && (
               <PitchFormation
                 lineups={current.lineups}
-                homeTeamName={current.match.homeTeam.name}
-                awayTeamName={current.match.awayTeam.name}
+                homeTeam={current.match.homeTeam}
+                awayTeam={current.match.awayTeam}
               />
             )}
 
             <MatchLineups
               lineups={current.lineups}
-              homeTeamName={current.match.homeTeam.name}
-              awayTeamName={current.match.awayTeam.name}
+              homeTeam={current.match.homeTeam}
+              awayTeam={current.match.awayTeam}
             />
 
             {/* AI Tactical Breakdown */}

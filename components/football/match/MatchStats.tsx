@@ -1,16 +1,18 @@
 "use client"
 
+import { ClubIdentity } from '@/components/common/ClubIdentity'
 import type { MatchDTO } from '@/lib/football/providers/types'
 
 type MatchStats = MatchDTO['stats']
+type MatchTeam = MatchDTO['match']['homeTeam']
 
 interface MatchStatsProps {
   stats: MatchStats
-  homeTeamName: string
-  awayTeamName: string
+  homeTeam: MatchTeam
+  awayTeam: MatchTeam
 }
 
-export function MatchStats({ stats, homeTeamName, awayTeamName }: MatchStatsProps) {
+export function MatchStats({ stats, homeTeam, awayTeam }: MatchStatsProps) {
   if (!stats) {
     return (
       <section className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">
@@ -44,8 +46,8 @@ export function MatchStats({ stats, homeTeamName, awayTeamName }: MatchStatsProp
     <section className="rounded-xl border bg-card p-4">
       <h2 className="mb-3 text-sm font-semibold">Match stats</h2>
       <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
-        <span>{homeTeamName}</span>
-        <span>{awayTeamName}</span>
+        <ClubIdentity name={homeTeam.name} badgeUrl={homeTeam.badgeUrl} size="sm" />
+        <ClubIdentity name={awayTeam.name} badgeUrl={awayTeam.badgeUrl} size="sm" />
       </div>
       <div className="space-y-1">
         {rows.map((row) => (
@@ -59,4 +61,3 @@ export function MatchStats({ stats, homeTeamName, awayTeamName }: MatchStatsProp
     </section>
   )
 }
-

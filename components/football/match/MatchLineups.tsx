@@ -1,14 +1,16 @@
 "use client"
 
 import * as Tabs from '@radix-ui/react-tabs'
+import { ClubIdentity } from '@/components/common/ClubIdentity'
 import type { MatchDTO } from '@/lib/football/providers/types'
 
 type Lineups = MatchDTO['lineups']
+type MatchTeam = MatchDTO['match']['homeTeam']
 
 interface MatchLineupsProps {
   lineups: Lineups
-  homeTeamName: string
-  awayTeamName: string
+  homeTeam: MatchTeam
+  awayTeam: MatchTeam
 }
 
 function PlayerRow({
@@ -102,7 +104,7 @@ function TeamLineupColumn({
   )
 }
 
-export function MatchLineups({ lineups, homeTeamName, awayTeamName }: MatchLineupsProps) {
+export function MatchLineups({ lineups, homeTeam, awayTeam }: MatchLineupsProps) {
   return (
     <section className="rounded-xl border bg-card p-4">
       <Tabs.Root defaultValue="home" className="w-full">
@@ -111,19 +113,19 @@ export function MatchLineups({ lineups, homeTeamName, awayTeamName }: MatchLineu
             value="home"
             className="rounded-full border px-3 py-1 text-xs font-medium data-[state=active]:bg-muted"
           >
-            {homeTeamName}
+            <ClubIdentity name={homeTeam.name} badgeUrl={homeTeam.badgeUrl} size="sm" />
           </Tabs.Trigger>
           <Tabs.Trigger
             value="away"
             className="rounded-full border px-3 py-1 text-xs font-medium data-[state=active]:bg-muted"
           >
-            {awayTeamName}
+            <ClubIdentity name={awayTeam.name} badgeUrl={awayTeam.badgeUrl} size="sm" />
           </Tabs.Trigger>
         </Tabs.List>
 
         <Tabs.Content value="home">
           <TeamLineupColumn
-            label={`${homeTeamName} lineup`}
+            label={`${homeTeam.name} lineup`}
             startingXI={lineups.home.startingXI}
             bench={lineups.home.bench}
           />
@@ -131,7 +133,7 @@ export function MatchLineups({ lineups, homeTeamName, awayTeamName }: MatchLineu
 
         <Tabs.Content value="away">
           <TeamLineupColumn
-            label={`${awayTeamName} lineup`}
+            label={`${awayTeam.name} lineup`}
             startingXI={lineups.away.startingXI}
             bench={lineups.away.bench}
           />
@@ -140,4 +142,3 @@ export function MatchLineups({ lineups, homeTeamName, awayTeamName }: MatchLineu
     </section>
   )
 }
-

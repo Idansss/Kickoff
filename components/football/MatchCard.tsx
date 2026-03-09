@@ -1,6 +1,7 @@
 "use client"
 
 import Link from 'next/link'
+import { ClubIdentity } from '@/components/common/ClubIdentity'
 
 type CalendarMatch = {
   id: string
@@ -26,11 +27,22 @@ export default function MatchCard({ match }: { match: CalendarMatch }) {
       </div>
 
       <div className="mt-2 grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-sm">
-        <div className="truncate font-medium">{match.homeTeam?.name}</div>
+        <ClubIdentity
+          name={match.homeTeam?.name ?? 'Home'}
+          badgeUrl={match.homeTeam?.badgeUrl}
+          size="sm"
+          textClassName="font-medium"
+        />
         <div className="rounded-md bg-muted px-2 py-1 text-center text-xs font-semibold">
           {match.homeTeam?.score ?? '-'} : {match.awayTeam?.score ?? '-'}
         </div>
-        <div className="truncate text-right font-medium">{match.awayTeam?.name}</div>
+        <ClubIdentity
+          name={match.awayTeam?.name ?? 'Away'}
+          badgeUrl={match.awayTeam?.badgeUrl}
+          size="sm"
+          className="justify-end"
+          textClassName="text-right font-medium"
+        />
       </div>
 
       <div className="mt-2 text-[11px] uppercase tracking-wide text-muted-foreground">
@@ -39,4 +51,3 @@ export default function MatchCard({ match }: { match: CalendarMatch }) {
     </Link>
   )
 }
-

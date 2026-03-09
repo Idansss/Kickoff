@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { ClubIdentity } from '@/components/common/ClubIdentity'
 
 interface PlayerMatchRow {
   matchId: string
@@ -79,9 +80,14 @@ export function PlayerMatchLog({ playerId }: Props) {
                   <span className="text-[11px] text-muted-foreground">
                     {dateLabel} · {row.competition.name}
                   </span>
-                  <span className="text-sm font-medium">
-                    {row.isHome ? 'vs ' : '@ '}
-                    {row.opponent.name}
+                  <span className="flex items-center gap-1.5 text-sm font-medium">
+                    <span>{row.isHome ? 'vs' : '@'}</span>
+                    <ClubIdentity
+                      name={row.opponent.name}
+                      badgeUrl={row.opponent.badgeUrl}
+                      size="sm"
+                      textClassName="font-medium"
+                    />
                   </span>
                   <span className="mt-0.5 text-[11px] text-muted-foreground">
                     {mins} min · G{row.contributions.goals} A{row.contributions.assists}{' '}
@@ -103,4 +109,3 @@ export function PlayerMatchLog({ playerId }: Props) {
     </section>
   )
 }
-

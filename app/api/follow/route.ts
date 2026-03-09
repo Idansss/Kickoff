@@ -67,8 +67,8 @@ type FollowGroupResponse = {
     id: string
     kickoff: Date
     competitionName: string | null
-    homeTeamName: string
-    awayTeamName: string
+    homeTeam: { id: string; name: string; badgeUrl?: string | null }
+    awayTeam: { id: string; name: string; badgeUrl?: string | null }
   }[]
   competitions: { id: string; name: string; logoUrl?: string | null }[]
 }
@@ -148,8 +148,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         where: { id: { in: matchIds } },
         include: {
           competition: { select: { name: true } },
-          homeTeam: { select: { name: true } },
-          awayTeam: { select: { name: true } },
+          homeTeam: { select: { id: true, name: true, badgeUrl: true } },
+          awayTeam: { select: { id: true, name: true, badgeUrl: true } },
         },
       })
 
@@ -157,8 +157,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         id: m.id,
         kickoff: m.kickoff,
         competitionName: m.competition?.name ?? null,
-        homeTeamName: m.homeTeam.name,
-        awayTeamName: m.awayTeam.name,
+        homeTeam: m.homeTeam,
+        awayTeam: m.awayTeam,
       }))
     }
 
@@ -175,4 +175,3 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: 'Failed to fetch follows' }, { status: 500 })
   }
 }
-
