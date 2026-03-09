@@ -24,6 +24,12 @@ export const chatStore = create<ChatState>()(
       messages: {},
 
       initMessages: (): void => {
+        // If messages are already present (e.g. from persisted storage), don't overwrite them
+        const existing = get().messages
+        if (existing && Object.keys(existing).length > 0) {
+          return
+        }
+
         const currentUser = userStore.getState().currentUser
         const messages = buildMockMessages(get().rooms as ChatRoom[], currentUser.id)
         set({ messages })

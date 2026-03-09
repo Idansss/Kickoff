@@ -6,6 +6,7 @@ export const STORE_KEYS = {
   follow: 'kickoff-follow',
   streakDate: 'kickoff-last-streak-date',
   ui: 'kickoff-ui',
+  ai: 'kickoff-ai',
 } as const
 
 export const INPUT_LIMITS = {

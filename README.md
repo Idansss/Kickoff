@@ -155,7 +155,7 @@ Open: `http://localhost:3000`
 - `store/matchStore.ts`
   - Live matches, upcoming fixtures, predictions, reminders, minute ticker
 - `store/chatStore.ts`
-  - Rooms, active room, room messages, read state
+  - Rooms, active room, room messages, read state (persisted per-room history so messages survive refresh)
 - `store/userStore.ts`
   - Current user, notifications, settings, XP/levels, streaks, badges, follows
 - `store/uiStore.ts`
@@ -172,6 +172,7 @@ Defined in `lib/constants.ts`:
 - `kickoff-chat`
 - `kickoff-ui`
 - `kickoff-last-streak-date`
+- `kickoff-ai` (FootballGPT conversation history)
 
 Local storage access is wrapped with safe utilities in `lib/safeStorage.ts`.
 
@@ -285,6 +286,8 @@ Behavior:
 - Retry once on failure
 - User-safe error messages (no raw crash output)
 - Uses `ANTHROPIC_API_KEY` from server env
+
+FootballGPT on `/ai` persists the last conversation locally (`kickoff-ai`), so users can return later and continue chatting from their previous history instead of starting from scratch every time.
 
 ## 11) Testing
 

@@ -16,6 +16,7 @@ import {
   Legend,
   Tooltip,
 } from 'recharts'
+import { mockPlayers } from '@/data/mockData'
 
 interface PlayerOption {
   id: string
@@ -63,12 +64,39 @@ function SearchDropdown({
       setLoading(true)
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&type=players`)
-        const data = await res.json() as { players: PlayerOption[] }
-        setResults(data.players)
-        setOpen(true)
+        if (res.ok) {
+          const data = await res.json() as { players?: PlayerOption[] }
+          if (data.players && data.players.length > 0) {
+            setResults(data.players)
+            setOpen(true)
+            return
+          }
+        }
+      } catch {
+        // swallow and fall back to mock players
       } finally {
         setLoading(false)
       }
+
+      // Fallback: local mock players search
+      const qLower = q.toLowerCase()
+      const fallback = mockPlayers.filter((p) =>
+        p.name.toLowerCase().includes(qLower) ||
+        p.club.toLowerCase().includes(qLower) ||
+        (p.position ?? '').toLowerCase().includes(qLower)
+      ).slice(0, 8)
+
+      const mapped: PlayerOption[] = fallback.map((p) => ({
+        id: p.id,
+        name: p.name,
+        position: p.position,
+        nationality: p.nationality,
+        photoUrl: undefined,
+        currentTeam: { name: p.club },
+      }))
+
+      setResults(mapped)
+      setOpen(mapped.length > 0)
     }, 300)
     return () => clearTimeout(t)
   }, [q])

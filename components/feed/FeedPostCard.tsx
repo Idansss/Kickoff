@@ -362,6 +362,7 @@ function FeedPostCardInner({
 
   const replies = effectivePost.replies ?? []
   const commentCount = effectivePost.comments ?? 0
+  const effectiveImages = effectivePost.images?.filter((url) => !!url) ?? []
   const isRepostedByMe =
     post.repostedByMe === true || post.repostedBy === currentUser?.id
 
@@ -603,8 +604,8 @@ function FeedPostCardInner({
             )}
           </p>
 
-          {post.images && post.images.length > 0 && (
-            <PostImageGrid images={post.images} postId={post.id} />
+          {effectiveImages.length > 0 && (
+            <PostImageGrid images={effectiveImages} postId={effectivePostId} />
           )}
 
           {post.quotedPost && <QuotePostCard post={post.quotedPost} />}

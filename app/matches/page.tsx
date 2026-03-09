@@ -108,6 +108,51 @@ const LiveMatchCard = memo(function LiveMatchCard({
   )
 })
 
+function renderMatchPreview(preview: string): React.ReactElement | null {
+  const trimmed = preview.trim()
+  if (!trimmed) return null
+
+  const paragraphs = trimmed.split(/\n\s*\n/)
+
+  const renderInline = (text: string, keyPrefix: string) => {
+    const nodes: React.ReactNode[] = []
+    const regex = /\*\*(.+?)\*\*/g
+    let lastIndex = 0
+    let match: RegExpExecArray | null
+
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        nodes.push(text.slice(lastIndex, match.index))
+      }
+      nodes.push(
+        <strong key={`${keyPrefix}-bold-${nodes.length}`}>
+          {match[1]}
+        </strong>
+      )
+      lastIndex = match.index + match[0].length
+    }
+
+    if (lastIndex < text.length) {
+      nodes.push(text.slice(lastIndex))
+    }
+
+    return nodes
+  }
+
+  return (
+    <div className="space-y-2 text-sm leading-relaxed">
+      {paragraphs.map((para, index) => (
+        <p
+          key={`para-${index}`}
+          className={cn(index === 0 ? 'font-semibold' : undefined)}
+        >
+          {renderInline(para, `p${index}`)}
+        </p>
+      ))}
+    </div>
+  )
+}
+
 interface UpcomingMatchCardProps {
   match: Match
   onReminder: (matchId: string) => void
@@ -190,7 +235,7 @@ const UpcomingMatchCard = memo(function UpcomingMatchCard({
 
         {preview ? (
           <div className="mt-3 rounded-lg border border-border bg-muted/30 p-3 text-sm text-foreground">
-            {preview}
+            {renderMatchPreview(preview)}
           </div>
         ) : null}
       </div>

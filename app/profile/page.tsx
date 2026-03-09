@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useImageUpload } from '@/hooks/useImageUpload'
+import * as Dialog from '@radix-ui/react-dialog'
 
 const LEVEL_NAMES: Record<number, string> = {
   1: 'Grassroots',
@@ -66,6 +67,7 @@ function ProfilePageContent(): React.JSX.Element {
   const [pendingHeaderFile, setPendingHeaderFile] = useState<File | null>(null)
   const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [mediaViewer, setMediaViewer] = useState<null | 'header' | 'avatar'>(null)
   const { upload: uploadImage } = useImageUpload({ bucket: 'profiles' })
 
   useEffect(() => {
@@ -190,27 +192,42 @@ function ProfilePageContent(): React.JSX.Element {
     <AppLayout>
       <div className="mx-auto max-w-2xl border-x border-border">
         {/* Cover / header */}
-        <div className="h-40 sm:h-44 relative overflow-hidden bg-gradient-to-br from-green-600/40 via-emerald-500/20 to-teal-500/10">
+        <button
+          type="button"
+          onClick={() => {
+            if (currentUser.headerImage) setMediaViewer('header')
+          }}
+          className={cn(
+            'h-40 sm:h-44 relative w-full overflow-hidden bg-gradient-to-br from-green-600/40 via-emerald-500/20 to-teal-500/10',
+            currentUser.headerImage ? 'cursor-zoom-in' : 'cursor-default'
+          )}
+          aria-label={currentUser.headerImage ? 'View header image' : 'Header image not set'}
+        >
           {currentUser.headerImage ? (
             <Image
               src={currentUser.headerImage}
-              alt=""
+              alt={`${currentUser.name} header`}
               fill
               className="object-cover"
               sizes="(max-width: 640px) 100vw, 672px"
               unoptimized={currentUser.headerImage.startsWith('data:')}
             />
           ) : null}
-        </div>
+        </button>
 
         <div className="px-4 sm:px-6 pb-0 border-b border-border">
           <div className="flex items-end justify-between -mt-14 mb-3">
             <div className="relative">
-              <div className="h-24 w-24 rounded-full border-4 border-background overflow-hidden flex items-center justify-center text-2xl font-bold text-muted-foreground bg-muted shrink-0">
+              <button
+                type="button"
+                onClick={() => setMediaViewer('avatar')}
+                className="h-24 w-24 rounded-full border-4 border-background overflow-hidden flex items-center justify-center text-2xl font-bold text-muted-foreground bg-muted shrink-0 cursor-zoom-in"
+                aria-label="View profile picture"
+              >
                 {currentUser.avatarImage ? (
                   <Image
                     src={currentUser.avatarImage}
-                    alt={currentUser.name}
+                    alt={`${currentUser.name} profile picture`}
                     width={96}
                     height={96}
                     className="object-cover w-full h-full"
@@ -221,7 +238,7 @@ function ProfilePageContent(): React.JSX.Element {
                     {currentUser.avatarInitials}
                   </span>
                 )}
-              </div>
+              </button>
               <div className="absolute bottom-0 right-0 h-6 w-6 rounded-full bg-green-500 border-2 border-background" />
             </div>
             <Button variant="outline" size="sm" onClick={openEdit} className="shrink-0">
@@ -355,6 +372,68 @@ function ProfilePageContent(): React.JSX.Element {
           )}
         </div>
       </div>
+
+      <Dialog.Root
+        open={mediaViewer !== null}
+        onOpenChange={(open) => {
+          if (!open) setMediaViewer(null)
+        }}
+      >
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-black/80 backdrop-blur-[2px]" />
+          <Dialog.Content className="fixed inset-0 z-[51] flex items-center justify-center p-4">
+            <div className="relative w-full max-w-3xl">
+              <Dialog.Close asChild>
+                <button
+                  type="button"
+                  className="absolute -top-3 -right-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black/70 text-white hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  aria-label="Close"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </Dialog.Close>
+
+              {mediaViewer === 'header' && currentUser.headerImage ? (
+                <div className="overflow-hidden rounded-2xl border border-border bg-black">
+                  <Image
+                    src={currentUser.headerImage}
+                    alt={`${currentUser.name} header`}
+                    width={1600}
+                    height={900}
+                    className="h-auto w-full object-contain"
+                    unoptimized={currentUser.headerImage.startsWith('data:')}
+                  />
+                </div>
+              ) : null}
+
+              {mediaViewer === 'avatar' ? (
+                <div className="mx-auto flex w-full max-w-md items-center justify-center">
+                  {currentUser.avatarImage ? (
+                    <div className="overflow-hidden rounded-2xl border border-border bg-black">
+                      <Image
+                        src={currentUser.avatarImage}
+                        alt={`${currentUser.name} profile picture`}
+                        width={1024}
+                        height={1024}
+                        className="h-auto w-full object-contain"
+                        unoptimized={currentUser.avatarImage.startsWith('data:')}
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className="h-64 w-64 rounded-full border border-border flex items-center justify-center text-6xl font-extrabold text-white"
+                      style={{ backgroundColor: currentUser.avatarColor }}
+                      aria-label={`${currentUser.name} initials`}
+                    >
+                      {currentUser.avatarInitials}
+                    </div>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
 
       {isEditMode && (
         <div

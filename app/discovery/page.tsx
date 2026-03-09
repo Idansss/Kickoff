@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button'
 import { SkeletonLoader } from '@/components/shared/SkeletonLoader'
 import { getScoutReport } from '@/lib/claudeClient'
 import { cn } from '@/lib/utils'
-import { mockPlayers, mockStandings, mockTransfers } from '@/data/mockData'
+import { mockPlayers, mockStandings, mockTransfers, mockLaLigaStandings, mockSerieAStandings } from '@/data/mockData'
+import type { Standing } from '@/types'
 import { getClubHrefByName, getPlayerHrefByName } from '@/lib/entityLinks'
 import type { Player, Transfer } from '@/types'
 
@@ -19,6 +20,12 @@ const TRENDING_HASHTAGS = [
   '#ElClasico',
   '#PremierLeague',
 ] as const
+
+const LEAGUES: { key: 'premier-league' | 'la-liga' | 'serie-a'; label: string; rows: Standing[] }[] = [
+  { key: 'premier-league', label: 'Premier League', rows: mockStandings },
+  { key: 'la-liga', label: 'La Liga', rows: mockLaLigaStandings },
+  { key: 'serie-a', label: 'Serie A', rows: mockSerieAStandings },
+]
 
 interface PlayerRowProps {
   player: Player
@@ -265,6 +272,90 @@ function TransfersSection(): React.JSX.Element {
   )
 }
 
+function LeagueTabs(): React.JSX.Element {
+  const [active, setActive] = useState<'premier-league' | 'la-liga' | 'serie-a'>('premier-league')
+  const league = LEAGUES.find((l) => l.key === active) ?? LEAGUES[0]
+
+  return (
+    <>
+      <div className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 p-0.5 text-xs">
+        {LEAGUES.map((l) => (
+          <button
+            key={l.key}
+            type="button"
+            onClick={() => setActive(l.key)}
+            className={cn(
+              'px-3 py-1 rounded-full font-medium transition-colors',
+              active === l.key ? 'bg-green-500 text-white' : 'text-muted-foreground hover:bg-muted'
+            )}
+          >
+            {l.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-4 rounded-xl border border-border overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border bg-muted/50">
+              <th className="text-left py-2 px-3 font-medium">#</th>
+              <th className="text-left py-2 px-3 font-medium">Club</th>
+              <th className="text-center py-2 px-2 font-medium">P</th>
+              <th className="text-center py-2 px-2 font-medium">W</th>
+              <th className="text-center py-2 px-2 font-medium">D</th>
+              <th className="text-center py-2 px-2 font-medium">L</th>
+              <th className="text-center py-2 px-2 font-medium">GD</th>
+              <th className="text-right py-2 px-3 font-medium">Pts</th>
+              <th className="text-left py-2 px-2 font-medium">Form</th>
+            </tr>
+          </thead>
+          <tbody>
+            {league.rows.map((row) => {
+              const clubHref = getClubHrefByName(row.club)
+
+              return (
+                <tr key={`${league.key}-${row.pos}`} className="border-b border-border last:border-0 hover:bg-muted/30">
+                  <td className="py-2 px-3 font-medium">{row.pos}</td>
+                  <td className="py-2 px-3">
+                    {clubHref ? (
+                      <Link href={clubHref} className="hover:text-green-500 transition-colors">
+                        {row.club}
+                      </Link>
+                    ) : (
+                      row.club
+                    )}
+                  </td>
+                  <td className="text-center py-2 px-2">{row.played}</td>
+                  <td className="text-center py-2 px-2">{row.won}</td>
+                  <td className="text-center py-2 px-2">{row.drawn}</td>
+                  <td className="text-center py-2 px-2">{row.lost}</td>
+                  <td className="text-center py-2 px-2">{row.gd}</td>
+                  <td className="text-right py-2 px-3 font-semibold">{row.points}</td>
+                  <td className="py-2 px-2 flex gap-0.5">
+                    {row.form.map((formResult, index) => (
+                      <span
+                        key={`${row.club}-form-${index}`}
+                        className={cn(
+                          'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold',
+                          formResult === 'W' && 'bg-green-500 text-white',
+                          formResult === 'D' && 'bg-muted text-muted-foreground',
+                          formResult === 'L' && 'bg-red-500 text-white'
+                        )}
+                      >
+                        {formResult}
+                      </span>
+                    ))}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
+  )
+}
+
 export default function DiscoveryPage(): React.JSX.Element {
   const [loading] = useState(false)
 
@@ -319,71 +410,10 @@ export default function DiscoveryPage(): React.JSX.Element {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold mb-4">Premier League</h2>
-            <div className="rounded-xl border border-border overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-muted/50">
-                    <th className="text-left py-2 px-3 font-medium">#</th>
-                    <th className="text-left py-2 px-3 font-medium">Club</th>
-                    <th className="text-center py-2 px-2 font-medium">P</th>
-                    <th className="text-center py-2 px-2 font-medium">W</th>
-                    <th className="text-center py-2 px-2 font-medium">D</th>
-                    <th className="text-center py-2 px-2 font-medium">L</th>
-                    <th className="text-center py-2 px-2 font-medium">GD</th>
-                    <th className="text-right py-2 px-3 font-medium">Pts</th>
-                    <th className="text-left py-2 px-2 font-medium">Form</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mockStandings.map((row) => {
-                    const clubHref = getClubHrefByName(row.club)
-
-                    return (
-                      <tr
-                        key={row.pos}
-                        className="border-b border-border last:border-0 hover:bg-muted/30"
-                      >
-                        <td className="py-2 px-3 font-medium">{row.pos}</td>
-                        <td className="py-2 px-3">
-                          {clubHref ? (
-                            <Link
-                              href={clubHref}
-                              className="hover:text-green-500 transition-colors"
-                            >
-                              {row.club}
-                            </Link>
-                          ) : (
-                            row.club
-                          )}
-                        </td>
-                        <td className="text-center py-2 px-2">{row.played}</td>
-                        <td className="text-center py-2 px-2">{row.won}</td>
-                        <td className="text-center py-2 px-2">{row.drawn}</td>
-                        <td className="text-center py-2 px-2">{row.lost}</td>
-                        <td className="text-center py-2 px-2">{row.gd}</td>
-                        <td className="text-right py-2 px-3 font-semibold">{row.points}</td>
-                        <td className="py-2 px-2 flex gap-0.5">
-                          {row.form.map((formResult, index) => (
-                            <span
-                              key={`${row.club}-form-${index}`}
-                              className={cn(
-                                'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold',
-                                formResult === 'W' && 'bg-green-500 text-white',
-                                formResult === 'D' && 'bg-muted text-muted-foreground',
-                                formResult === 'L' && 'bg-red-500 text-white'
-                              )}
-                            >
-                              {formResult}
-                            </span>
-                          ))}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-bold">League tables</h2>
             </div>
+            <LeagueTabs />
           </section>
         </div>
       </div>

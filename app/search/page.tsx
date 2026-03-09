@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { Search, User, Users, FileText, Shield, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { formatDistanceToNow } from 'date-fns'
+import type { NewsListItem } from '@/components/news/NewsCardList'
 
 type SearchType = 'all' | 'players' | 'teams' | 'posts' | 'users'
 
@@ -37,6 +39,15 @@ const TABS: { key: SearchType; label: string; icon: React.ElementType }[] = [
   { key: 'posts', label: 'Posts', icon: FileText },
 ]
 
+const SUGGESTED_QUERIES: { label: string; query: string; type?: SearchType }[] = [
+  { label: 'Haaland goals', query: 'Haaland', type: 'players' },
+  { label: 'Premier League table', query: 'Premier League', type: 'teams' },
+  { label: 'UCL highlights', query: 'UCL', type: 'posts' },
+  { label: 'Mbappé transfer', query: 'Mbappe', type: 'players' },
+  { label: 'Barcelona fixtures', query: 'Barcelona', type: 'teams' },
+  { label: 'Fantasy gems', query: 'Fantasy sleeper picks', type: 'posts' },
+]
+
 function SearchPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -48,6 +59,9 @@ function SearchPageInner() {
   const [results, setResults] = useState<SearchResults | null>(null)
   const [loading, setLoading] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const [latestNews, setLatestNews] = useState<NewsListItem[] | null>(null)
+  const [trendingNews, setTrendingNews] = useState<NewsListItem[] | null>(null)
+  const [newsLoading, setNewsLoading] = useState(false)
 
   const doSearch = useCallback(async (q: string, type: SearchType) => {
     if (q.length < 2) { setResults(null); return }
@@ -72,6 +86,36 @@ function SearchPageInner() {
     }, 300)
     return () => clearTimeout(debounceRef.current)
   }, [query, activeType, doSearch, router])
+
+  useEffect(() => {
+    let cancelled = false
+    async function loadNews() {
+      try {
+        setNewsLoading(true)
+        const [latestRes, transfersRes] = await Promise.all([
+          fetch('/api/news?scope=latest'),
+          fetch('/api/news?scope=transfers'),
+        ])
+        const latestJson = (await latestRes.json()) as { items?: NewsListItem[] }
+        const transfersJson = (await transfersRes.json()) as { items?: NewsListItem[] }
+        if (!cancelled) {
+          setLatestNews(latestJson.items ?? [])
+          setTrendingNews(transfersJson.items ?? [])
+        }
+      } catch {
+        if (!cancelled) {
+          setLatestNews([])
+          setTrendingNews([])
+        }
+      } finally {
+        if (!cancelled) setNewsLoading(false)
+      }
+    }
+    void loadNews()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const totalResults = results
     ? results.players.length + results.teams.length + results.posts.length + results.users.length
@@ -117,9 +161,103 @@ function SearchPageInner() {
 
         <div className="px-4 sm:px-6 py-4 space-y-6">
           {!query && (
-            <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <Search className="h-10 w-10 text-muted-foreground/40" />
-              <p className="text-muted-foreground text-sm">Search for anything football</p>
+            <div className="space-y-8 pt-4">
+              <div className="flex flex-col items-center justify-center gap-3">
+                <Search className="h-10 w-10 text-muted-foreground/40" />
+                <p className="text-muted-foreground text-sm">Search for anything football</p>
+              </div>
+
+              <section>
+                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                  Suggested searches
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {SUGGESTED_QUERIES.map((s) => (
+                    <button
+                      key={s.label}
+                      type="button"
+                      onClick={() => {
+                        setActiveType(s.type ?? 'all')
+                        setQuery(s.query)
+                      }}
+                      className="rounded-full border border-border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              <section className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      Latest headlines
+                    </h2>
+                    <Link href="/news" className="text-[11px] text-green-600 hover:underline">
+                      Open news hub
+                    </Link>
+                  </div>
+                  {newsLoading && !latestNews && (
+                    <p className="text-xs text-muted-foreground">Loading latest news…</p>
+                  )}
+                  {!newsLoading && (latestNews?.length ?? 0) === 0 && (
+                    <p className="text-xs text-muted-foreground">No headlines available.</p>
+                  )}
+                  <ul className="space-y-2">
+                    {latestNews?.slice(0, 3).map((item) => (
+                      <li key={item.id}>
+                        <Link
+                          href={item.url ?? '/news'}
+                          className="block rounded-lg border border-border/60 bg-muted/20 px-3 py-2 hover:bg-muted/40 transition-colors"
+                        >
+                          <p className="text-sm font-medium line-clamp-2">{item.title}</p>
+                          <p className="mt-0.5 text-[11px] text-muted-foreground flex items-center gap-1">
+                            {item.source && <span>{item.source}</span>}
+                            <span>
+                              {formatDistanceToNow(new Date(item.publishedAt), {
+                                addSuffix: true,
+                              })}
+                            </span>
+                          </p>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <h2 className="mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    Trending transfers
+                  </h2>
+                  {newsLoading && !trendingNews && (
+                    <p className="text-xs text-muted-foreground">Loading transfer buzz…</p>
+                  )}
+                  {!newsLoading && (trendingNews?.length ?? 0) === 0 && (
+                    <p className="text-xs text-muted-foreground">No transfer stories right now.</p>
+                  )}
+                  <ul className="space-y-2">
+                    {trendingNews?.slice(0, 3).map((item) => (
+                      <li key={item.id}>
+                        <Link
+                          href={item.url ?? '/news?scope=transfers'}
+                          className="block rounded-lg border border-border/60 bg-muted/10 px-3 py-2 hover:bg-muted/30 transition-colors"
+                        >
+                          <p className="text-sm font-medium line-clamp-2">{item.title}</p>
+                          <p className="mt-0.5 text-[11px] text-muted-foreground flex items-center gap-1">
+                            {item.source && <span>{item.source}</span>}
+                            <span>
+                              {formatDistanceToNow(new Date(item.publishedAt), {
+                                addSuffix: true,
+                              })}
+                            </span>
+                          </p>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
             </div>
           )}
 

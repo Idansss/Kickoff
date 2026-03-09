@@ -6,7 +6,11 @@ import { cn } from '@/lib/utils'
 
 const Select = SelectPrimitive.Root
 
-const SelectTrigger = ({ className, ...props }: SelectPrimitive.SelectTriggerProps & { className?: string }) => (
+const SelectTrigger = ({
+  className,
+  children,
+  ...props
+}: SelectPrimitive.SelectTriggerProps & { className?: string }) => (
   <SelectPrimitive.Trigger
     className={cn(
       'flex h-9 min-w-[120px] items-center justify-between rounded-md border border-border bg-background px-3 text-xs text-foreground shadow-sm outline-none',
@@ -16,7 +20,7 @@ const SelectTrigger = ({ className, ...props }: SelectPrimitive.SelectTriggerPro
     )}
     {...props}
   >
-    <SelectPrimitive.Value />
+    {children ?? <SelectPrimitive.Value />}
     <SelectPrimitive.Icon asChild>
       <ChevronDown className="ml-2 h-3 w-3 text-muted-foreground" />
     </SelectPrimitive.Icon>

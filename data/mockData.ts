@@ -590,7 +590,7 @@ export const mockTransfers: Transfer[] = [
   { id: 'tf11', playerName: 'Federico Valverde', from: 'Real Madrid', to: 'Liverpool', fee: '€110M', date: '2025-02-05', isHot: false, status: 'rumour', reliability: 30 },
 ]
 
-// ─── Premier League standings (20 teams) ────────────────────────────────────
+// ─── League standings (Premier League, La Liga, Serie A) ───────────────────
 export const mockStandings: Standing[] = [
   { pos: 1, club: 'Arsenal', played: 28, won: 20, drawn: 4, lost: 4, gf: 68, ga: 24, gd: '+44', points: 64, form: ['W', 'W', 'D', 'W', 'W'] },
   { pos: 2, club: 'Liverpool', played: 28, won: 19, drawn: 6, lost: 3, gf: 65, ga: 28, gd: '+37', points: 63, form: ['W', 'D', 'W', 'W', 'L'] },
@@ -612,6 +612,32 @@ export const mockStandings: Standing[] = [
   { pos: 18, club: 'Luton Town', played: 28, won: 5, drawn: 6, lost: 17, gf: 38, ga: 58, gd: '-20', points: 21, form: ['L', 'L', 'D', 'W', 'L'] },
   { pos: 19, club: 'Burnley', played: 28, won: 4, drawn: 6, lost: 18, gf: 28, ga: 58, gd: '-30', points: 18, form: ['L', 'L', 'D', 'L', 'L'] },
   { pos: 20, club: 'Sheffield Utd', played: 28, won: 3, drawn: 5, lost: 20, gf: 24, ga: 72, gd: '-48', points: 14, form: ['L', 'L', 'L', 'D', 'L'] },
+]
+
+export const mockLaLigaStandings: Standing[] = [
+  { pos: 1, club: 'Real Madrid', played: 28, won: 21, drawn: 5, lost: 2, gf: 60, ga: 20, gd: '+40', points: 68, form: ['W', 'W', 'D', 'W', 'W'] },
+  { pos: 2, club: 'Barcelona', played: 28, won: 19, drawn: 6, lost: 3, gf: 58, ga: 26, gd: '+32', points: 63, form: ['W', 'W', 'W', 'D', 'W'] },
+  { pos: 3, club: 'Girona', played: 28, won: 18, drawn: 5, lost: 5, gf: 55, ga: 30, gd: '+25', points: 59, form: ['L', 'W', 'D', 'W', 'W'] },
+  { pos: 4, club: 'Atlético Madrid', played: 28, won: 17, drawn: 4, lost: 7, gf: 50, ga: 28, gd: '+22', points: 55, form: ['W', 'L', 'W', 'D', 'W'] },
+  { pos: 5, club: 'Athletic Club', played: 28, won: 15, drawn: 7, lost: 6, gf: 47, ga: 27, gd: '+20', points: 52, form: ['W', 'D', 'W', 'W', 'L'] },
+  { pos: 6, club: 'Real Sociedad', played: 28, won: 13, drawn: 9, lost: 6, gf: 40, ga: 26, gd: '+14', points: 48, form: ['D', 'W', 'D', 'L', 'W'] },
+  { pos: 7, club: 'Real Betis', played: 28, won: 11, drawn: 11, lost: 6, gf: 38, ga: 32, gd: '+6', points: 44, form: ['W', 'D', 'L', 'W', 'D'] },
+  { pos: 8, club: 'Valencia', played: 28, won: 11, drawn: 7, lost: 10, gf: 32, ga: 31, gd: '+1', points: 40, form: ['L', 'D', 'W', 'D', 'L'] },
+  { pos: 9, club: 'Villarreal', played: 28, won: 10, drawn: 8, lost: 10, gf: 44, ga: 45, gd: '-1', points: 38, form: ['W', 'L', 'D', 'W', 'D'] },
+  { pos: 10, club: 'Sevilla', played: 28, won: 8, drawn: 9, lost: 11, gf: 34, ga: 38, gd: '-4', points: 33, form: ['D', 'W', 'L', 'D', 'W'] },
+]
+
+export const mockSerieAStandings: Standing[] = [
+  { pos: 1, club: 'Inter', played: 28, won: 22, drawn: 4, lost: 2, gf: 63, ga: 18, gd: '+45', points: 70, form: ['W', 'W', 'W', 'D', 'W'] },
+  { pos: 2, club: 'Juventus', played: 28, won: 18, drawn: 6, lost: 4, gf: 48, ga: 22, gd: '+26', points: 60, form: ['L', 'D', 'W', 'W', 'W'] },
+  { pos: 3, club: 'Milan', played: 28, won: 17, drawn: 6, lost: 5, gf: 49, ga: 30, gd: '+19', points: 57, form: ['W', 'W', 'D', 'L', 'W'] },
+  { pos: 4, club: 'Bologna', played: 28, won: 15, drawn: 8, lost: 5, gf: 40, ga: 24, gd: '+16', points: 53, form: ['W', 'W', 'W', 'W', 'D'] },
+  { pos: 5, club: 'Napoli', played: 28, won: 14, drawn: 6, lost: 8, gf: 46, ga: 32, gd: '+14', points: 48, form: ['D', 'L', 'W', 'W', 'D'] },
+  { pos: 6, club: 'Roma', played: 28, won: 13, drawn: 7, lost: 8, gf: 45, ga: 33, gd: '+12', points: 46, form: ['W', 'D', 'L', 'W', 'W'] },
+  { pos: 7, club: 'Lazio', played: 28, won: 13, drawn: 5, lost: 10, gf: 35, ga: 30, gd: '+5', points: 44, form: ['L', 'W', 'W', 'D', 'L'] },
+  { pos: 8, club: 'Atalanta', played: 28, won: 12, drawn: 6, lost: 10, gf: 43, ga: 36, gd: '+7', points: 42, form: ['D', 'L', 'W', 'L', 'W'] },
+  { pos: 9, club: 'Fiorentina', played: 28, won: 11, drawn: 7, lost: 10, gf: 37, ga: 35, gd: '+2', points: 40, form: ['W', 'D', 'L', 'D', 'W'] },
+  { pos: 10, club: 'Torino', played: 28, won: 10, drawn: 9, lost: 9, gf: 29, ga: 28, gd: '+1', points: 39, form: ['D', 'W', 'D', 'L', 'W'] },
 ]
 
 // ─── Notifications (8, 3 unread) ────────────────────────────────────────────

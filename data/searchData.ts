@@ -14,6 +14,7 @@ export interface SearchClub {
 }
 
 export const SEARCH_PLAYERS: SearchPlayer[] = [
+  { id: 'messi', name: 'Lionel Messi', club: 'Inter Miami', position: 'FW', flag: '🇦🇷' },
   { id: 'p1', name: 'Erling Haaland', club: 'Man City', position: 'ST', flag: '🇳🇴' },
   { id: 'p2', name: 'Kylian Mbappé', club: 'Real Madrid', position: 'FW', flag: '🇫🇷' },
   { id: 'p3', name: 'Vinicius Jr.', club: 'Real Madrid', position: 'FW', flag: '🇧🇷' },

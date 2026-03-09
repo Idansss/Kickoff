@@ -69,11 +69,27 @@ export default function FantasyPage() {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const initialized = useRef(false)
 
-  // Load persisted squad on mount
+  // Load persisted squad (localStorage first, then API)
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const raw = window.localStorage.getItem('kickoff-fantasy-squad')
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw) as { ids?: string[] }
+          const ids = new Set(parsed.ids ?? [])
+          if (ids.size > 0) {
+            setPlayers((prev) => prev.map((p) => ({ ...p, selected: ids.has(p.id) })))
+            initialized.current = true
+          }
+        } catch {
+          // ignore malformed local storage
+        }
+      }
+    }
+
     fetch('/api/fantasy')
       .then((r) => r.json())
-      .then((data: { squad: { id: string }[] }) => {
+      .then((data: { squad?: { id: string }[] }) => {
         if (!data.squad || data.squad.length === 0) return
         const selectedIds = new Set(data.squad.map((p) => p.id))
         setPlayers((prev) => prev.map((p) => ({ ...p, selected: selectedIds.has(p.id) })))
@@ -85,14 +101,24 @@ export default function FantasyPage() {
   const squad = players.filter((p) => p.selected)
   const budget = BUDGET - squad.reduce((sum, p) => sum + p.price, 0)
 
-  // Debounced auto-save
+  // Debounced auto-save (API + localStorage)
   const persistSquad = useCallback((squadPlayers: FantasyPlayer[]) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
+      const payload = {
+        squad: squadPlayers.map((p) => ({ id: p.id, name: p.name })),
+        budget: BUDGET - squadPlayers.reduce((s, p) => s + p.price, 0),
+      }
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(
+          'kickoff-fantasy-squad',
+          JSON.stringify({ ids: squadPlayers.map((p) => p.id) })
+        )
+      }
       fetch('/api/fantasy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ squad: squadPlayers.map((p) => ({ id: p.id, name: p.name })), budget: BUDGET - squadPlayers.reduce((s, p) => s + p.price, 0) }),
+        body: JSON.stringify(payload),
       }).catch(() => {})
     }, 800)
   }, [])
@@ -233,7 +259,11 @@ export default function FantasyPage() {
                     <p className="font-semibold text-green-600 text-sm">Squad complete!</p>
                     <p className="text-xs text-muted-foreground">Save your team before the deadline</p>
                   </div>
-                  <Button size="sm" className="ml-auto bg-green-600 hover:bg-green-700 text-white shrink-0">
+                  <Button
+                    size="sm"
+                    className="ml-auto bg-green-600 hover:bg-green-700 text-white shrink-0"
+                    onClick={() => persistSquad(squad)}
+                  >
                     Save Team
                   </Button>
                 </div>

@@ -9,7 +9,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { askFootballGPT } from '@/lib/claudeClient'
-import { INPUT_LIMITS } from '@/lib/constants'
+import { INPUT_LIMITS, STORE_KEYS } from '@/lib/constants'
+import { safeGet, safeSet } from '@/lib/safeStorage'
 import { cn } from '@/lib/utils'
 
 interface Message {
@@ -67,6 +68,19 @@ export default function AIPage(): React.JSX.Element {
   const filteredQuestions = category === 'All'
     ? SUGGESTED_QUESTIONS
     : SUGGESTED_QUESTIONS.filter((q) => q.category === category)
+
+  // Load persisted conversation on mount
+  useEffect(() => {
+    const stored = safeGet<{ messages?: Message[] }>(STORE_KEYS.ai, { messages: [] })
+    if (stored.messages && stored.messages.length > 0) {
+      setMessages(stored.messages)
+    }
+  }, [])
+
+  // Persist conversation whenever messages change
+  useEffect(() => {
+    safeSet(STORE_KEYS.ai, { messages })
+  }, [messages])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -152,7 +166,11 @@ export default function AIPage(): React.JSX.Element {
             {messages.length > 0 && (
               <button
                 type="button"
-                onClick={() => { setMessages([]); setError(null) }}
+                onClick={() => {
+                  setMessages([])
+                  setError(null)
+                  safeSet(STORE_KEYS.ai, { messages: [] })
+                }}
                 className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-lg hover:bg-muted"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
