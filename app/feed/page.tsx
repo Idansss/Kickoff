@@ -267,7 +267,12 @@ function FeedPageInner(): React.JSX.Element {
       return list.sort((a, b) => (orderMap.get(a.id) ?? 9999) - (orderMap.get(b.id) ?? 9999))
     }
 
+    // Current user's own posts always float to top (most recent first)
     return list.sort((a, b) => {
+      const aIsMe = currentUser && a.author.id === currentUser.id
+      const bIsMe = currentUser && b.author.id === currentUser.id
+      if (aIsMe && !bIsMe) return -1
+      if (!aIsMe && bIsMe) return 1
       const va = a.author.verified ? 1 : 0
       const vb = b.author.verified ? 1 : 0
       if (vb !== va) return vb - va
@@ -472,12 +477,20 @@ function FeedPageInner(): React.JSX.Element {
 
         <div className="border-b border-border px-4 py-3 sm:px-6">
           <div className="flex gap-3">
-            <div
-              className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-semibold text-white flex-shrink-0"
-              style={{ backgroundColor: currentUser.avatarColor === '#16a34a' ? '#15803d' : currentUser.avatarColor }}
-            >
-              {currentUser.avatarInitials}
-            </div>
+            {currentUser.avatarImage ? (
+              <img
+                src={currentUser.avatarImage}
+                alt={currentUser.name}
+                className="h-10 w-10 rounded-full object-cover flex-shrink-0"
+              />
+            ) : (
+              <div
+                className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-semibold text-white flex-shrink-0"
+                style={{ backgroundColor: currentUser.avatarColor === '#16a34a' ? '#15803d' : currentUser.avatarColor }}
+              >
+                {currentUser.avatarInitials}
+              </div>
+            )}
             <div className="flex-1" ref={composerRef}>
               <Textarea
                 rows={2}

@@ -248,12 +248,16 @@ function ReplyCard({
     <div className="ml-12 border-l-[3px] border-green-600 pl-3 py-2 text-sm">
       <div className="flex gap-2">
         <Link href={`/user/${reply.author.id}`} className="flex-shrink-0">
-          <div
-            className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold text-white"
-            style={{ backgroundColor: reply.author.avatarColor }}
-          >
-            {reply.author.avatarInitials}
-          </div>
+          {reply.author.avatarImage ? (
+            <img src={reply.author.avatarImage} alt={reply.author.name} className="h-8 w-8 rounded-full object-cover" />
+          ) : (
+            <div
+              className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold text-white"
+              style={{ backgroundColor: reply.author.avatarColor }}
+            >
+              {reply.author.avatarInitials}
+            </div>
+          )}
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -538,12 +542,20 @@ function FeedPostCardInner({
       )}
       <div className="flex gap-3">
         <Link href={`/user/${post.author.id}`} className="flex-shrink-0">
-          <div
-            className="h-11 w-11 rounded-full flex items-center justify-center text-sm font-semibold text-white"
-            style={{ backgroundColor: post.author.avatarColor }}
-          >
-            {post.author.avatarInitials}
-          </div>
+          {post.author.avatarImage ? (
+            <img
+              src={post.author.avatarImage}
+              alt={post.author.name}
+              className="h-11 w-11 rounded-full object-cover"
+            />
+          ) : (
+            <div
+              className="h-11 w-11 rounded-full flex items-center justify-center text-sm font-semibold text-white"
+              style={{ backgroundColor: post.author.avatarColor }}
+            >
+              {post.author.avatarInitials}
+            </div>
+          )}
         </Link>
 
         <div className="flex-1 min-w-0">
@@ -630,14 +642,16 @@ function FeedPostCardInner({
                 </button>
                 <div className="rounded-lg border border-border bg-muted/30 p-2 mb-3 text-sm">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                    <span
-                      className="h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-semibold text-white flex-shrink-0"
-                      style={{
-                        backgroundColor: post.author.avatarColor,
-                      }}
-                    >
-                      {post.author.avatarInitials}
-                    </span>
+                    {post.author.avatarImage ? (
+                      <img src={post.author.avatarImage} alt={post.author.name} className="h-5 w-5 rounded-full object-cover flex-shrink-0" />
+                    ) : (
+                      <span
+                        className="h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-semibold text-white flex-shrink-0"
+                        style={{ backgroundColor: post.author.avatarColor }}
+                      >
+                        {post.author.avatarInitials}
+                      </span>
+                    )}
                     <span className="font-medium text-foreground">
                       {post.author.name}
                     </span>

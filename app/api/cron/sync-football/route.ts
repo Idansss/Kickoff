@@ -18,6 +18,28 @@ import { db } from '@/lib/db'
 
 const BASE = 'https://api.football-data.org/v4'
 const API_KEY = process.env.FOOTBALL_DATA_API_KEY
+const APF_KEY = process.env.API_FOOTBALL_KEY
+const APF_BASE = 'https://v3.football.api-sports.io'
+
+// Top clubs by API-Football team ID (Premier League + top European)
+const TOP_CLUB_IDS = [
+  33, 34, 40, 41, 42, 45, 47, 48, 49, 50, // Man Utd, Newcastle, Liverpool, Southampton, Arsenal, Everton, Spurs, West Ham, Chelsea, Man City
+  51, 52, 66,                              // Brighton, Crystal Palace, Aston Villa
+  529, 530, 541,                           // Barcelona, Atletico, Real Madrid
+  157, 168,                                // Bayern, Bayer Leverkusen
+  489, 496, 505,                           // AC Milan, Juventus, Inter
+  85,                                      // PSG
+]
+
+async function apfFetch(path: string) {
+  if (!APF_KEY) throw new Error('API_FOOTBALL_KEY not set')
+  const res = await fetch(`${APF_BASE}${path}`, {
+    headers: { 'x-apisports-key': APF_KEY },
+    next: { revalidate: 0 },
+  })
+  if (!res.ok) throw new Error(`api-football ${res.status}: ${path}`)
+  return res.json()
+}
 
 // Authorize cron requests via CRON_SECRET header
 function authorized(request: NextRequest): boolean {
@@ -138,6 +160,111 @@ async function syncMatches() {
   return upserted
 }
 
+interface ApfTransferEntry {
+  player: { id: number; name: string }
+  update: string
+  transfers: Array<{
+    date: string
+    type: string
+    teams: {
+      in: { id: number; name: string }
+      out: { id: number; name: string }
+    }
+    fee: { amount: number | null; currency: string } | null
+  }>
+}
+
+async function syncTransfers(): Promise<number> {
+  if (!APF_KEY) return 0
+
+  // Only sync once per 20 hours to respect the 100 req/day free tier
+  const recentSync = await db.transfer.findFirst({
+    where: { providerKey: { startsWith: 'apf_' }, createdAt: { gte: new Date(Date.now() - 20 * 3600 * 1000) } },
+  })
+  if (recentSync) return -1 // already synced recently
+
+  const currentYear = new Date().getFullYear()
+  const season = new Date().getMonth() >= 6 ? currentYear : currentYear - 1
+
+  let synced = 0
+
+  for (const teamId of TOP_CLUB_IDS) {
+    let data: { response: ApfTransferEntry[] }
+    try {
+      data = await apfFetch(`/transfers?team=${teamId}&season=${season}`)
+    } catch {
+      continue
+    }
+
+    for (const entry of data.response ?? []) {
+      const playerKey = `apf_${entry.player.id}`
+
+      // Upsert player
+      const player = await db.player.upsert({
+        where: { providerKey: playerKey },
+        create: { providerKey: playerKey, name: entry.player.name },
+        update: { name: entry.player.name },
+      })
+
+      for (const t of entry.transfers) {
+        const transferKey = `apf_${entry.player.id}_${t.date}_${t.teams.in.id}`
+
+        // Upsert from team
+        const fromTeamKey = `apf_${t.teams.out.id}`
+        const fromTeam = await db.team.upsert({
+          where: { providerKey: fromTeamKey },
+          create: { providerKey: fromTeamKey, name: t.teams.out.name },
+          update: { name: t.teams.out.name },
+        })
+
+        // Upsert to team
+        const toTeamKey = `apf_${t.teams.in.id}`
+        const toTeam = await db.team.upsert({
+          where: { providerKey: toTeamKey },
+          create: { providerKey: toTeamKey, name: t.teams.in.name },
+          update: { name: t.teams.in.name },
+        })
+
+        // Map type
+        const lowerType = t.type?.toLowerCase() ?? ''
+        const type = lowerType === 'loan' ? 'loan'
+          : lowerType === 'free' || lowerType === 'n/a' || t.fee?.amount ? 'done'
+          : 'done'
+
+        // Format fee
+        let fee: string | null = null
+        if (t.fee?.amount) {
+          const amt = t.fee.amount
+          fee = amt >= 1000 ? `${t.fee.currency}${(amt / 1000).toFixed(1)}B`
+            : `${t.fee.currency}${amt}M`
+        } else if (lowerType === 'free') {
+          fee = 'Free'
+        } else if (lowerType === 'loan') {
+          fee = 'Loan'
+        }
+
+        await db.transfer.upsert({
+          where: { providerKey: transferKey },
+          create: {
+            providerKey: transferKey,
+            playerId: player.id,
+            fromTeamId: fromTeam.id,
+            toTeamId: toTeam.id,
+            type,
+            fee,
+            date: t.date ? new Date(t.date) : null,
+            metaJson: JSON.stringify({ source: 'API-Football' }),
+          },
+          update: { type, fee },
+        })
+        synced++
+      }
+    }
+  }
+
+  return synced
+}
+
 export async function GET(request: NextRequest) {
   if (!authorized(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -151,14 +278,19 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const [competitionCount, matchCount] = await Promise.all([
+    const [competitionCount, matchCount, transferCount] = await Promise.all([
       syncCompetitions(),
       syncMatches(),
+      syncTransfers(),
     ])
 
     return NextResponse.json({
       ok: true,
-      synced: { competitions: competitionCount, matches: matchCount },
+      synced: {
+        competitions: competitionCount,
+        matches: matchCount,
+        transfers: transferCount === -1 ? 'skipped (synced recently)' : transferCount,
+      },
       at: new Date().toISOString(),
     })
   } catch (err) {

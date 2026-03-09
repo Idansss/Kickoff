@@ -40,10 +40,19 @@ function syncSupabaseUser(user: { id: string; email?: string; user_metadata?: Re
   const name: string = meta.full_name ?? meta.name ?? user.email?.split('@')[0] ?? 'User'
   const handle = (meta.preferred_username ?? name.toLowerCase().replace(/\s+/g, ''))
 
-  userStore.getState().updateCurrentUser({
+  const updates: Parameters<typeof userStore.getState().updateCurrentUser>[0] = {
     name,
     handle,
-    bio: meta.bio ?? undefined,
-    avatarImage: meta.avatar_url ?? undefined,
-  })
+  }
+
+  // Preserve locally edited profile fields when Supabase metadata does not contain them.
+  if (typeof meta.bio === 'string' && meta.bio.trim().length > 0) {
+    updates.bio = meta.bio
+  }
+
+  if (typeof meta.avatar_url === 'string' && meta.avatar_url.trim().length > 0) {
+    updates.avatarImage = meta.avatar_url
+  }
+
+  userStore.getState().updateCurrentUser(updates)
 }

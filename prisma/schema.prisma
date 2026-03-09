@@ -290,20 +290,23 @@ model NewsItem {
 }
 
 model Transfer {
-  id         String   @id @default(cuid())
-  playerId   String
-  fromTeamId String?
-  toTeamId   String?
-  type       String
-  fee        String?
-  date       DateTime?
-  metaJson   String?
+  id          String    @id @default(cuid())
+  providerKey String?   @unique
+  playerId    String
+  fromTeamId  String?
+  toTeamId    String?
+  type        String
+  fee         String?
+  date        DateTime?
+  metaJson    String?
+  createdAt   DateTime  @default(now())
 
   player   Player @relation(fields: [playerId], references: [id])
   fromTeam Team?  @relation("TransferFrom", fields: [fromTeamId], references: [id])
   toTeam   Team?  @relation("TransferTo", fields: [toTeamId], references: [id])
 
   @@index([playerId])
+  @@index([createdAt])
 }
 
 model Trophy {
