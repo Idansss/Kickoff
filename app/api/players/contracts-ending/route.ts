@@ -128,16 +128,22 @@ export async function GET(request: Request) {
     ),
   }
 
+  // relation filter applied at the contract level so we don't use `where` inside `include`
+  const playerRelationFilter =
+    Array.isArray(wherePlayer.AND) && wherePlayer.AND.length > 0 ? { player: wherePlayer } : {}
+
   // we query contracts directly to have precise endDate ordering and include player + club
   const [contracts, total] = await Promise.all([
     db.playerContract.findMany({
-      where: contractWhere,
+      where: {
+        ...contractWhere,
+        ...playerRelationFilter,
+      },
       skip,
       take,
       orderBy: { endDate: 'asc' },
       include: {
         player: {
-          where: wherePlayer,
           include: {
             currentTeam: {
               select: { id: true, name: true, badgeUrl: true },
@@ -151,7 +157,12 @@ export async function GET(request: Request) {
         club: true,
       },
     }),
-    db.playerContract.count({ where: contractWhere }),
+    db.playerContract.count({
+      where: {
+        ...contractWhere,
+        ...playerRelationFilter,
+      },
+    }),
   ])
 
   const filteredContracts = contracts.filter((c) => c.player != null)
