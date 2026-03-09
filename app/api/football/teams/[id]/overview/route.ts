@@ -21,6 +21,17 @@ export async function GET(
 
   const team = await db.team.findUnique({
     where: { id: teamId },
+    include: {
+      contracts: {
+        include: {
+          player: true,
+        },
+      },
+      marketValues: {
+        orderBy: { date: 'desc' },
+        take: 12,
+      },
+    },
   })
 
   if (!team) {
@@ -99,6 +110,9 @@ export async function GET(
     }
   }
 
+  // squad valuation summary using latest player contract club links and player market values
+  const latestClubValue = team.marketValues[0] ?? null
+
   const response = {
     id: team.id,
     name: team.name,
@@ -108,6 +122,14 @@ export async function GET(
     coachName: team.coachName,
     form,
     tableSnapshot,
+    valueSummary: latestClubValue
+      ? {
+          formatted: `€${(latestClubValue.valueEur / 1_000_000).toFixed(1)}m`,
+          raw: latestClubValue.valueEur,
+          currency: latestClubValue.currency,
+          date: latestClubValue.date,
+        }
+      : null,
   }
 
   return NextResponse.json({ team: response })

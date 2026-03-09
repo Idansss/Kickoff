@@ -414,6 +414,30 @@ export default function DiscoveryPage(): React.JSX.Element {
             )}
           </section>
 
+          {/* Market value quick-access section */}
+          <section>
+            <h2 className="text-lg font-bold mb-3">Market &amp; transfer hub</h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              {[
+                { href: '/market-values', label: '💰 Most valuable', sub: 'players & clubs' },
+                { href: '/free-agents', label: '🆓 Free agents', sub: 'unattached players' },
+                { href: '/contracts-ending', label: '📅 Contracts ending', sub: 'expiring deals' },
+                { href: '/agents', label: '🤝 Agents', sub: 'portfolio rankings' },
+                { href: '/agencies', label: '🏢 Agencies', sub: 'by squad value' },
+                { href: '/players/advanced-search', label: '🔍 Advanced search', sub: 'filter players' },
+              ].map((card) => (
+                <Link
+                  key={card.href}
+                  href={card.href}
+                  className="flex flex-col rounded-xl border bg-card px-3 py-3 transition-colors hover:bg-muted/50 gap-0.5"
+                >
+                  <span className="text-sm font-semibold">{card.label}</span>
+                  <span className="text-[11px] text-muted-foreground">{card.sub}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+
           <section>
             <h2 className="text-lg font-bold mb-4">Transfers</h2>
             <TransfersSection />

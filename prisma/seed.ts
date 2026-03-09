@@ -434,7 +434,7 @@ async function seedFootballDomain() {
         currentTeamId: chelsea.id,
       },
     }),
-    // bench / depth players to reach 20 total
+    // bench / depth players to reach 32+ total
     prisma.player.create({
       data: { name: 'Riyad Mahrez', nationality: 'Algeria', position: 'FW', currentTeamId: city.id },
     }),
@@ -458,6 +458,31 @@ async function seedFootballDomain() {
     }),
     prisma.player.create({
       data: { name: 'Thiago Silva', nationality: 'Brazil', position: 'DF', currentTeamId: chelsea.id },
+    }),
+    // extra players to deepen agent/contract coverage
+    prisma.player.create({
+      data: { name: 'Julian Alvarez', nationality: 'Argentina', position: 'FW', currentTeamId: city.id },
+    }),
+    prisma.player.create({
+      data: { name: 'Manuel Akanji', nationality: 'Switzerland', position: 'DF', currentTeamId: city.id },
+    }),
+    prisma.player.create({
+      data: { name: 'Jurrien Timber', nationality: 'Netherlands', position: 'DF', currentTeamId: arsenal.id },
+    }),
+    prisma.player.create({
+      data: { name: 'Leandro Trossard', nationality: 'Belgium', position: 'FW', currentTeamId: arsenal.id },
+    }),
+    prisma.player.create({
+      data: { name: 'Dominik Szoboszlai', nationality: 'Hungary', position: 'MF', currentTeamId: liverpool.id },
+    }),
+    prisma.player.create({
+      data: { name: 'Diogo Jota', nationality: 'Portugal', position: 'FW', currentTeamId: liverpool.id },
+    }),
+    prisma.player.create({
+      data: { name: 'Cole Palmer', nationality: 'England', position: 'FW', currentTeamId: chelsea.id },
+    }),
+    prisma.player.create({
+      data: { name: 'Malo Gusto', nationality: 'France', position: 'DF', currentTeamId: chelsea.id },
     }),
   ])
 
@@ -853,6 +878,103 @@ async function seedFootballDomain() {
   await makeSquad(liverpool.id)
   await makeSquad(chelsea.id)
 
+  // agents & agencies
+  const agencies = await prisma.$transaction([
+    prisma.agency.create({
+      data: {
+        name: 'Elite Football Agency',
+        country: 'England',
+        website: 'https://elite-agency.example.com',
+      },
+    }),
+    prisma.agency.create({
+      data: {
+        name: 'Global Sports Group',
+        country: 'Germany',
+        website: 'https://globalsports.example.com',
+      },
+    }),
+    prisma.agency.create({
+      data: {
+        name: 'Premier Talent Management',
+        country: 'Spain',
+        website: 'https://premier-talent.example.com',
+      },
+    }),
+  ])
+
+  const agents = await prisma.$transaction([
+    prisma.agent.create({ data: { name: 'Mino Rossi', country: 'Italy', email: 'mino.rossi@example.com' } }),
+    prisma.agent.create({ data: { name: 'Sarah Klein', country: 'Germany', email: 'sarah.klein@example.com' } }),
+    prisma.agent.create({ data: { name: 'Luis Romero', country: 'Spain', email: 'luis.romero@example.com' } }),
+    prisma.agent.create({ data: { name: 'Alex Martins', country: 'Portugal', email: 'alex.martins@example.com' } }),
+    prisma.agent.create({ data: { name: 'Emma Hughes', country: 'England', email: 'emma.hughes@example.com' } }),
+    prisma.agent.create({ data: { name: 'Jonas Meyer', country: 'Switzerland', email: 'jonas.meyer@example.com' } }),
+    prisma.agent.create({ data: { name: 'Pierre Dubois', country: 'France', email: 'pierre.dubois@example.com' } }),
+    prisma.agent.create({ data: { name: 'Jamal Carter', country: 'USA', email: 'jamal.carter@example.com' } }),
+    prisma.agent.create({ data: { name: 'Helena Costa', country: 'Brazil', email: 'helena.costa@example.com' } }),
+    prisma.agent.create({ data: { name: 'Nadia Petrov', country: 'Russia', email: 'nadia.petrov@example.com' } }),
+  ])
+
+  // map agents to agencies
+  await prisma.$transaction([
+    prisma.agentAgencyMembership.create({
+      data: { agentId: agents[0].id, agencyId: agencies[0].id, role: 'Founder' },
+    }),
+    prisma.agentAgencyMembership.create({
+      data: { agentId: agents[1].id, agencyId: agencies[0].id, role: 'Senior Agent' },
+    }),
+    prisma.agentAgencyMembership.create({
+      data: { agentId: agents[2].id, agencyId: agencies[1].id, role: 'Lead Agent' },
+    }),
+    prisma.agentAgencyMembership.create({
+      data: { agentId: agents[3].id, agencyId: agencies[1].id, role: 'Agent' },
+    }),
+    prisma.agentAgencyMembership.create({
+      data: { agentId: agents[4].id, agencyId: agencies[2].id, role: 'Managing Partner' },
+    }),
+    prisma.agentAgencyMembership.create({
+      data: { agentId: agents[5].id, agencyId: agencies[2].id, role: 'Analyst' },
+    }),
+  ])
+
+  // assign current agents/agencies to players
+  const playerAgentLinks = [
+    { playerIndex: 0, agentIndex: 0, agencyIndex: 0 },
+    { playerIndex: 1, agentIndex: 1, agencyIndex: 0 },
+    { playerIndex: 2, agentIndex: 2, agencyIndex: 1 },
+    { playerIndex: 3, agentIndex: 3, agencyIndex: 1 },
+    { playerIndex: 4, agentIndex: 4, agencyIndex: 2 },
+    { playerIndex: 5, agentIndex: 5, agencyIndex: 2 },
+    { playerIndex: 6, agentIndex: 6, agencyIndex: 0 },
+    { playerIndex: 7, agentIndex: 7, agencyIndex: 1 },
+    { playerIndex: 8, agentIndex: 8, agencyIndex: 2 },
+    { playerIndex: 9, agentIndex: 9, agencyIndex: 0 },
+    { playerIndex: 10, agentIndex: 0, agencyIndex: 0 },
+    { playerIndex: 11, agentIndex: 1, agencyIndex: 0 },
+    { playerIndex: 12, agentIndex: 2, agencyIndex: 1 },
+    { playerIndex: 13, agentIndex: 3, agencyIndex: 1 },
+    { playerIndex: 14, agentIndex: 4, agencyIndex: 2 },
+    { playerIndex: 15, agentIndex: 5, agencyIndex: 2 },
+    { playerIndex: 16, agentIndex: 6, agencyIndex: 0 },
+    { playerIndex: 17, agentIndex: 7, agencyIndex: 1 },
+    { playerIndex: 18, agentIndex: 8, agencyIndex: 2 },
+    { playerIndex: 19, agentIndex: 9, agencyIndex: 0 },
+  ]
+
+  await prisma.$transaction(
+    playerAgentLinks.map((link) =>
+      prisma.playerAgent.create({
+        data: {
+          playerId: players[link.playerIndex].id,
+          agentId: agents[link.agentIndex].id,
+          agencyId: agencies[link.agencyIndex].id,
+          startDate: new Date(now.getFullYear() - 1, 6, 1),
+        },
+      }),
+    ),
+  )
+
   // transfers
   await prisma.transfer.create({
     data: {
@@ -875,6 +997,169 @@ async function seedFootballDomain() {
       date: new Date(now.getFullYear() - 1, 0, 15),
     },
   })
+
+  // player contracts (mix of active, expiring soon and free agents)
+  const contractStart = new Date(now.getFullYear() - 1, 6, 1)
+  const threeMonthsFromNow = new Date(now.getFullYear(), now.getMonth() + 3, now.getDate())
+  const twelveMonthsFromNow = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate())
+  const expiredLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
+
+  await prisma.playerContract.createMany({
+    data: [
+      {
+        playerId: players[0].id,
+        clubId: city.id,
+        startDate: contractStart,
+        endDate: twelveMonthsFromNow,
+        isOnLoan: false,
+        status: 'ACTIVE',
+        wageEur: 200_000,
+        releaseClauseEur: 180_000_000,
+        extensionOptionDate: null,
+        loanFromTeamId: null,
+        agentId: null,
+      },
+      {
+        playerId: players[1].id,
+        clubId: city.id,
+        startDate: contractStart,
+        endDate: threeMonthsFromNow,
+        isOnLoan: false,
+        status: 'ACTIVE',
+        wageEur: 250_000,
+        releaseClauseEur: 100_000_000,
+        extensionOptionDate: null,
+        loanFromTeamId: null,
+        agentId: null,
+      },
+      {
+        playerId: players[3].id,
+        clubId: arsenal.id,
+        startDate: contractStart,
+        endDate: twelveMonthsFromNow,
+        isOnLoan: false,
+        status: 'ACTIVE',
+        wageEur: 150_000,
+        releaseClauseEur: 120_000_000,
+        extensionOptionDate: null,
+        loanFromTeamId: null,
+        agentId: null,
+      },
+      {
+        playerId: players[5].id,
+        clubId: arsenal.id,
+        startDate: contractStart,
+        endDate: threeMonthsFromNow,
+        isOnLoan: false,
+        status: 'ACTIVE',
+        wageEur: 180_000,
+        releaseClauseEur: 95_000_000,
+        extensionOptionDate: null,
+        loanFromTeamId: null,
+        agentId: null,
+      },
+      {
+        playerId: players[6].id,
+        clubId: liverpool.id,
+        startDate: contractStart,
+        endDate: twelveMonthsFromNow,
+        isOnLoan: false,
+        status: 'ACTIVE',
+        wageEur: 220_000,
+        releaseClauseEur: 130_000_000,
+        extensionOptionDate: null,
+        loanFromTeamId: null,
+        agentId: null,
+      },
+      {
+        playerId: players[9].id,
+        clubId: chelsea.id,
+        startDate: contractStart,
+        endDate: twelveMonthsFromNow,
+        isOnLoan: false,
+        status: 'ACTIVE',
+        wageEur: 190_000,
+        releaseClauseEur: 110_000_000,
+        extensionOptionDate: null,
+        loanFromTeamId: null,
+        agentId: null,
+      },
+      // free agents (contract expired, no current club)
+      {
+        playerId: players[20].id,
+        clubId: null,
+        startDate: new Date(now.getFullYear() - 4, 7, 1),
+        endDate: expiredLastMonth,
+        isOnLoan: false,
+        status: 'EXPIRED',
+        wageEur: 80_000,
+        releaseClauseEur: null,
+        extensionOptionDate: null,
+        loanFromTeamId: null,
+        agentId: null,
+      },
+      {
+        playerId: players[21].id,
+        clubId: null,
+        startDate: new Date(now.getFullYear() - 3, 7, 1),
+        endDate: expiredLastMonth,
+        isOnLoan: false,
+        status: 'EXPIRED',
+        wageEur: 70_000,
+        releaseClauseEur: null,
+        extensionOptionDate: null,
+        loanFromTeamId: null,
+        agentId: null,
+      },
+    ],
+  })
+
+  // market value snapshots for players and clubs
+  const valueBaseDate = new Date(now.getFullYear(), now.getMonth() - 5, 1)
+  const valueWindows = [0, 30, 60, 90, 120, 150]
+
+  // 20 players across 6 dates
+  for (let i = 0; i < Math.min(players.length, 20); i++) {
+    const player = players[i]
+    for (let idx = 0; idx < valueWindows.length; idx++) {
+      const date = new Date(valueBaseDate.getTime() + valueWindows[idx] * 24 * 60 * 60 * 1000)
+      const baseValue = 40_000_000 + i * 2_000_000
+      const fluctuation = (idx - 2) * 2_500_000
+      const valueEur = Math.max(5_000_000, baseValue + fluctuation)
+      await prisma.marketValueSnapshot.create({
+        data: {
+          playerId: player.id,
+          teamId: player.currentTeamId ?? null,
+          date,
+          valueEur,
+          currency: 'EUR',
+          source: 'SeedData',
+          note: 'Synthetic seed value',
+        },
+      })
+    }
+  }
+
+  // simple club-level snapshots
+  const clubsForValues = [city, arsenal, liverpool, chelsea]
+  for (const club of clubsForValues) {
+    for (let idx = 0; idx < valueWindows.length; idx++) {
+      const date = new Date(valueBaseDate.getTime() + valueWindows[idx] * 24 * 60 * 60 * 1000)
+      const baseValue = 600_000_000
+      const fluctuation = (idx - 2) * 25_000_000
+      await prisma.marketValueSnapshot.create({
+        data: {
+          playerId: null,
+          teamId: club.id,
+          date,
+          valueEur: baseValue + fluctuation,
+          currency: 'EUR',
+          source: 'SeedData',
+          note: 'Squad valuation snapshot',
+        },
+      })
+    }
+  }
 
   // trophies
   await prisma.trophy.createMany({
@@ -1123,6 +1408,118 @@ async function seedFootballDomain() {
         competitionId: null,
         teamId: null,
         playerId: null,
+      },
+    ],
+  })
+
+  // forum categories, threads and posts
+  const forumGeneral = await prisma.forumCategory.create({
+    data: { slug: 'general', name: 'General Discussion', description: 'Talk about anything football.' },
+  })
+  const forumTransfers = await prisma.forumCategory.create({
+    data: { slug: 'transfers', name: 'Transfers', description: 'Transfer news and analysis.' },
+  })
+  const forumRumours = await prisma.forumCategory.create({
+    data: { slug: 'rumours', name: 'Rumours', description: 'Transfer rumours and speculation.' },
+  })
+  const forumTactics = await prisma.forumCategory.create({
+    data: { slug: 'tactics', name: 'Tactics', description: 'Shape, systems and strategy.' },
+  })
+  const forumYouth = await prisma.forumCategory.create({
+    data: { slug: 'youth', name: 'Youth & Prospects', description: 'Young talent watch.' },
+  })
+
+  const users = await prisma.user.findMany({ take: 4, orderBy: { createdAt: 'asc' } })
+  const userId = users[0]?.id ?? 'u1'
+
+  const premierLeagueThread = await prisma.forumThread.create({
+    data: {
+      categoryId: forumGeneral.id,
+      title: 'Premier League title race',
+      authorId: userId,
+    },
+  })
+
+  const haalandRumourThread = await prisma.forumThread.create({
+    data: {
+      categoryId: forumRumours.id,
+      title: 'Haaland to Real Madrid?',
+      authorId: userId,
+      isRumour: true,
+      relatedClubId: city.id,
+      relatedPlayerId: players[0].id,
+    },
+  })
+
+  const arsenalTacticsThread = await prisma.forumThread.create({
+    data: {
+      categoryId: forumTactics.id,
+      title: 'How should Arsenal set up vs City?',
+      authorId: userId,
+      relatedClubId: arsenal.id,
+    },
+  })
+
+  await prisma.forumPost.createMany({
+    data: [
+      {
+        threadId: premierLeagueThread.id,
+        authorId: userId,
+        content: 'Who do you think will win the title this season?',
+      },
+      {
+        threadId: premierLeagueThread.id,
+        authorId: users[1]?.id ?? userId,
+        content: 'City are favourites but Arsenal and Liverpool are very close.',
+      },
+      {
+        threadId: haalandRumourThread.id,
+        authorId: users[2]?.id ?? userId,
+        content: 'Can Real even afford him under the current FFP rules?',
+      },
+      {
+        threadId: arsenalTacticsThread.id,
+        authorId: users[3]?.id ?? userId,
+        content: 'I would go with a 4-3-3 and Rice shielding the back four.',
+      },
+    ],
+  })
+
+  // simple subscriptions for unread/watchlist behaviour
+  await prisma.forumThreadSubscription.createMany({
+    data: [
+      { threadId: premierLeagueThread.id, userId },
+      { threadId: haalandRumourThread.id, userId },
+    ],
+  })
+
+  // tags
+  const tagTransfers = await prisma.forumTag.create({ data: { name: 'Transfers', slug: 'transfers' } })
+  const tagRumours = await prisma.forumTag.create({ data: { name: 'Rumours', slug: 'rumours' } })
+
+  await prisma.forumTagOnThread.createMany({
+    data: [
+      { threadId: premierLeagueThread.id, tagId: tagTransfers.id },
+      { threadId: haalandRumourThread.id, tagId: tagRumours.id },
+    ],
+  })
+
+  // sample value quiz attempts
+  await prisma.valueQuizAttempt.createMany({
+    data: [
+      {
+        userId,
+        playerId: players[0].id,
+        guessedValueEur: 170_000_000,
+        actualValueEur: 180_000_000,
+        deltaEur: -10_000_000,
+      },
+      {
+        userId,
+        playerId: players[3].id,
+        guessedValueEur: 120_000_000,
+        actualValueEur: 110_000_000,
+        deltaEur: 10_000_000,
       },
     ],
   })

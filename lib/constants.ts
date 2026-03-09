@@ -7,6 +7,8 @@ export const STORE_KEYS = {
   streakDate: 'kickoff-last-streak-date',
   ui: 'kickoff-ui',
   ai: 'kickoff-ai',
+  forum: 'kickoff-forum',
+  quiz: 'kickoff-quiz',
 } as const
 
 export const INPUT_LIMITS = {

@@ -3,6 +3,8 @@
 import * as Tabs from '@radix-ui/react-tabs'
 import { PlayerMatchLog } from './PlayerMatchLog'
 import { PlayerStatsGrid } from './PlayerStatsGrid'
+import { PlayerCareerTab } from './PlayerCareerTab'
+import { PlayerValueTab } from './PlayerValueTab'
 
 interface PlayerTabsProps {
   playerId: string
@@ -30,6 +32,12 @@ export function PlayerTabs({ playerId }: PlayerTabsProps) {
         >
           Transfers / Career
         </Tabs.Trigger>
+        <Tabs.Trigger
+          value="value"
+          className="rounded-full border px-3 py-1 font-medium data-[state=active]:bg-muted"
+        >
+          Market Value
+        </Tabs.Trigger>
       </Tabs.List>
 
       <div className="space-y-4">
@@ -40,9 +48,10 @@ export function PlayerTabs({ playerId }: PlayerTabsProps) {
           <PlayerStatsGrid playerId={playerId} />
         </Tabs.Content>
         <Tabs.Content value="career">
-          <section className="rounded-xl border bg-card p-4 text-xs text-muted-foreground">
-            Transfers and career history will appear here in a later milestone.
-          </section>
+          <PlayerCareerTab playerId={playerId} />
+        </Tabs.Content>
+        <Tabs.Content value="value">
+          <PlayerValueTab playerId={playerId} />
         </Tabs.Content>
       </div>
     </Tabs.Root>

@@ -21,6 +21,8 @@ import {
   Target,
   TrendingUp,
   Newspaper,
+  MessageSquare,
+  Dices,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { userStore } from '@/store/userStore'
@@ -51,6 +53,8 @@ export function Sidebar() {
     { href: '/competitions', label: 'Competitions', icon: Trophy },
     { href: '/predict', label: 'Predictions', icon: Target },
     { href: '/fantasy', label: 'Fantasy', icon: TrendingUp },
+    { href: '/forums', label: 'Forums', icon: MessageSquare },
+    { href: '/value-quiz', label: 'Value Quiz', icon: Dices },
     { href: '/transfers', label: 'Transfers', icon: ArrowLeftRight },
     { href: '/compare', label: 'Compare', icon: GitCompare },
     { href: '/news', label: 'News', icon: Newspaper },

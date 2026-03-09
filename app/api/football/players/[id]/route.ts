@@ -35,6 +35,29 @@ export async function GET(
         },
         orderBy: { date: 'desc' },
       },
+      contracts: {
+        include: {
+          club: true,
+          loanFrom: true,
+          agent: true,
+        },
+        orderBy: { endDate: 'asc' },
+      },
+      marketValues: {
+        orderBy: { date: 'desc' },
+        take: 12,
+      },
+      playerAgents: {
+        where: {
+          OR: [{ endDate: null }, { endDate: { gt: new Date() } }],
+        },
+        include: {
+          agent: true,
+          agency: true,
+        },
+        orderBy: { startDate: 'desc' },
+        take: 1,
+      },
     },
   })
 
@@ -91,6 +114,73 @@ export async function GET(
 
   const age = calculateAge(player.dob ?? null)
 
+  // contract summary: choose nearest active (or latest) contract
+  const nowDate = new Date()
+  const activeContracts = player.contracts.filter((c) => c.status === 'ACTIVE')
+  const primaryContract =
+    activeContracts.find((c) => c.endDate > nowDate) ?? activeContracts[0] ?? player.contracts[player.contracts.length - 1]
+
+  const contract =
+    primaryContract &&
+    ({
+      id: primaryContract.id,
+      startDate: primaryContract.startDate,
+      endDate: primaryContract.endDate,
+      status: primaryContract.status,
+      isOnLoan: primaryContract.isOnLoan,
+      wageEur: primaryContract.wageEur,
+      releaseClauseEur: primaryContract.releaseClauseEur,
+      extensionOptionDate: primaryContract.extensionOptionDate,
+      club: primaryContract.club
+        ? {
+            id: primaryContract.club.id,
+            name: primaryContract.club.name,
+            badgeUrl: primaryContract.club.badgeUrl,
+          }
+        : null,
+      loanFromTeam: primaryContract.loanFrom
+        ? {
+            id: primaryContract.loanFrom.id,
+            name: primaryContract.loanFrom.name,
+          }
+        : null,
+    } as const)
+
+  // current agent/agency summary
+  const currentAgentLink = player.playerAgents[0]
+  const agentSummary = currentAgentLink
+    ? {
+        agent: currentAgentLink.agent
+          ? {
+              id: currentAgentLink.agent.id,
+              name: currentAgentLink.agent.name,
+              country: currentAgentLink.agent.country,
+            }
+          : null,
+        agency: currentAgentLink.agency
+          ? {
+              id: currentAgentLink.agency.id,
+              name: currentAgentLink.agency.name,
+              country: currentAgentLink.agency.country,
+            }
+          : null,
+        since: currentAgentLink.startDate,
+      }
+    : null
+
+  // market value summary (latest + delta vs previous)
+  const latestValue = player.marketValues[0]
+  const previousValue = player.marketValues[1]
+  const valueSummary =
+    latestValue &&
+    ({
+      formatted: `€${(latestValue.valueEur / 1_000_000).toFixed(1)}m`,
+      raw: latestValue.valueEur,
+      currency: latestValue.currency,
+      date: latestValue.date,
+      changeSincePrevious: previousValue ? latestValue.valueEur - previousValue.valueEur : null,
+    } as const)
+
   const dto = {
     player: {
       id: player.id,
@@ -101,6 +191,7 @@ export async function GET(
       nationality: player.nationality,
       preferredFoot: player.preferredFoot,
       position: player.position,
+      heightCm: player.heightCm,
       currentTeam: player.currentTeam
         ? {
             id: player.currentTeam.id,
@@ -108,9 +199,32 @@ export async function GET(
             badgeUrl: player.currentTeam.badgeUrl,
           }
         : null,
+      transfers: player.transfers.map((t) => ({
+        id: t.id,
+        date: t.date,
+        type: t.type,
+        fee: t.fee,
+        fromTeam: t.fromTeam
+          ? {
+              id: t.fromTeam.id,
+              name: t.fromTeam.name,
+              badgeUrl: t.fromTeam.badgeUrl,
+            }
+          : null,
+        toTeam: t.toTeam
+          ? {
+              id: t.toTeam.id,
+              name: t.toTeam.name,
+              badgeUrl: t.toTeam.badgeUrl,
+            }
+          : null,
+      })),
     },
     transferStatus,
-    value: null as string | null,
+    contract,
+    agent: agentSummary,
+    value: valueSummary ? valueSummary.formatted : (null as string | null),
+    valueDetail: valueSummary,
     recentForm,
   }
 

@@ -28,6 +28,8 @@ model User {
   follows  Follow[]
   notificationPrefs   NotificationPref[]
   pushSubscriptions   PushSubscription[]
+  forumSubscriptions  ForumThreadSubscription[]
+  valueQuizAttempts   ValueQuizAttempt[]
 }
 
 model Post {
@@ -132,30 +134,242 @@ model Team {
   notificationPrefs    NotificationPref[]
   transfersFrom        Transfer[] @relation("TransferFrom")
   transfersTo          Transfer[] @relation("TransferTo")
+  loanedContractsFrom  PlayerContract[] @relation("LoanFromTeam")
+  contracts            PlayerContract[]
+  marketValues         MarketValueSnapshot[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
 model Player {
+  id              String   @id @default(cuid())
+  providerKey     String?  @unique
+  name            String
+  dob             DateTime?
+  nationality     String?
+  birthCountry    String?
+  photoUrl        String?
+  preferredFoot   String?
+  position        String?
+  heightCm        Int?
+  currentTeamId   String?
+  currentTeam     Team?    @relation(fields: [currentTeamId], references: [id])
+  squads          TeamSquad[]
+  transfers       Transfer[]
+  events          MatchEvent[]
+  lineups         MatchLineup[]
+  newsItems       NewsItem[]
+  contracts       PlayerContract[]
+  marketValues    MarketValueSnapshot[]
+  playerAgents    PlayerAgent[]
+  valueQuizAttempts ValueQuizAttempt[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([currentTeamId])
+  @@index([nationality])
+  @@index([position])
+}
+
+model Agent {
+  id        String   @id @default(cuid())
+  name      String
+  country   String?
+  email     String?
+  phone     String?
+  agencyMemberships AgentAgencyMembership[]
+  playerAgents      PlayerAgent[]
+  contracts         PlayerContract[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}
+
+model Agency {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  country   String?
+  website   String?
+  agents    AgentAgencyMembership[]
+  playerAgents PlayerAgent[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}
+
+model AgentAgencyMembership {
+  id        String   @id @default(cuid())
+  agentId   String
+  agencyId  String
+  role      String?
+  startDate DateTime?
+  endDate   DateTime?
+
+  agent  Agent  @relation(fields: [agentId], references: [id])
+  agency Agency @relation(fields: [agencyId], references: [id])
+
+  @@unique([agentId, agencyId])
+  @@index([agencyId])
+}
+
+model PlayerAgent {
+  id         String   @id @default(cuid())
+  playerId   String
+  agentId    String?
+  agencyId   String?
+  startDate  DateTime?
+  endDate    DateTime?
+
+  player Player @relation(fields: [playerId], references: [id])
+  agent  Agent?  @relation(fields: [agentId], references: [id])
+  agency Agency? @relation(fields: [agencyId], references: [id])
+
+  @@index([playerId])
+  @@index([agentId])
+  @@index([agencyId])
+}
+
+model PlayerContract {
+  id             String   @id @default(cuid())
+  playerId       String
+  clubId         String?
+  startDate      DateTime
+  endDate        DateTime
+  isOnLoan       Boolean  @default(false)
+  loanFromTeamId String?
+  status         ContractStatus
+  wageEur        Float?
+  releaseClauseEur Float?
+  extensionOptionDate DateTime?
+  agentId        String?
+
+  player   Player @relation(fields: [playerId], references: [id])
+  club     Team?  @relation(fields: [clubId], references: [id])
+  loanFrom Team?  @relation("LoanFromTeam", fields: [loanFromTeamId], references: [id])
+  agent    Agent? @relation(fields: [agentId], references: [id])
+
+  @@index([endDate])
+  @@index([status])
+  @@index([clubId])
+}
+
+enum ContractStatus {
+  ACTIVE
+  EXPIRED
+  TERMINATED
+  OPTION
+}
+
+model MarketValueSnapshot {
+  id        String   @id @default(cuid())
+  playerId  String?
+  teamId    String?
+  date      DateTime
+  valueEur  Int
+  currency  String   @default("EUR")
+  source    String?
+  note      String?
+
+  player Player? @relation(fields: [playerId], references: [id])
+  team   Team?   @relation(fields: [teamId], references: [id])
+
+  @@index([date])
+  @@index([playerId, date])
+  @@index([teamId, date])
+  @@index([valueEur])
+}
+
+model ForumCategory {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  threads     ForumThread[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ForumThread {
   id            String   @id @default(cuid())
-  providerKey   String?  @unique
-  name          String
-  dob           DateTime?
-  nationality   String?
-  photoUrl      String?
-  preferredFoot String?
-  position      String?
-  currentTeamId String?
-  currentTeam   Team?    @relation(fields: [currentTeamId], references: [id])
-  squads        TeamSquad[]
-  transfers     Transfer[]
-  events        MatchEvent[]
-  lineups       MatchLineup[]
-  newsItems     NewsItem[]
+  categoryId    String
+  title         String
+  authorId      String?
+  isRumour      Boolean  @default(false)
+  relatedClubId String?
+  relatedPlayerId String?
+  posts         ForumPost[]
+  subscriptions ForumThreadSubscription[]
+  tags          ForumTagOnThread[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  @@index([currentTeamId])
+  category ForumCategory @relation(fields: [categoryId], references: [id])
+
+  @@index([categoryId])
+  @@index([relatedClubId])
+  @@index([relatedPlayerId])
+}
+
+model ForumPost {
+  id        String   @id @default(cuid())
+  threadId  String
+  authorId  String?
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  thread ForumThread @relation(fields: [threadId], references: [id])
+
+  @@index([threadId])
+  @@index([createdAt])
+}
+
+model ForumThreadSubscription {
+  id        String   @id @default(cuid())
+  threadId  String
+  userId    String
+  createdAt DateTime @default(now())
+
+  thread ForumThread @relation(fields: [threadId], references: [id])
+  user   User        @relation(fields: [userId], references: [id])
+
+  @@unique([threadId, userId])
+  @@index([userId])
+}
+
+model ForumTag {
+  id    String   @id @default(cuid())
+  name  String   @unique
+  slug  String   @unique
+  threads ForumTagOnThread[]
+}
+
+model ForumTagOnThread {
+  threadId String
+  tagId    String
+
+  thread ForumThread @relation(fields: [threadId], references: [id])
+  tag    ForumTag    @relation(fields: [tagId], references: [id])
+
+  @@id([threadId, tagId])
+}
+
+model ValueQuizAttempt {
+  id        String   @id @default(cuid())
+  userId    String?
+  playerId  String
+  guessedValueEur Int
+  actualValueEur  Int
+  deltaEur        Int
+  createdAt DateTime @default(now())
+
+  user   User?  @relation(fields: [userId], references: [id])
+  player Player @relation(fields: [playerId], references: [id])
+
+  @@index([playerId])
+  @@index([createdAt])
 }
 
 model TeamSquad {
