@@ -5,7 +5,7 @@ import { AppLayout } from '@/components/app-layout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { ArrowRight, Sparkles, TrendingUp, Clock, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
+import { ArrowRight, Sparkles, TrendingUp, Clock, CheckCircle, Loader2 } from 'lucide-react'
 
 interface Transfer {
   id: string
@@ -29,6 +29,59 @@ const MOCK_TRANSFERS: Transfer[] = [
   { id: '7', player: 'Leny Yoro', fromTeam: 'Lille', toTeam: 'Manchester United', fee: '€62m', type: 'done', date: '2024-07-20', source: 'Official' },
   { id: '8', player: 'Xavi Simons', fromTeam: 'RB Leipzig', toTeam: 'Paris Saint-Germain', fee: '€80m', type: 'rumour', date: '2025-03-04', credibility: 5, source: 'L\'Equipe' },
 ]
+
+// Club colors + abbreviations
+const CLUB_INFO: Record<string, { color: string; abbr: string }> = {
+  'Paris Saint-Germain': { color: '#004170', abbr: 'PSG' },
+  'Real Madrid': { color: '#FEBE10', abbr: 'RMA' },
+  'Arsenal': { color: '#EF0107', abbr: 'ARS' },
+  'West Ham': { color: '#7A263A', abbr: 'WHU' },
+  'Chelsea': { color: '#034694', abbr: 'CHE' },
+  'Manchester United': { color: '#DA291C', abbr: 'MUN' },
+  'Manchester City': { color: '#6CABDD', abbr: 'MCI' },
+  'Liverpool': { color: '#C8102E', abbr: 'LIV' },
+  'Napoli': { color: '#12A0D7', abbr: 'NAP' },
+  'Galatasaray': { color: '#E40000', abbr: 'GAL' },
+  'Bayer Leverkusen': { color: '#E32221', abbr: 'B04' },
+  'Lille': { color: '#C41E3A', abbr: 'LIL' },
+  'RB Leipzig': { color: '#E21E25', abbr: 'RBL' },
+  'Tottenham': { color: '#132257', abbr: 'TOT' },
+  'Barcelona': { color: '#004D98', abbr: 'BAR' },
+  'Atletico Madrid': { color: '#CE3524', abbr: 'ATL' },
+  'Bayern Munich': { color: '#DC052D', abbr: 'BAY' },
+  'Juventus': { color: '#000000', abbr: 'JUV' },
+  'Inter Milan': { color: '#010E80', abbr: 'INT' },
+  'AC Milan': { color: '#FB090B', abbr: 'MIL' },
+}
+
+function getClubInfo(team: string) {
+  if (CLUB_INFO[team]) return CLUB_INFO[team]
+  const abbr = team.split(' ').map(w => w[0]).join('').slice(0, 3).toUpperCase()
+  return { color: '#6b7280', abbr }
+}
+
+function ClubBadge({ team, size = 'md' }: { team: string; size?: 'sm' | 'md' }) {
+  const info = getClubInfo(team)
+  const dim = size === 'sm' ? 'h-6 w-6 text-[9px]' : 'h-8 w-8 text-[10px]'
+  return (
+    <div
+      className={cn('rounded-full flex items-center justify-center font-bold text-white shrink-0', dim)}
+      style={{ backgroundColor: info.color }}
+      title={team}
+    >
+      {info.abbr.slice(0, 3)}
+    </div>
+  )
+}
+
+function PlayerAvatar({ name }: { name: string }) {
+  const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  return (
+    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+      {initials}
+    </div>
+  )
+}
 
 interface RumourAnalysis {
   score: number
@@ -124,6 +177,7 @@ export default function TransfersPage() {
             {FILTERS.map((f) => (
               <button
                 key={f.key}
+                type="button"
                 onClick={() => setFilter(f.key)}
                 className={cn(
                   'px-3 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap',
@@ -200,11 +254,15 @@ export default function TransfersPage() {
           <div className="space-y-2">
             {filtered.map((t) => (
               <div key={t.id} className="rounded-xl border border-border p-4 space-y-3 hover:bg-muted/30 transition-colors">
+                {/* Player row */}
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    {typeIcon(t.type)}
+                  <div className="flex items-center gap-3">
+                    <PlayerAvatar name={t.player} />
                     <div>
-                      <p className="font-semibold text-sm">{t.player}</p>
+                      <div className="flex items-center gap-2">
+                        {typeIcon(t.type)}
+                        <p className="font-semibold text-sm">{t.player}</p>
+                      </div>
                       <p className="text-xs text-muted-foreground">{t.date}</p>
                     </div>
                   </div>
@@ -213,14 +271,21 @@ export default function TransfersPage() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="font-medium">{t.fromTeam}</span>
+                {/* Transfer direction with club badges */}
+                <div className="flex items-center gap-3 bg-muted/30 rounded-xl px-3 py-2.5">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <ClubBadge team={t.fromTeam} />
+                    <span className="font-medium text-sm truncate">{t.fromTeam}</span>
+                  </div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="font-medium text-green-600">{t.toTeam}</span>
+                  <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+                    <span className="font-medium text-sm text-green-600 truncate text-right">{t.toTeam}</span>
+                    <ClubBadge team={t.toTeam} />
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="font-semibold text-foreground">{t.fee}</span>
+                  <span className="font-semibold text-foreground text-sm">{t.fee}</span>
                   {t.source && <span>Source: {t.source}</span>}
                 </div>
 

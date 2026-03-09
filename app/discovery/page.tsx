@@ -7,7 +7,15 @@ import { Button } from '@/components/ui/button'
 import { SkeletonLoader } from '@/components/shared/SkeletonLoader'
 import { getScoutReport } from '@/lib/claudeClient'
 import { cn } from '@/lib/utils'
-import { mockPlayers, mockStandings, mockTransfers, mockLaLigaStandings, mockSerieAStandings } from '@/data/mockData'
+import {
+  mockPlayers,
+  mockStandings,
+  mockTransfers,
+  mockLaLigaStandings,
+  mockSerieAStandings,
+  mockBundesligaStandings,
+  mockLigue1Standings,
+} from '@/data/mockData'
 import type { Standing } from '@/types'
 import { getClubHrefByName, getPlayerHrefByName } from '@/lib/entityLinks'
 import type { Player, Transfer } from '@/types'
@@ -21,10 +29,12 @@ const TRENDING_HASHTAGS = [
   '#PremierLeague',
 ] as const
 
-const LEAGUES: { key: 'premier-league' | 'la-liga' | 'serie-a'; label: string; rows: Standing[] }[] = [
+const LEAGUES: { key: 'premier-league' | 'la-liga' | 'serie-a' | 'bundesliga' | 'ligue-1'; label: string; rows: Standing[] }[] = [
   { key: 'premier-league', label: 'Premier League', rows: mockStandings },
   { key: 'la-liga', label: 'La Liga', rows: mockLaLigaStandings },
   { key: 'serie-a', label: 'Serie A', rows: mockSerieAStandings },
+  { key: 'bundesliga', label: 'Bundesliga', rows: mockBundesligaStandings },
+  { key: 'ligue-1', label: 'Ligue 1', rows: mockLigue1Standings },
 ]
 
 interface PlayerRowProps {
@@ -273,7 +283,7 @@ function TransfersSection(): React.JSX.Element {
 }
 
 function LeagueTabs(): React.JSX.Element {
-  const [active, setActive] = useState<'premier-league' | 'la-liga' | 'serie-a'>('premier-league')
+  const [active, setActive] = useState<'premier-league' | 'la-liga' | 'serie-a' | 'bundesliga' | 'ligue-1'>('premier-league')
   const league = LEAGUES.find((l) => l.key === active) ?? LEAGUES[0]
 
   return (

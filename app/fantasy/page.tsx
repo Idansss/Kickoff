@@ -4,13 +4,16 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { AppLayout } from '@/components/app-layout'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { Trophy, Star, Users, TrendingUp, ChevronRight, Lock, CheckCircle, Plus, Minus } from 'lucide-react'
+import { Trophy, CheckCircle, Plus } from 'lucide-react'
+
+type League = 'PL' | 'LL' | 'BL' | 'SA' | 'L1'
 
 interface FantasyPlayer {
   id: string
   name: string
   position: 'GK' | 'DEF' | 'MID' | 'FWD'
   team: string
+  league: League
   price: number
   points: number
   selected: boolean
@@ -21,27 +24,79 @@ interface FantasyPlayer {
 const BUDGET = 100
 
 const PLAYER_POOL: FantasyPlayer[] = [
-  // GKs
-  { id: 'gk1', name: 'Alisson', position: 'GK', team: 'Liverpool', price: 5.5, points: 52, selected: false, form: [6,8,10,6,9] },
-  { id: 'gk2', name: 'Ederson', position: 'GK', team: 'Man City', price: 5.5, points: 48, selected: false, form: [8,6,6,8,6] },
-  { id: 'gk3', name: 'Raya', position: 'GK', team: 'Arsenal', price: 5.0, points: 55, selected: false, form: [10,6,8,9,6] },
-  // DEFs
-  { id: 'def1', name: 'Alexander-Arnold', position: 'DEF', team: 'Liverpool', price: 7.5, points: 78, selected: false, form: [8,13,6,9,6] },
-  { id: 'def2', name: 'Pedro Porro', position: 'DEF', team: 'Tottenham', price: 5.5, points: 62, selected: false, form: [9,6,8,6,6] },
-  { id: 'def3', name: 'Mykolenko', position: 'DEF', team: 'Everton', price: 4.5, points: 55, selected: false, form: [8,6,6,6,9] },
-  { id: 'def4', name: 'Gabriel', position: 'DEF', team: 'Arsenal', price: 6.0, points: 72, selected: false, form: [10,6,6,8,9] },
-  { id: 'def5', name: 'Saliba', position: 'DEF', team: 'Arsenal', price: 6.0, points: 68, selected: false, form: [8,6,9,6,10] },
-  // MIDs
-  { id: 'mid1', name: 'Salah', position: 'MID', team: 'Liverpool', price: 13.0, points: 142, selected: false, form: [13,18,15,8,12] },
-  { id: 'mid2', name: 'Palmer', position: 'MID', team: 'Chelsea', price: 11.0, points: 125, selected: false, form: [16,12,8,15,13] },
-  { id: 'mid3', name: 'Saka', position: 'MID', team: 'Arsenal', price: 10.0, points: 112, selected: false, form: [12,8,15,9,11] },
-  { id: 'mid4', name: 'Mbeumo', position: 'MID', team: 'Brentford', price: 8.0, points: 105, selected: false, form: [9,12,8,15,10] },
-  { id: 'mid5', name: 'Diogo Jota', position: 'MID', team: 'Liverpool', price: 8.0, points: 95, selected: false, form: [9,6,8,12,11], injuryStatus: 'doubt' },
-  // FWDs
-  { id: 'fwd1', name: 'Haaland', position: 'FWD', team: 'Man City', price: 14.5, points: 148, selected: false, form: [15,8,12,18,10] },
-  { id: 'fwd2', name: 'Watkins', position: 'FWD', team: 'Aston Villa', price: 9.0, points: 118, selected: false, form: [12,9,13,8,14] },
-  { id: 'fwd3', name: 'Isak', position: 'FWD', team: 'Newcastle', price: 8.5, points: 108, selected: false, form: [9,12,8,9,14] },
+  // ── Premier League ──────────────────────────────────────────
+  { id: 'gk1',   name: 'Alisson',            position: 'GK',  team: 'Liverpool',       league: 'PL', price: 5.5,  points: 52,  selected: false, form: [6,8,10,6,9] },
+  { id: 'gk2',   name: 'Ederson',             position: 'GK',  team: 'Man City',        league: 'PL', price: 5.5,  points: 48,  selected: false, form: [8,6,6,8,6] },
+  { id: 'gk3',   name: 'Raya',                position: 'GK',  team: 'Arsenal',         league: 'PL', price: 5.0,  points: 55,  selected: false, form: [10,6,8,9,6] },
+  { id: 'def1',  name: 'Alexander-Arnold',    position: 'DEF', team: 'Liverpool',       league: 'PL', price: 7.5,  points: 78,  selected: false, form: [8,13,6,9,6] },
+  { id: 'def2',  name: 'Pedro Porro',         position: 'DEF', team: 'Tottenham',       league: 'PL', price: 5.5,  points: 62,  selected: false, form: [9,6,8,6,6] },
+  { id: 'def3',  name: 'Mykolenko',           position: 'DEF', team: 'Everton',         league: 'PL', price: 4.5,  points: 55,  selected: false, form: [8,6,6,6,9] },
+  { id: 'def4',  name: 'Gabriel',             position: 'DEF', team: 'Arsenal',         league: 'PL', price: 6.0,  points: 72,  selected: false, form: [10,6,6,8,9] },
+  { id: 'def5',  name: 'Saliba',              position: 'DEF', team: 'Arsenal',         league: 'PL', price: 6.0,  points: 68,  selected: false, form: [8,6,9,6,10] },
+  { id: 'mid1',  name: 'Salah',               position: 'MID', team: 'Liverpool',       league: 'PL', price: 13.0, points: 142, selected: false, form: [13,18,15,8,12] },
+  { id: 'mid2',  name: 'Palmer',              position: 'MID', team: 'Chelsea',         league: 'PL', price: 11.0, points: 125, selected: false, form: [16,12,8,15,13] },
+  { id: 'mid3',  name: 'Saka',                position: 'MID', team: 'Arsenal',         league: 'PL', price: 10.0, points: 112, selected: false, form: [12,8,15,9,11] },
+  { id: 'mid4',  name: 'Mbeumo',              position: 'MID', team: 'Brentford',       league: 'PL', price: 8.0,  points: 105, selected: false, form: [9,12,8,15,10] },
+  { id: 'mid5',  name: 'Diogo Jota',          position: 'MID', team: 'Liverpool',       league: 'PL', price: 8.0,  points: 95,  selected: false, form: [9,6,8,12,11], injuryStatus: 'doubt' },
+  { id: 'fwd1',  name: 'Haaland',             position: 'FWD', team: 'Man City',        league: 'PL', price: 14.5, points: 148, selected: false, form: [15,8,12,18,10] },
+  { id: 'fwd2',  name: 'Watkins',             position: 'FWD', team: 'Aston Villa',     league: 'PL', price: 9.0,  points: 118, selected: false, form: [12,9,13,8,14] },
+  { id: 'fwd3',  name: 'Isak',                position: 'FWD', team: 'Newcastle',       league: 'PL', price: 8.5,  points: 108, selected: false, form: [9,12,8,9,14] },
+
+  // ── La Liga ─────────────────────────────────────────────────
+  { id: 'gk4',   name: 'Courtois',            position: 'GK',  team: 'Real Madrid',     league: 'LL', price: 5.5,  points: 50,  selected: false, form: [8,7,9,6,8] },
+  { id: 'gk5',   name: 'Ter Stegen',          position: 'GK',  team: 'Barcelona',       league: 'LL', price: 5.0,  points: 45,  selected: false, form: [7,8,6,9,7] },
+  { id: 'def6',  name: 'Carvajal',            position: 'DEF', team: 'Real Madrid',     league: 'LL', price: 6.5,  points: 70,  selected: false, form: [9,6,8,7,9] },
+  { id: 'def7',  name: 'Kounde',              position: 'DEF', team: 'Barcelona',       league: 'LL', price: 7.0,  points: 74,  selected: false, form: [10,7,8,9,6] },
+  { id: 'def8',  name: 'Hermoso',             position: 'DEF', team: 'Atletico Madrid', league: 'LL', price: 5.5,  points: 60,  selected: false, form: [8,7,6,8,9] },
+  { id: 'mid6',  name: 'Bellingham',          position: 'MID', team: 'Real Madrid',     league: 'LL', price: 12.0, points: 130, selected: false, form: [14,11,13,10,15] },
+  { id: 'mid7',  name: 'Pedri',               position: 'MID', team: 'Barcelona',       league: 'LL', price: 9.5,  points: 108, selected: false, form: [11,9,12,8,13] },
+  { id: 'mid8',  name: 'Griezmann',           position: 'MID', team: 'Atletico Madrid', league: 'LL', price: 9.0,  points: 102, selected: false, form: [10,8,11,9,12] },
+  { id: 'fwd4',  name: 'Vinicius Jr',         position: 'FWD', team: 'Real Madrid',     league: 'LL', price: 13.5, points: 140, selected: false, form: [15,12,14,11,16] },
+  { id: 'fwd5',  name: 'Yamal',               position: 'FWD', team: 'Barcelona',       league: 'LL', price: 10.0, points: 118, selected: false, form: [12,10,13,9,14] },
+  { id: 'fwd6',  name: 'Lewandowski',         position: 'FWD', team: 'Barcelona',       league: 'LL', price: 10.5, points: 115, selected: false, form: [13,10,11,12,9] },
+
+  // ── Bundesliga ───────────────────────────────────────────────
+  { id: 'gk6',   name: 'Neuer',               position: 'GK',  team: 'Bayern Munich',   league: 'BL', price: 5.0,  points: 44,  selected: false, form: [7,6,8,7,6] },
+  { id: 'gk7',   name: 'Flekken',             position: 'GK',  team: 'Bayer Leverkusen',league: 'BL', price: 4.5,  points: 48,  selected: false, form: [8,7,9,6,8] },
+  { id: 'def9',  name: 'Davies',              position: 'DEF', team: 'Bayern Munich',   league: 'BL', price: 7.0,  points: 72,  selected: false, form: [9,8,7,10,8] },
+  { id: 'def10', name: 'Tah',                 position: 'DEF', team: 'Bayer Leverkusen',league: 'BL', price: 6.0,  points: 65,  selected: false, form: [8,7,9,8,7] },
+  { id: 'mid9',  name: 'Musiala',             position: 'MID', team: 'Bayern Munich',   league: 'BL', price: 11.0, points: 120, selected: false, form: [13,10,12,11,14] },
+  { id: 'mid10', name: 'Wirtz',               position: 'MID', team: 'Bayer Leverkusen',league: 'BL', price: 10.5, points: 118, selected: false, form: [12,11,13,10,14] },
+  { id: 'mid11', name: 'Xhaka',               position: 'MID', team: 'Bayer Leverkusen',league: 'BL', price: 7.5,  points: 90,  selected: false, form: [9,8,10,9,11] },
+  { id: 'fwd7',  name: 'Harry Kane',          position: 'FWD', team: 'Bayern Munich',   league: 'BL', price: 13.0, points: 138, selected: false, form: [15,11,13,12,16] },
+  { id: 'fwd8',  name: 'Boniface',            position: 'FWD', team: 'Bayer Leverkusen',league: 'BL', price: 9.0,  points: 108, selected: false, form: [11,9,12,10,13] },
+
+  // ── Serie A ──────────────────────────────────────────────────
+  { id: 'gk8',   name: 'Maignan',             position: 'GK',  team: 'AC Milan',        league: 'SA', price: 5.0,  points: 50,  selected: false, form: [8,7,9,8,7] },
+  { id: 'gk9',   name: 'Sommer',              position: 'GK',  team: 'Inter Milan',     league: 'SA', price: 4.5,  points: 46,  selected: false, form: [7,8,7,9,7] },
+  { id: 'def11', name: 'T. Hernandez',        position: 'DEF', team: 'AC Milan',        league: 'SA', price: 7.5,  points: 76,  selected: false, form: [10,8,9,11,8] },
+  { id: 'def12', name: 'Bastoni',             position: 'DEF', team: 'Inter Milan',     league: 'SA', price: 6.5,  points: 68,  selected: false, form: [9,8,7,9,8] },
+  { id: 'mid12', name: 'Barella',             position: 'MID', team: 'Inter Milan',     league: 'SA', price: 9.0,  points: 105, selected: false, form: [11,10,12,9,13] },
+  { id: 'mid13', name: 'Leao',                position: 'MID', team: 'AC Milan',        league: 'SA', price: 9.5,  points: 110, selected: false, form: [12,10,11,9,14] },
+  { id: 'mid14', name: 'Zaccagni',            position: 'MID', team: 'Lazio',           league: 'SA', price: 7.5,  points: 88,  selected: false, form: [9,8,10,9,10] },
+  { id: 'fwd9',  name: 'Lautaro',             position: 'FWD', team: 'Inter Milan',     league: 'SA', price: 11.5, points: 128, selected: false, form: [14,11,12,13,10] },
+  { id: 'fwd10', name: 'Thuram',              position: 'FWD', team: 'Inter Milan',     league: 'SA', price: 9.5,  points: 112, selected: false, form: [12,10,11,13,9] },
+  { id: 'fwd11', name: 'Vlahovic',            position: 'FWD', team: 'Juventus',        league: 'SA', price: 9.0,  points: 105, selected: false, form: [11,9,12,10,11] },
+
+  // ── Ligue 1 ──────────────────────────────────────────────────
+  { id: 'gk10',  name: 'Donnarumma',          position: 'GK',  team: 'PSG',             league: 'L1', price: 5.5,  points: 52,  selected: false, form: [8,7,9,8,9] },
+  { id: 'gk11',  name: 'Mvogo',               position: 'GK',  team: 'Strasbourg',      league: 'L1', price: 4.0,  points: 40,  selected: false, form: [7,6,8,6,7] },
+  { id: 'def13', name: 'Hakimi',              position: 'DEF', team: 'PSG',             league: 'L1', price: 7.5,  points: 75,  selected: false, form: [10,9,8,11,9] },
+  { id: 'def14', name: 'Mukiele',             position: 'DEF', team: 'PSG',             league: 'L1', price: 5.5,  points: 58,  selected: false, form: [8,7,9,7,8] },
+  { id: 'mid15', name: 'Zaire-Emery',         position: 'MID', team: 'PSG',             league: 'L1', price: 8.5,  points: 98,  selected: false, form: [10,9,11,8,12] },
+  { id: 'mid16', name: 'Doue',                position: 'MID', team: 'PSG',             league: 'L1', price: 8.0,  points: 92,  selected: false, form: [10,8,9,10,11] },
+  { id: 'fwd12', name: 'Barcola',             position: 'FWD', team: 'PSG',             league: 'L1', price: 10.0, points: 115, selected: false, form: [12,11,13,10,14] },
+  { id: 'fwd13', name: 'Jonathan David',      position: 'FWD', team: 'Lille',           league: 'L1', price: 9.5,  points: 112, selected: false, form: [13,11,12,10,14] },
+  { id: 'fwd14', name: 'Lacazette',           position: 'FWD', team: 'Lyon',            league: 'L1', price: 7.5,  points: 88,  selected: false, form: [10,9,10,8,11] },
 ]
+
+const LEAGUE_LABELS: Record<League, string> = {
+  PL: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League',
+  LL: '🇪🇸 La Liga',
+  BL: '🇩🇪 Bundesliga',
+  SA: '🇮🇹 Serie A',
+  L1: '🇫🇷 Ligue 1',
+}
 
 const FORMATION = { GK: 1, DEF: 4, MID: 4, FWD: 2 }
 const POSITION_ORDER: Array<'GK' | 'DEF' | 'MID' | 'FWD'> = ['GK', 'DEF', 'MID', 'FWD']
@@ -62,12 +117,22 @@ const LEADERBOARD = [
 
 type Tab = 'squad' | 'leaderboard' | 'transfers'
 
+function PlayerAvatar({ name, posColor, size = 'md' }: { name: string; posColor: string; size?: 'sm' | 'md' }) {
+  const initials = name.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  const dim = size === 'sm' ? 'h-8 w-8 text-[10px]' : 'h-10 w-10 text-xs'
+  return (
+    <div className={cn('rounded-full flex items-center justify-center text-white font-bold shrink-0', posColor, dim)}>
+      {initials}
+    </div>
+  )
+}
+
 export default function FantasyPage() {
   const [players, setPlayers] = useState<FantasyPlayer[]>(PLAYER_POOL)
   const [activeTab, setActiveTab] = useState<Tab>('squad')
   const [posFilter, setPosFilter] = useState<'all' | 'GK' | 'DEF' | 'MID' | 'FWD'>('all')
+  const [leagueFilter, setLeagueFilter] = useState<'all' | League>('all')
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const initialized = useRef(false)
 
   // Load persisted squad (localStorage first, then API)
   useEffect(() => {
@@ -79,10 +144,9 @@ export default function FantasyPage() {
           const ids = new Set(parsed.ids ?? [])
           if (ids.size > 0) {
             setPlayers((prev) => prev.map((p) => ({ ...p, selected: ids.has(p.id) })))
-            initialized.current = true
           }
         } catch {
-          // ignore malformed local storage
+          // ignore malformed
         }
       }
     }
@@ -93,7 +157,6 @@ export default function FantasyPage() {
         if (!data.squad || data.squad.length === 0) return
         const selectedIds = new Set(data.squad.map((p) => p.id))
         setPlayers((prev) => prev.map((p) => ({ ...p, selected: selectedIds.has(p.id) })))
-        initialized.current = true
       })
       .catch(() => {})
   }, [])
@@ -101,7 +164,6 @@ export default function FantasyPage() {
   const squad = players.filter((p) => p.selected)
   const budget = BUDGET - squad.reduce((sum, p) => sum + p.price, 0)
 
-  // Debounced auto-save (API + localStorage)
   const persistSquad = useCallback((squadPlayers: FantasyPlayer[]) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(() => {
@@ -145,7 +207,9 @@ export default function FantasyPage() {
   const squadComplete = squad.length === 11
 
   const pool = players.filter(
-    (p) => !p.selected && (posFilter === 'all' || p.position === posFilter)
+    (p) => !p.selected
+      && (posFilter === 'all' || p.position === posFilter)
+      && (leagueFilter === 'all' || p.league === leagueFilter)
   )
 
   const TABS: { key: Tab; label: string }[] = [
@@ -182,6 +246,7 @@ export default function FantasyPage() {
             {TABS.map((t) => (
               <button
                 key={t.key}
+                type="button"
                 onClick={() => setActiveTab(t.key)}
                 className={cn(
                   'flex-1 py-2.5 text-sm font-medium border-b-2 transition-colors',
@@ -214,15 +279,12 @@ export default function FantasyPage() {
                         return (
                           <div
                             key={i}
-                            className={cn(
-                              'flex flex-col items-center gap-1 w-16 cursor-pointer',
-                              p && 'group'
-                            )}
+                            className={cn('flex flex-col items-center gap-1 w-16 cursor-pointer', p && 'group')}
                             onClick={() => p && toggle(p.id)}
                           >
                             <div className={cn(
-                              'h-10 w-10 rounded-full border-2 flex items-center justify-center text-xs font-bold text-white transition-all',
-                              p ? `${POSITION_COLORS[pos]} border-white/50 group-hover:scale-105` : 'bg-white/10 border-dashed border-white/30'
+                              'h-10 w-10 rounded-full border-2 flex items-center justify-center text-[10px] font-bold text-white transition-all',
+                              p ? `${POSITION_COLORS[pos]} border-white/50 group-hover:scale-105` : 'bg-white/10 border-dashed border-white/30 text-white/50'
                             )}>
                               {p ? p.name.split(' ').slice(-1)[0].slice(0, 4) : '+'}
                             </div>
@@ -252,6 +314,34 @@ export default function FantasyPage() {
                 ))}
               </div>
 
+              {/* Selected players list */}
+              {squad.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Selected Players</h3>
+                  {squad.map((p) => (
+                    <div key={p.id} className="flex items-center gap-3 rounded-xl border border-border p-3">
+                      <PlayerAvatar name={p.name} posColor={POSITION_COLORS[p.position]} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm">{p.name}</p>
+                        <p className="text-xs text-muted-foreground">{p.team} · {LEAGUE_LABELS[p.league].split(' ').slice(1).join(' ')}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="font-bold text-sm text-green-600">{p.points}pts</p>
+                        <p className="text-xs text-muted-foreground">£{p.price}m</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => toggle(p.id)}
+                        aria-label={`Remove ${p.name}`}
+                        className="h-7 w-7 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-500 flex items-center justify-center text-xs font-bold transition-colors"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {squadComplete && (
                 <div className="rounded-xl bg-green-500/10 border border-green-500/30 p-4 flex items-center gap-3">
                   <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />
@@ -273,32 +363,58 @@ export default function FantasyPage() {
 
           {activeTab === 'transfers' && (
             <div className="space-y-4">
-              {/* Position filter */}
-              <div className="flex gap-2 overflow-x-auto">
-                {(['all', 'GK', 'DEF', 'MID', 'FWD'] as const).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPosFilter(p)}
-                    className={cn(
-                      'text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap',
-                      posFilter === p
-                        ? 'bg-green-500 text-white border-green-500'
-                        : 'border-border text-muted-foreground hover:border-green-500/50'
-                    )}
-                  >
-                    {p === 'all' ? 'All' : p}
-                  </button>
-                ))}
+              {/* League filter */}
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2">League</p>
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {(['all', 'PL', 'LL', 'BL', 'SA', 'L1'] as const).map((l) => (
+                    <button
+                      key={l}
+                      type="button"
+                      onClick={() => setLeagueFilter(l)}
+                      className={cn(
+                        'text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap',
+                        leagueFilter === l
+                          ? 'bg-green-500 text-white border-green-500'
+                          : 'border-border text-muted-foreground hover:border-green-500/50'
+                      )}
+                    >
+                      {l === 'all' ? 'All Leagues' : LEAGUE_LABELS[l].split(' ')[0] + ' ' + LEAGUE_LABELS[l].split(' ').slice(1).join(' ')}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              {/* Position filter */}
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2">Position</p>
+                <div className="flex gap-2 overflow-x-auto">
+                  {(['all', 'GK', 'DEF', 'MID', 'FWD'] as const).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setPosFilter(p)}
+                      className={cn(
+                        'text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap',
+                        posFilter === p
+                          ? 'bg-green-500 text-white border-green-500'
+                          : 'border-border text-muted-foreground hover:border-green-500/50'
+                      )}
+                    >
+                      {p === 'all' ? 'All' : p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground">{pool.length} players available</p>
 
               <div className="space-y-2">
                 {pool.map((p) => {
                   const addable = canAdd(p)
                   return (
                     <div key={p.id} className="rounded-xl border border-border p-3 flex items-center gap-3">
-                      <div className={cn('h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0', POSITION_COLORS[p.position])}>
-                        {p.position}
-                      </div>
+                      <PlayerAvatar name={p.name} posColor={POSITION_COLORS[p.position]} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
                           <p className="font-semibold text-sm">{p.name}</p>
@@ -306,6 +422,7 @@ export default function FantasyPage() {
                           {p.injuryStatus === 'out' && <span className="text-[10px] bg-red-500/15 text-red-500 border border-red-500/30 rounded px-1">OUT</span>}
                         </div>
                         <p className="text-xs text-muted-foreground">{p.team} · {p.points}pts</p>
+                        <p className="text-[10px] text-muted-foreground/70">{LEAGUE_LABELS[p.league].split(' ').slice(1).join(' ')}</p>
                         {/* Form dots */}
                         <div className="flex gap-1 mt-1">
                           {p.form.map((v, i) => (
@@ -319,6 +436,7 @@ export default function FantasyPage() {
                           type="button"
                           onClick={() => addable && toggle(p.id)}
                           disabled={!addable}
+                          aria-label={`Add ${p.name}`}
                           className={cn(
                             'mt-1 h-7 w-7 rounded-full flex items-center justify-center transition-colors',
                             addable
@@ -352,7 +470,10 @@ export default function FantasyPage() {
                     <p className={cn('font-semibold text-sm', entry.isMe && 'text-green-600')}>{entry.name}</p>
                     <p className="text-xs text-muted-foreground">Rank #{entry.rank}</p>
                   </div>
-                  <p className="font-bold text-lg tabular-nums">{entry.points}</p>
+                  <div className="text-right">
+                    <p className="font-bold text-lg tabular-nums">{entry.isMe ? totalPoints : entry.points}</p>
+                    <p className="text-xs text-muted-foreground">pts</p>
+                  </div>
                 </div>
               ))}
             </div>

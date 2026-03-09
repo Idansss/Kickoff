@@ -157,10 +157,25 @@ function FeedPageInner(): React.JSX.Element {
   }, [focusPostId])
 
   useEffect(() => {
-    imageUrls.forEach((u) => URL.revokeObjectURL(u))
-    const urls = images.map((f) => URL.createObjectURL(f))
-    setImageUrls(urls)
-    return () => urls.forEach((u) => URL.revokeObjectURL(u))
+    if (images.length === 0) {
+      setImageUrls([])
+      return
+    }
+    let cancelled = false
+    Promise.all(
+      images.map(
+        (f) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result as string)
+            reader.onerror = reject
+            reader.readAsDataURL(f)
+          })
+      )
+    ).then((urls) => {
+      if (!cancelled) setImageUrls(urls)
+    })
+    return () => { cancelled = true }
   }, [images])
 
   const tokens = useComposerTokens(content, cursorPosition)

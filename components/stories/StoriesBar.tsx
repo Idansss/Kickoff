@@ -46,6 +46,7 @@ export function StoriesBar() {
   const [viewingIndex, setViewingIndex] = useState<number | null>(null)
   const [composerOpen, setComposerOpen] = useState(false)
   const [draft, setDraft] = useState('')
+  const [imageData, setImageData] = useState<string | null>(null)
   const [posting, setPosting] = useState(false)
   const [viewed, setViewed] = useState<Set<string>>(new Set())
   const progressRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined)
@@ -96,13 +97,13 @@ export function StoriesBar() {
   const closeStory = () => setViewingIndex(null)
 
   const postStory = async () => {
-    if (!draft.trim() || posting) return
+    if ((!draft.trim() && !imageData) || posting) return
     setPosting(true)
     try {
       const res = await fetch('/api/stories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: draft.trim() }),
+        body: JSON.stringify({ content: draft.trim(), image: imageData }),
       })
       if (res.ok) {
         const newStory = await res.json()
@@ -112,6 +113,7 @@ export function StoriesBar() {
         const optimistic: Story = {
           id: `story-${Date.now()}`,
           content: draft.trim(),
+          image: imageData,
           createdAt: new Date().toISOString(),
           author: { id: currentUser.id, name: currentUser.name, handle: currentUser.handle, avatar: currentUser.avatarInitials },
         }
@@ -121,12 +123,14 @@ export function StoriesBar() {
       const optimistic: Story = {
         id: `story-${Date.now()}`,
         content: draft.trim(),
+        image: imageData,
         createdAt: new Date().toISOString(),
         author: { id: currentUser.id, name: currentUser.name, handle: currentUser.handle, avatar: currentUser.avatarInitials },
       }
       setStories((prev) => [optimistic, ...prev])
     }
     setDraft('')
+    setImageData(null)
     setComposerOpen(false)
     setPosting(false)
   }
@@ -256,24 +260,70 @@ export function StoriesBar() {
           <div className="w-full max-w-md rounded-2xl border border-border bg-card shadow-2xl p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-lg">New Story</h3>
-              <button type="button" onClick={() => setComposerOpen(false)} className="p-1.5 rounded-full hover:bg-muted">
+              <button
+                type="button"
+                onClick={() => {
+                  setComposerOpen(false)
+                  setDraft('')
+                  setImageData(null)
+                }}
+                className="p-1.5 rounded-full hover:bg-muted"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value.slice(0, 200))}
-              placeholder="Share a hot take, update, or football thought..."
-              rows={4}
-              className="w-full rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 resize-none"
-              autoFocus
-            />
+            <div className="space-y-3">
+              <textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value.slice(0, 200))}
+                placeholder="Share a hot take, update, or football thought..."
+                rows={4}
+                className="w-full rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 resize-none"
+                autoFocus
+              />
+
+              <div className="flex items-center justify-between gap-3">
+                <label className="inline-flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                  <span className="rounded-full border border-border bg-muted/40 px-3 py-1.5 text-[11px] font-medium hover:bg-muted/70">
+                    + Add picture
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) {
+                        setImageData(null)
+                        return
+                      }
+                      const reader = new FileReader()
+                      reader.onload = () => {
+                        if (typeof reader.result === 'string') {
+                          setImageData(reader.result)
+                        }
+                      }
+                      reader.readAsDataURL(file)
+                    }}
+                  />
+                  {imageData && <span className="text-[11px] text-green-500">Image attached</span>}
+                </label>
+              </div>
+
+              {imageData && (
+                <div className="mt-1 rounded-xl border border-border overflow-hidden">
+                  <img src={imageData} alt="Story preview" className="w-full max-h-56 object-cover" />
+                </div>
+              )}
+            </div>
             <div className="flex items-center justify-between mt-3">
-              <span className="text-xs text-muted-foreground">{draft.length}/200 · Expires in 24h</span>
+              <span className="text-xs text-muted-foreground">
+                {draft.length}/200 · Expires in 24h
+              </span>
               <button
                 type="button"
                 onClick={postStory}
-                disabled={!draft.trim() || posting}
+                disabled={(!draft.trim() && !imageData) || posting}
                 className="rounded-xl bg-green-600 hover:bg-green-700 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50 disabled:pointer-events-none"
               >
                 {posting ? 'Posting…' : 'Post Story'}

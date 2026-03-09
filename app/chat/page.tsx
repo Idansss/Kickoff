@@ -1,10 +1,10 @@
 'use client'
 
-import { memo, useCallback, useEffect, useMemo } from 'react'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { AppLayout } from '@/components/app-layout'
 import { chatStore } from '@/store/chatStore'
-import { MessageCircle } from 'lucide-react'
+import { MessageCircle, Plus, X, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ChatRoom } from '@/types'
 
@@ -13,6 +13,11 @@ export default function ChatPage(): React.JSX.Element {
   const initMessages = chatStore((s) => s.initMessages)
   const setActiveRoom = chatStore((s) => s.setActiveRoom)
   const markRoomRead = chatStore((s) => s.markRoomRead)
+  const addRoom = chatStore((s) => s.addRoom)
+
+  const [createOpen, setCreateOpen] = useState(false)
+  const [newGroupName, setNewGroupName] = useState('')
+  const [newGroupDesc, setNewGroupDesc] = useState('')
 
   useEffect(() => {
     initMessages()
@@ -32,12 +37,33 @@ export default function ChatPage(): React.JSX.Element {
     markRoomRead(roomId)
   }, [markRoomRead, setActiveRoom])
 
+  const handleCreate = () => {
+    const name = newGroupName.trim()
+    if (!name) return
+    addRoom(name)
+    setNewGroupName('')
+    setNewGroupDesc('')
+    setCreateOpen(false)
+  }
+
   return (
     <AppLayout>
       <div className="mx-auto max-w-2xl border-x border-border">
         <div className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur px-4 py-4 sm:px-6">
-          <h1 className="text-xl font-bold">Chat Rooms</h1>
-          <p className="text-sm text-muted-foreground">Join conversations</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-bold">Chat Rooms</h1>
+              <p className="text-sm text-muted-foreground">Join conversations</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCreateOpen(true)}
+              className="flex items-center gap-1.5 rounded-full bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-2 transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              New Group
+            </button>
+          </div>
         </div>
 
         <div className="p-4 sm:p-6 space-y-3">
@@ -79,6 +105,74 @@ export default function ChatPage(): React.JSX.Element {
           )}
         </div>
       </div>
+
+      {/* Create Group Modal */}
+      {createOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card shadow-2xl p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-9 w-9 rounded-full bg-green-500/15 flex items-center justify-center">
+                  <Users className="h-4 w-4 text-green-600" />
+                </div>
+                <h2 className="font-bold text-lg">Create New Group</h2>
+              </div>
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={() => { setCreateOpen(false); setNewGroupName(''); setNewGroupDesc('') }}
+                className="p-1.5 rounded-full hover:bg-muted transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground block mb-1.5">Group Name *</label>
+                <input
+                  type="text"
+                  value={newGroupName}
+                  onChange={(e) => setNewGroupName(e.target.value.slice(0, 50))}
+                  placeholder="e.g. Champions League Banter"
+                  autoFocus
+                  className="w-full rounded-xl border border-border bg-muted/30 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                  onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+                />
+                <p className="text-[10px] text-muted-foreground mt-1 text-right">{newGroupName.length}/50</p>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground block mb-1.5">Description (optional)</label>
+                <input
+                  type="text"
+                  value={newGroupDesc}
+                  onChange={(e) => setNewGroupDesc(e.target.value.slice(0, 100))}
+                  placeholder="What's this group about?"
+                  className="w-full rounded-xl border border-border bg-muted/30 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => { setCreateOpen(false); setNewGroupName(''); setNewGroupDesc('') }}
+                className="flex-1 rounded-xl border border-border py-2.5 text-sm font-medium hover:bg-muted transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleCreate}
+                disabled={!newGroupName.trim()}
+                className="flex-1 rounded-xl bg-green-600 hover:bg-green-700 text-white py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              >
+                Create Group
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   )
 }

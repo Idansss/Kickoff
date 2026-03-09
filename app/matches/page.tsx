@@ -62,10 +62,15 @@ const LiveMatchCard = memo(function LiveMatchCard({
           <button
             type="button"
             onClick={() => onReminder(match.id)}
-            className="text-xs text-green-600 hover:underline"
+            className={cn(
+              'text-xs font-medium px-3 py-1 rounded-full border transition-colors',
+              isReminderOn
+                ? 'border-green-500 bg-green-500/10 text-green-600'
+                : 'border-border text-muted-foreground hover:border-green-500/50 hover:text-green-600'
+            )}
             aria-label={isReminderOn ? 'Turn off reminder' : 'Set reminder'}
           >
-            {isReminderOn ? 'Reminder on' : 'Set reminder'}
+            {isReminderOn ? '🔔 Reminder on' : '🔔 Set reminder'}
           </button>
         </div>
 
@@ -210,10 +215,15 @@ const UpcomingMatchCard = memo(function UpcomingMatchCard({
           <button
             type="button"
             onClick={() => onReminder(match.id)}
-            className="text-xs text-green-600 hover:underline"
+            className={cn(
+              'text-xs font-medium px-3 py-1 rounded-full border transition-colors',
+              isReminderOn
+                ? 'border-green-500 bg-green-500/10 text-green-600'
+                : 'border-border text-muted-foreground hover:border-green-500/50 hover:text-green-600'
+            )}
             aria-label={isReminderOn ? 'Turn off reminder' : 'Set reminder'}
           >
-            {isReminderOn ? 'Reminder on' : 'Set reminder'}
+            {isReminderOn ? '🔔 Reminder on' : '🔔 Set reminder'}
           </button>
           <Button
             size="sm"
@@ -287,10 +297,45 @@ function MatchesPageInner(): React.JSX.Element {
   }, [searchParams])
 
   const handleToggleReminder = useCallback(
-    (matchId: string): void => {
+    async (matchId: string): Promise<void> => {
+      const isCurrentlyOn = reminders.includes(matchId)
       toggleReminder(matchId)
+
+      if (isCurrentlyOn) return // turning off — nothing more to do
+
+      // Turning ON: request permission and fire notification
+      if (!('Notification' in window)) return
+
+      const permission = await Notification.requestPermission()
+      if (permission !== 'granted') return
+
+      const match = [...liveMatches, ...upcomingFixtures].find((m) => m.id === matchId)
+      const matchName = match ? `${match.home.name} vs ${match.away.name}` : 'this match'
+
+      // Immediate confirmation
+      new Notification('⏰ Reminder Set!', {
+        body: `You'll be notified before ${matchName} kicks off.`,
+        icon: '/favicon.ico',
+        tag: `reminder-confirm-${matchId}`,
+      })
+
+      // Schedule pre-kickoff notification if kickoff time is known and in the future
+      if (match?.kickoffTime) {
+        const kickoff = new Date(match.kickoffTime).getTime()
+        const notifyAt = kickoff - 15 * 60 * 1000 // 15 min before
+        const delay = notifyAt - Date.now()
+        if (delay > 0) {
+          setTimeout(() => {
+            new Notification('⚽ Match Starting Soon!', {
+              body: `${matchName} kicks off in 15 minutes!`,
+              icon: '/favicon.ico',
+              tag: `reminder-${matchId}`,
+            })
+          }, delay)
+        }
+      }
     },
-    [toggleReminder]
+    [toggleReminder, reminders, liveMatches, upcomingFixtures]
   )
 
   return (

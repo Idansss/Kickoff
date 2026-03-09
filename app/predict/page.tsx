@@ -2,16 +2,41 @@
 
 import { useState, useEffect } from 'react'
 import { AppLayout } from '@/components/app-layout'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { Flame, Trophy, Target, TrendingUp, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { Flame, Trophy, Target, CheckCircle, XCircle } from 'lucide-react'
+
+// Static Tailwind arbitrary-value classes per team (must be full strings for JIT)
+const TEAM_BADGE_CLASSES: Record<string, string> = {
+  'Arsenal':       'bg-[#EF0107] text-white',
+  'Man City':      'bg-[#6CABDD] text-white',
+  'Barcelona':     'bg-[#004D98] text-white',
+  'Real Madrid':   'bg-[#FEBE10] text-gray-900',
+  'Liverpool':     'bg-[#C8102E] text-white',
+  'Chelsea':       'bg-[#034694] text-white',
+  'PSG':           'bg-[#004170] text-white',
+  'Bayern Munich': 'bg-[#DC052D] text-white',
+  'Juventus':      'bg-[#1a1a1a] text-white',
+  'Inter Milan':   'bg-[#010E80] text-white',
+}
+
+function TeamBadge({ team, size = 'md' }: { team: string; size?: 'sm' | 'md' | 'lg' }) {
+  const colorClass = TEAM_BADGE_CLASSES[team] ?? 'bg-green-600 text-white'
+  const abbr = team.split(' ').map(w => w[0]).join('').slice(0, 3).toUpperCase()
+  const dim = size === 'sm' ? 'h-7 w-7 text-[9px]' : size === 'lg' ? 'h-10 w-10 text-xs' : 'h-8 w-8 text-[10px]'
+  return (
+    <div
+      className={cn('rounded-full flex items-center justify-center font-bold shrink-0', colorClass, dim)}
+      title={team}
+    >
+      {abbr}
+    </div>
+  )
+}
 
 interface Match {
   id: string
   homeTeam: string
   awayTeam: string
-  homeBadge: string
-  awayBadge: string
   competition: string
   kickoff: string
   status: 'upcoming' | 'live' | 'finished'
@@ -28,39 +53,31 @@ interface Prediction {
 
 const MATCHES: Match[] = [
   {
-    id: 'm1', homeTeam: 'Arsenal', awayTeam: 'Man City', homeBadge: '🔴', awayBadge: '🔵',
+    id: 'm1', homeTeam: 'Arsenal', awayTeam: 'Man City',
     competition: 'Premier League', kickoff: '2026-03-08 12:30', status: 'upcoming',
     communityPrediction: { home: 35, draw: 22, away: 43 },
   },
   {
-    id: 'm2', homeTeam: 'Barcelona', awayTeam: 'Real Madrid', homeBadge: '🔵', awayBadge: '⚪',
+    id: 'm2', homeTeam: 'Barcelona', awayTeam: 'Real Madrid',
     competition: 'La Liga', kickoff: '2026-03-08 21:00', status: 'upcoming',
     communityPrediction: { home: 38, draw: 24, away: 38 },
   },
   {
-    id: 'm3', homeTeam: 'Liverpool', awayTeam: 'Chelsea', homeBadge: '🔴', awayBadge: '🔵',
+    id: 'm3', homeTeam: 'Liverpool', awayTeam: 'Chelsea',
     competition: 'Premier League', kickoff: '2026-03-07 20:00', status: 'finished',
     homeScore: 2, awayScore: 1,
     communityPrediction: { home: 52, draw: 20, away: 28 },
   },
   {
-    id: 'm4', homeTeam: 'PSG', awayTeam: 'Bayern Munich', homeBadge: '🔵', awayBadge: '🔴',
+    id: 'm4', homeTeam: 'PSG', awayTeam: 'Bayern Munich',
     competition: 'Champions League', kickoff: '2026-03-11 21:00', status: 'upcoming',
     communityPrediction: { home: 42, draw: 23, away: 35 },
   },
   {
-    id: 'm5', homeTeam: 'Juventus', awayTeam: 'Inter Milan', homeBadge: '⚫', awayBadge: '🔵',
+    id: 'm5', homeTeam: 'Juventus', awayTeam: 'Inter Milan',
     competition: 'Serie A', kickoff: '2026-03-09 20:45', status: 'upcoming',
     communityPrediction: { home: 32, draw: 30, away: 38 },
   },
-]
-
-const LEADERBOARD = [
-  { rank: 1, name: 'Fabrizio Romano', correct: 24, total: 30, streak: 8 },
-  { rank: 2, name: 'OptaJoe', correct: 22, total: 30, streak: 5 },
-  { rank: 3, name: 'You', correct: 18, total: 30, streak: 3, isMe: true },
-  { rank: 4, name: 'TheAthletic', correct: 17, total: 30, streak: 2 },
-  { rank: 5, name: 'Alex Turner', correct: 15, total: 30, streak: 1 },
 ]
 
 type Tab = 'predictions' | 'leaderboard'
@@ -69,18 +86,25 @@ export default function PredictPage() {
   const [predictions, setPredictions] = useState<Prediction[]>([])
   const [activeTab, setActiveTab] = useState<Tab>('predictions')
 
-  // Load persisted predictions
+  // Load persisted predictions from localStorage (instant) + API (background sync)
   useEffect(() => {
+    try {
+      const stored = localStorage.getItem('kickoff-predictions')
+      if (stored) {
+        const parsed = JSON.parse(stored) as Prediction[]
+        if (Array.isArray(parsed)) setPredictions(parsed)
+      }
+    } catch {}
     fetch('/api/predictions')
       .then((r) => r.json())
       .then((data: Array<{ matchId: string; outcome: string }>) => {
-        if (!Array.isArray(data)) return
-        setPredictions(
-          data.map((d) => ({
-            matchId: d.matchId,
-            pick: d.outcome as 'home' | 'draw' | 'away',
-          }))
-        )
+        if (!Array.isArray(data) || data.length === 0) return
+        const loaded = data.map((d) => ({
+          matchId: d.matchId,
+          pick: d.outcome as 'home' | 'draw' | 'away',
+        }))
+        setPredictions(loaded)
+        localStorage.setItem('kickoff-predictions', JSON.stringify(loaded))
       })
       .catch(() => {})
   }, [])
@@ -91,8 +115,7 @@ export default function PredictPage() {
       const next = existing
         ? prev.map((p) => p.matchId === matchId ? { ...p, pick } : p)
         : [...prev, { matchId, pick }]
-      // Persist to API
-      const m = MATCHES.find((m) => m.id === matchId)
+      try { localStorage.setItem('kickoff-predictions', JSON.stringify(next)) } catch {}
       const homeGoals = pick === 'home' ? 1 : pick === 'draw' ? 1 : 0
       const awayGoals = pick === 'away' ? 1 : pick === 'draw' ? 1 : 0
       fetch('/api/predictions', {
@@ -115,6 +138,16 @@ export default function PredictPage() {
   })
 
   const totalPredicted = predictions.filter((p) => MATCHES.find(m => m.id === p.matchId)?.status === 'finished').length
+  const accuracy = totalPredicted > 0 ? Math.round((correctPredictions.length / totalPredicted) * 100) : 0
+
+  // Dynamic leaderboard – "You" row reflects actual predictions
+  const LEADERBOARD = [
+    { rank: 1, name: 'Fabrizio Romano', correct: 24, total: 30, streak: 8 },
+    { rank: 2, name: 'OptaJoe', correct: 22, total: 30, streak: 5 },
+    { rank: 3, name: 'You', correct: correctPredictions.length, total: Math.max(totalPredicted, 1), streak: 3, isMe: true },
+    { rank: 4, name: 'TheAthletic', correct: 17, total: 30, streak: 2 },
+    { rank: 5, name: 'Alex Turner', correct: 15, total: 30, streak: 1 },
+  ]
 
   const TABS: { key: Tab; label: string }[] = [
     { key: 'predictions', label: 'Matches' },
@@ -146,9 +179,7 @@ export default function PredictPage() {
             </div>
             <div className="flex-1 flex items-center gap-1.5 rounded-lg bg-muted/50 px-3 py-2">
               <Target className="h-4 w-4 text-green-500" />
-              <span className="text-xs font-semibold">
-                {totalPredicted > 0 ? Math.round((correctPredictions.length / totalPredicted) * 100) : 0}% accuracy
-              </span>
+              <span className="text-xs font-semibold">{accuracy}% accuracy</span>
             </div>
             <div className="flex-1 flex items-center gap-1.5 rounded-lg bg-muted/50 px-3 py-2">
               <Trophy className="h-4 w-4 text-yellow-500" />
@@ -160,6 +191,7 @@ export default function PredictPage() {
             {TABS.map((t) => (
               <button
                 key={t.key}
+                type="button"
                 onClick={() => setActiveTab(t.key)}
                 className={cn(
                   'flex-1 py-2.5 text-sm font-medium border-b-2 transition-colors',
@@ -205,16 +237,16 @@ export default function PredictPage() {
                   </div>
                 </div>
 
-                {/* Teams */}
-                <div className="flex items-center justify-between text-sm font-semibold">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{m.homeBadge}</span>
-                    <span>{m.homeTeam}</span>
+                {/* Teams with badges */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 flex-1">
+                    <TeamBadge team={m.homeTeam} size="lg" />
+                    <span className="font-semibold text-sm">{m.homeTeam}</span>
                   </div>
-                  <span className="text-xs text-muted-foreground">vs</span>
-                  <div className="flex items-center gap-2">
-                    <span>{m.awayTeam}</span>
-                    <span className="text-xl">{m.awayBadge}</span>
+                  <span className="text-xs text-muted-foreground px-2">vs</span>
+                  <div className="flex items-center gap-2 flex-1 justify-end">
+                    <span className="font-semibold text-sm">{m.awayTeam}</span>
+                    <TeamBadge team={m.awayTeam} size="lg" />
                   </div>
                 </div>
 
@@ -233,7 +265,7 @@ export default function PredictPage() {
                         disabled={isFinished}
                         onClick={() => !isFinished && predict(m.id, pick)}
                         className={cn(
-                          'relative flex flex-col items-center gap-1 rounded-xl border py-2.5 px-2 text-xs font-semibold transition-all overflow-hidden',
+                          'relative flex flex-col items-center gap-1.5 rounded-xl border py-2.5 px-2 text-xs font-semibold transition-all overflow-hidden',
                           selected && !isFinished
                             ? 'border-green-500 bg-green-500/10 text-green-600'
                             : isResult && isFinished
@@ -248,7 +280,11 @@ export default function PredictPage() {
                           className="absolute bottom-0 left-0 h-1 bg-green-500/20 transition-all"
                           style={{ width: `${pct}%` }}
                         />
-                        <span className="relative">{label}</span>
+                        {/* Mini badge for home/away */}
+                        {pick !== 'draw' && (
+                          <TeamBadge team={pick === 'home' ? m.homeTeam : m.awayTeam} size="sm" />
+                        )}
+                        <span className="relative leading-tight text-center">{label}</span>
                         <span className="relative text-[10px] text-muted-foreground">{pct}%</span>
                       </button>
                     )

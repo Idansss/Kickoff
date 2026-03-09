@@ -14,6 +14,7 @@ export interface ChatState {
   setActiveRoom: (roomId: string | null) => void
   markRoomRead: (roomId: string) => void
   initMessages: () => void
+  addRoom: (title: string) => void
 }
 
 export const chatStore = create<ChatState>()(
@@ -76,6 +77,21 @@ export const chatStore = create<ChatState>()(
           rooms: state.rooms.map((room) =>
             room.id === roomId ? { ...room, unreadCount: 0 } : room
           ),
+        }))
+      },
+
+      addRoom: (title): void => {
+        const id = `room-${Date.now()}`
+        const newRoom: ChatRoom = {
+          id,
+          title,
+          members: 1,
+          icon: 'general',
+          unreadCount: 0,
+        }
+        set((state) => ({
+          rooms: [...state.rooms, newRoom],
+          messages: { ...state.messages, [id]: [] },
         }))
       },
     }),
