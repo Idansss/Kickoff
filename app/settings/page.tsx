@@ -216,7 +216,7 @@ export default function SettingsPage(): React.JSX.Element {
                       setForm({ ...form, username: normalized })
                     }}
                     className={cn(
-                      'pl-7 w-full rounded-[8px] px-[14px] py-[10px] text-[14px]',
+                      'pl-8 pr-[14px] w-full rounded-[8px] py-[10px] text-[14px]',
                       'bg-[#f9f9f9] text-[#0f0f0f] border border-[#e5e7eb] placeholder:text-[#555555]',
                       'dark:bg-[#1a1a1a] dark:text-[#f2f2f2] dark:border-[#2a2a2a]',
                       'focus-visible:outline-none focus-visible:ring-0 focus-visible:border-[#16a34a] focus-visible:shadow-[0_0_0_2px_rgba(22,163,74,0.15)]',
