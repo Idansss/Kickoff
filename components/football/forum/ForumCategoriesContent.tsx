@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 interface Category {
   id: string
@@ -71,8 +72,26 @@ export function ForumCategoriesContent() {
 
   if (error) {
     return (
-      <div className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">
-        Could not load forum categories.
+      <div className="rounded-2xl border bg-card p-6">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border bg-muted text-lg">
+            ⚠️
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold">Could not load forum categories</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Please try again. If this keeps happening, the forums service may be temporarily unavailable.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" onClick={() => window.location.reload()}>
+                Retry
+              </Button>
+              <Link href="/forums/search" className="text-sm text-primary hover:underline">
+                Search threads
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }

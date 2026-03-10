@@ -132,7 +132,7 @@ export function NotificationDrawer({
   return (
     <>
       <div
-        className="fixed inset-0 z-40 bg-black/20"
+        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
         aria-hidden
         onClick={onClose}
       />
@@ -143,8 +143,10 @@ export function NotificationDrawer({
       >
         <div
           className={cn(
-            'rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.12)] overflow-hidden',
-            'bg-popover'
+            'rounded-2xl overflow-hidden',
+            'border border-border/80',
+            'shadow-[0_20px_60px_rgba(0,0,0,0.35),0_0_0_1px_rgba(0,0,0,0.08)]',
+            'bg-background dark:bg-zinc-900'
           )}
         >
           <div className="flex items-center justify-between px-5 py-4 border-b border-border">

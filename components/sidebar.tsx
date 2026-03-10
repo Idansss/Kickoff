@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
@@ -32,6 +32,7 @@ import {
 import { cn } from '@/lib/utils'
 import { userStore } from '@/store/userStore'
 import { SidebarSearch } from '@/components/SidebarSearch'
+import { getSupabaseClient } from '@/lib/supabase/client'
 import { selectUnreadNotificationCount } from '@/store/userStore'
 import { uiStore } from '@/store/uiStore'
 import { NotificationDrawer } from '@/components/shared/NotificationDrawer'
@@ -49,6 +50,20 @@ export function Sidebar() {
   const markNotificationRead = userStore((s) => s.markNotificationRead)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const { isOpen, toggle } = useSidebarState()
+
+  // Persist nav scroll position across page navigations
+  const navRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const nav = navRef.current
+    if (!nav) return
+    const saved = sessionStorage.getItem('sidebar-nav-scroll')
+    if (saved) nav.scrollTop = parseInt(saved, 10)
+  }, [])
+  const handleNavScroll = useCallback(() => {
+    if (navRef.current) {
+      sessionStorage.setItem('sidebar-nav-scroll', String(navRef.current.scrollTop))
+    }
+  }, [])
 
   const links = [
     { href: '/feed', label: 'Feed', icon: Home },
@@ -77,11 +92,19 @@ export function Sidebar() {
   const currentUser = userStore((s) => s.currentUser)
   const openPostModal = uiStore((s) => s.openPostModal)
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     if (typeof window === 'undefined') return
-    const keys = ['kickoff-feed', 'kickoff-user', 'kickoff-matches', 'kickoff-chat', 'kickoff-ui', 'kickoff-last-streak-date']
+    // Sign out of Supabase first (clears session cookie)
+    const supabase = getSupabaseClient()
+    if (supabase) {
+      await supabase.auth.signOut()
+    }
+    // Clear all persisted local state
+    const keys = ['kickoff-feed', 'kickoff-user', 'kickoff-matches', 'kickoff-chat', 'kickoff-ui', 'kickoff-last-streak-date', 'kickoff-quiz', 'sidebar-nav-scroll']
     keys.forEach((k) => window.localStorage.removeItem(k))
-    window.location.href = '/'
+    sessionStorage.removeItem('sidebar-nav-scroll')
+    // Hard-navigate to login so the page fully reloads with a clean store
+    window.location.href = '/auth/login'
   }
 
   return (
@@ -170,6 +193,8 @@ export function Sidebar() {
 
         {/* Navigation links — scrollable */}
         <nav
+          ref={navRef}
+          onScroll={handleNavScroll}
           className={cn(
             'flex min-h-0 flex-1 flex-col overflow-y-auto scrollbar-hide',
             isOpen ? 'gap-0.5' : 'gap-0'

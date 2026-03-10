@@ -23,9 +23,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         syncSupabaseUser(session.user)
+      } else if (event === 'SIGNED_OUT') {
+        userStore.getState().updateCurrentUser({
+          name: 'Guest',
+          handle: 'guest',
+          avatarInitials: 'G',
+          avatarColor: '#6b7280',
+          bio: '',
+        })
       }
     })
 

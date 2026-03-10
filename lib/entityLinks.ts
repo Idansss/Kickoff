@@ -6,9 +6,9 @@ export function getPlayerHrefByName(name: string): string | null {
   return player ? `/player/${player.id}` : null
 }
 
-export function getClubHrefByName(name: string): string | null {
+export function getClubHrefByName(name: string): string {
   const normalized = name.trim().toLowerCase()
   const club = mockClubs.find((c) => c.name.toLowerCase() === normalized)
-  return club ? `/club/${club.id}` : null
+  return club ? `/club/${club.id}` : `/search?q=${encodeURIComponent(name)}&type=teams`
 }
 

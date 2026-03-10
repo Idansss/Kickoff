@@ -116,16 +116,12 @@ const PlayerRow = memo(function PlayerRow({ player }: PlayerRowProps): React.JSX
             <div className="font-semibold text-foreground">{player.name}</div>
           )}
           <div className="text-xs text-muted-foreground">
-            {getClubHrefByName(player.club) ? (
-              <Link
-                href={getClubHrefByName(player.club)!}
-                className="hover:text-foreground underline-offset-2 hover:underline"
-              >
-                {player.club}
-              </Link>
-            ) : (
-              player.club
-            )}{' '}
+            <Link
+              href={getClubHrefByName(player.club)}
+              className="hover:text-foreground underline-offset-2 hover:underline"
+            >
+              {player.club}
+            </Link>{' '}
             · {player.position} · {player.flag} {player.nationality}
           </div>
         </div>
@@ -204,27 +200,13 @@ const TransferCard = memo(function TransferCard({ transfer }: TransferCardProps)
           <span className="font-medium">{transfer.playerName}</span>
         )}
         <span className="text-muted-foreground text-sm ml-2">
-          {fromHref ? (
-            <Link
-              href={fromHref}
-              className="hover:text-foreground underline-offset-2 hover:underline"
-            >
-              {transfer.from}
-            </Link>
-          ) : (
-            transfer.from
-          )}{' '}
-          →{' '}
-          {toHref ? (
-            <Link
-              href={toHref}
-              className="hover:text-foreground underline-offset-2 hover:underline"
-            >
-              {transfer.to}
-            </Link>
-          ) : (
-            transfer.to
-          )}
+          <Link href={fromHref} className="hover:text-foreground underline-offset-2 hover:underline">
+            {transfer.from}
+          </Link>
+          {' '}→{' '}
+          <Link href={toHref} className="hover:text-foreground underline-offset-2 hover:underline">
+            {transfer.to}
+          </Link>
         </span>
         {transfer.isHot ? (
           <span className="ml-2 text-xs bg-red-500/20 text-red-600 rounded px-1.5 py-0.5">Hot</span>
@@ -327,13 +309,9 @@ function LeagueTabs(): React.JSX.Element {
                 <tr key={`${league.key}-${row.pos}`} className="border-b border-border last:border-0 hover:bg-muted/30">
                   <td className="py-2 px-3 font-medium">{row.pos}</td>
                   <td className="py-2 px-3">
-                    {clubHref ? (
-                      <Link href={clubHref} className="hover:text-green-500 transition-colors">
-                        {row.club}
-                      </Link>
-                    ) : (
-                      row.club
-                    )}
+                    <Link href={clubHref} className="hover:text-green-500 hover:underline transition-colors">
+                      {row.club}
+                    </Link>
                   </td>
                   <td className="text-center py-2 px-2">{row.played}</td>
                   <td className="text-center py-2 px-2">{row.won}</td>

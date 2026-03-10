@@ -5,6 +5,8 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { z } from 'zod'
 import { cn } from '@/lib/utils'
 import { ClubIdentity } from '@/components/common/ClubIdentity'
+import Link from 'next/link'
+import { Badge } from '@/components/ui/badge'
 
 const FiltersSchema = z.object({
   nationality: z.string().optional(),
@@ -124,33 +126,40 @@ export function AdvancedPlayerSearchContent() {
     [filters],
   )
 
+  const loadingRows = useMemo(() => Array.from({ length: 10 }), [])
+
   return (
     <div className="flex flex-col gap-4 lg:flex-row">
-      <aside className="w-full max-w-xs rounded-lg border bg-card p-3 text-sm lg:sticky lg:top-4">
-        <div className="mb-2 flex items-center justify-between gap-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Filters
-          </h2>
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={() => {
-                setFilters({})
-                setPage(1)
-              }}
-              className="text-[11px] font-medium text-primary hover:underline"
-            >
-              Reset
-            </button>
-          )}
-        </div>
+      <aside className="w-full lg:sticky lg:top-4 lg:self-start">
+        <div className="rounded-xl border bg-card p-3 text-sm">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Filters
+            </h2>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFilters({})
+                  setPage(1)
+                }}
+                className="text-[11px] font-medium text-primary hover:underline"
+              >
+                Reset
+              </button>
+            )}
+          </div>
 
-        <div className="space-y-3">
+          <div className="space-y-3">
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <label
+              htmlFor="aps-nationality"
+              className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+            >
               Nationality
             </label>
             <input
+              id="aps-nationality"
               className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
               placeholder="England, Brazil…"
               value={filters.nationality ?? ''}
@@ -158,12 +167,32 @@ export function AdvancedPlayerSearchContent() {
             />
           </div>
 
+          <div>
+            <label
+              htmlFor="aps-birth-country"
+              className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+            >
+              Birth country
+            </label>
+            <input
+              id="aps-birth-country"
+              className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
+              placeholder="France, Argentina…"
+              value={filters.birthCountry ?? ''}
+              onChange={handleInputChange('birthCountry')}
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <label
+                htmlFor="aps-age-min"
+                className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+              >
                 Age min
               </label>
               <input
+                id="aps-age-min"
                 type="number"
                 min={16}
                 max={45}
@@ -173,10 +202,14 @@ export function AdvancedPlayerSearchContent() {
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <label
+                htmlFor="aps-age-max"
+                className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+              >
                 Age max
               </label>
               <input
+                id="aps-age-max"
                 type="number"
                 min={16}
                 max={45}
@@ -189,10 +222,14 @@ export function AdvancedPlayerSearchContent() {
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <label
+                htmlFor="aps-value-min"
+                className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+              >
                 Value min (€m)
               </label>
               <input
+                id="aps-value-min"
                 type="number"
                 min={0}
                 className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
@@ -201,10 +238,14 @@ export function AdvancedPlayerSearchContent() {
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <label
+                htmlFor="aps-value-max"
+                className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+              >
                 Value max (€m)
               </label>
               <input
+                id="aps-value-max"
                 type="number"
                 min={0}
                 className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
@@ -215,10 +256,14 @@ export function AdvancedPlayerSearchContent() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <label
+              htmlFor="aps-position"
+              className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+            >
               Position
             </label>
             <select
+              id="aps-position"
               className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
               value={filters.position ?? ''}
               onChange={handleInputChange('position')}
@@ -232,10 +277,14 @@ export function AdvancedPlayerSearchContent() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <label
+              htmlFor="aps-foot"
+              className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+            >
               Preferred foot
             </label>
             <select
+              id="aps-foot"
               className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
               value={filters.preferredFoot ?? ''}
               onChange={handleInputChange('preferredFoot')}
@@ -247,10 +296,14 @@ export function AdvancedPlayerSearchContent() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <label
+              htmlFor="aps-sort"
+              className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+            >
               Sort by
             </label>
             <select
+              id="aps-sort"
               className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
               value={filters.sort ?? 'value_desc'}
               onChange={handleInputChange('sort')}
@@ -261,40 +314,44 @@ export function AdvancedPlayerSearchContent() {
               <option value="name_asc">Name (A–Z)</option>
             </select>
           </div>
+          </div>
         </div>
       </aside>
 
       <section className="flex-1 space-y-3">
-        <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>
-            {loading
-              ? 'Searching players…'
-              : total > 0
-              ? `${total} player${total === 1 ? '' : 's'} found`
-              : 'No players found'}
-          </span>
+        <div className="flex flex-col gap-2 rounded-xl border bg-card p-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className={cn('inline-block h-2 w-2 rounded-full', loading ? 'bg-yellow-500 animate-pulse' : 'bg-green-500')} />
+            <span>
+              {loading
+                ? 'Searching players…'
+                : total > 0
+                ? `${total} player${total === 1 ? '' : 's'} found`
+                : 'No players found'}
+            </span>
+          </div>
           {totalPages > 1 && (
-            <div className="inline-flex items-center gap-1">
+            <div className="inline-flex items-center gap-1 text-xs text-muted-foreground">
               <button
                 type="button"
                 disabled={page <= 1 || loading}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 className={cn(
-                  'h-7 rounded-md border px-2',
+                  'h-8 rounded-md border px-2.5 transition-colors',
                   page <= 1 || loading ? 'cursor-not-allowed opacity-40' : 'hover:bg-accent',
                 )}
               >
                 Prev
               </button>
-              <span>
-                Page {page} / {totalPages}
+              <span className="px-1">
+                Page <span className="font-medium text-foreground">{page}</span> / {totalPages}
               </span>
               <button
                 type="button"
                 disabled={page >= totalPages || loading}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 className={cn(
-                  'h-7 rounded-md border px-2',
+                  'h-8 rounded-md border px-2.5 transition-colors',
                   page >= totalPages || loading ? 'cursor-not-allowed opacity-40' : 'hover:bg-accent',
                 )}
               >
@@ -304,54 +361,92 @@ export function AdvancedPlayerSearchContent() {
           )}
         </div>
 
-        <div className="divide-y rounded-lg border bg-card">
-          {results.map((p) => (
-            <a
-              key={p.id}
-              href={`/player/${p.id}`}
-              className="flex items-center justify-between gap-3 px-3 py-2.5 hover:bg-accent"
-            >
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="truncate text-sm font-medium">{p.name}</span>
-                  {p.position && (
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      {p.position}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
-                  {p.nationality && <span>{p.nationality}</span>}
-                  {p.age != null && <span>{p.age} yrs</span>}
-                  {p.heightCm != null && <span>{p.heightCm} cm</span>}
-                  {p.preferredFoot && <span>{p.preferredFoot} foot</span>}
-                  {p.currentTeam && (
-                    <ClubIdentity
-                      name={p.currentTeam.name}
-                      badgeUrl={p.currentTeam.badgeUrl}
-                      size="xs"
-                    />
-                  )}
-                </div>
-              </div>
-              <div className="text-right text-xs">
-                <div className="font-semibold">
-                  {p.marketValue?.formatted ?? <span className="text-muted-foreground">—</span>}
-                </div>
-                {p.marketValue?.date && (
-                  <div className="text-[10px] text-muted-foreground">
-                    Updated {new Date(p.marketValue.date).toLocaleDateString()}
+        <div className="grid gap-3 md:grid-cols-2">
+          {loading
+            ? loadingRows.map((_, i) => (
+                <div key={i} className="rounded-xl border bg-card p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+                    <div className="min-w-0 flex-1">
+                      <div className="h-4 w-44 rounded bg-muted animate-pulse" />
+                      <div className="mt-2 h-3 w-32 rounded bg-muted animate-pulse" />
+                    </div>
+                    <div className="h-4 w-16 rounded bg-muted animate-pulse" />
                   </div>
-                )}
-              </div>
-            </a>
-          ))}
-          {!loading && results.length === 0 && (
-            <div className="px-3 py-6 text-center text-xs text-muted-foreground">
-              Try relaxing your filters to see more players.
-            </div>
-          )}
+                </div>
+              ))
+            : results.map((p) => {
+                const initials = p.name
+                  .split(' ')
+                  .map((n) => n[0])
+                  .join('')
+                  .slice(0, 2)
+                  .toUpperCase()
+
+                return (
+                  <Link
+                    key={p.id}
+                    href={`/player/${p.id}`}
+                    className="group rounded-xl border bg-card p-4 transition-colors hover:bg-muted/40"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-muted text-xs font-bold text-muted-foreground">
+                          {initials}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="truncate text-sm font-semibold group-hover:underline">{p.name}</p>
+                            {p.position ? <Badge variant="secondary">{p.position}</Badge> : null}
+                            {p.preferredFoot ? <Badge variant="outline">{p.preferredFoot} foot</Badge> : null}
+                          </div>
+                          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                            {p.nationality ? <span>{p.nationality}</span> : null}
+                            {p.age != null ? <span>{p.age} yrs</span> : null}
+                            {p.heightCm != null ? <span>{p.heightCm} cm</span> : null}
+                            {p.currentTeam ? (
+                              <ClubIdentity
+                                name={p.currentTeam.name}
+                                badgeUrl={p.currentTeam.badgeUrl}
+                                href={`/club/${p.currentTeam.id}`}
+                                size="xs"
+                                textClassName="text-xs text-muted-foreground group-hover:underline"
+                              />
+                            ) : (
+                              <span>Free agent</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="text-sm font-semibold">
+                          {p.marketValue?.formatted ?? <span className="text-muted-foreground">—</span>}
+                        </p>
+                        {p.marketValue?.date ? (
+                          <p className="text-[11px] text-muted-foreground">
+                            Updated {new Date(p.marketValue.date).toLocaleDateString()}
+                          </p>
+                        ) : (
+                          <p className="text-[11px] text-muted-foreground">No recent value</p>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
         </div>
+
+        {!loading && results.length === 0 && (
+          <div className="rounded-xl border bg-card p-10 text-center">
+            <div className="mx-auto mb-2 w-fit rounded-full border bg-muted px-3 py-1 text-xs text-muted-foreground">
+              No results
+            </div>
+            <p className="text-sm font-semibold">Try relaxing your filters</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Remove constraints or broaden the age/value ranges to see more players.
+            </p>
+          </div>
+        )}
       </section>
     </div>
   )

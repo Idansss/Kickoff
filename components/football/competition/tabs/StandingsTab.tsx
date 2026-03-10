@@ -89,7 +89,7 @@ export function StandingsTab({ competitionId }: Props) {
                     <td className="px-2 py-1">
                       <Link
                         href={`/club/${row.team.id}`}
-                        className="flex items-center gap-2 text-xs sm:text-sm hover:text-green-600"
+                        className="flex items-center gap-2 text-xs sm:text-sm hover:text-green-600 hover:underline"
                       >
                         {row.team.badgeUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element

@@ -1411,6 +1411,8 @@ export function FloatingPostButton({ onClick }) {
 // ─────────────────────────────────────────────────────────────
 export function ProfileCard({ user = { name: 'Alex Turner', handle: 'alexturner', initials: 'AT', color: '#16a34a' }, onViewProfile, onEditProfile, onSignOut }) {
   useGlobalStyles();
+  const { theme, systemTheme } = useTheme();
+  const isDark = (theme === 'system' ? systemTheme : theme) === 'dark';
   const [menuOpen, setMenuOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
   const ref = useRef(null);
@@ -1435,10 +1437,10 @@ export function ProfileCard({ user = { name: 'Alex Turner', handle: 'alexturner'
           position: 'absolute',
           bottom: 'calc(100% + 6px)',
           left: 0, right: 0,
-          background: T.glassDrop,
+          background: isDark ? '#1a1a1a' : T.glassDrop,
           backdropFilter: 'blur(24px) saturate(200%)',
           WebkitBackdropFilter: 'blur(24px) saturate(200%)',
-          border: `1px solid ${T.borderStrong}`,
+          border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : T.borderStrong}`,
           borderRadius: '14px',
           boxShadow: T.shadowDrop,
           overflow: 'hidden',
@@ -1455,7 +1457,7 @@ export function ProfileCard({ user = { name: 'Alex Turner', handle: 'alexturner'
                 display: 'flex', alignItems: 'center', gap: '10px',
                 width: '100%', padding: '11px 16px',
                 fontSize: '13px', fontFamily: 'Inter, sans-serif', fontWeight: 500,
-                color: item.danger ? T.danger : T.text,
+                color: item.danger ? T.danger : (isDark ? '#ffffff' : T.text),
                 background: 'transparent', border: 'none',
                 cursor: 'pointer', textAlign: 'left',
                 transition: 'background 0.12s ease',
@@ -1471,10 +1473,12 @@ export function ProfileCard({ user = { name: 'Alex Turner', handle: 'alexturner'
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
-          background: hovered ? T.glassElevated : T.glass,
+          background: isDark
+            ? (hovered ? '#2a2a2a' : '#1a1a1a')
+            : (hovered ? T.glassElevated : T.glass),
           backdropFilter: 'blur(20px) saturate(180%)',
           WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-          border: `1px solid ${T.border}`,
+          border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : T.border}`,
           borderRadius: '12px',
           padding: '10px 12px',
           display: 'flex',
@@ -1496,10 +1500,10 @@ export function ProfileCard({ user = { name: 'Alex Turner', handle: 'alexturner'
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '14px', fontWeight: 700, color: T.text, fontFamily: 'Inter, sans-serif', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: '14px', fontWeight: 700, color: isDark ? '#ffffff' : T.text, fontFamily: 'Inter, sans-serif', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {user.name}
           </div>
-          <div style={{ fontSize: '12px', color: T.muted, fontFamily: 'Inter, sans-serif' }}>
+          <div style={{ fontSize: '12px', color: isDark ? '#9ca3af' : T.muted, fontFamily: 'Inter, sans-serif' }}>
             @{user.handle}
           </div>
         </div>
@@ -1509,7 +1513,7 @@ export function ProfileCard({ user = { name: 'Alex Turner', handle: 'alexturner'
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
             padding: '5px 7px', borderRadius: '6px',
-            color: T.muted, fontSize: '16px', letterSpacing: '1px',
+            color: isDark ? '#ffffff' : T.muted, fontSize: '16px', letterSpacing: '1px',
             lineHeight: 1, transition: 'background 0.15s ease',
           }}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.07)'; }}
@@ -1547,6 +1551,9 @@ function highlightTag(tag, query) {
 
 export function PostComposerModal({ isOpen, onClose, onPost }) {
   useGlobalStyles();
+  const { theme, systemTheme } = useTheme();
+  const resolvedTheme = theme === 'system' ? systemTheme : theme;
+  const isDark = resolvedTheme === 'dark';
   const [plainText, setPlainText] = useState('');
   const [cursorPosition, setCursorPosition] = useState(0);
   const [tags, setTags] = useState(['General']);
@@ -1719,7 +1726,7 @@ export function PostComposerModal({ isOpen, onClose, onPost }) {
     background: isDragOver ? 'rgba(22,163,74,0.04)' : 'transparent',
     fontSize: '16px',
     fontFamily: 'Inter, sans-serif',
-    color: T.text,
+    color: isDark ? '#ffffff' : T.text,
     resize: 'none',
     minHeight: '110px',
     lineHeight: 1.55,
@@ -1731,9 +1738,9 @@ export function PostComposerModal({ isOpen, onClose, onPost }) {
       onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 200,
-        background: 'rgba(0,0,0,0.32)',
-        backdropFilter: 'blur(4px)',
-        WebkitBackdropFilter: 'blur(4px)',
+        background: isDark ? 'rgba(0,0,0,0.65)' : 'rgba(0,0,0,0.32)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         animation: 'nc-backdropIn 0.2s ease forwards',
         fontFamily: 'Inter, sans-serif',
@@ -1744,12 +1751,14 @@ export function PostComposerModal({ isOpen, onClose, onPost }) {
         style={{
           width: '560px',
           maxWidth: 'calc(100vw - 32px)',
-          background: 'rgba(255,255,255,0.84)',
-          backdropFilter: 'blur(32px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(32px) saturate(180%)',
-          border: `1px solid ${T.borderStrong}`,
+          background: isDark ? 'rgba(18,18,18,0.97)' : 'rgba(255,255,255,0.94)',
+          backdropFilter: isDark ? 'blur(20px)' : 'blur(32px) saturate(180%)',
+          WebkitBackdropFilter: isDark ? 'blur(20px)' : 'blur(32px) saturate(180%)',
+          border: isDark ? '1px solid rgba(255,255,255,0.10)' : `1px solid ${T.borderStrong}`,
           borderRadius: '20px',
-          boxShadow: T.shadowElevated,
+          boxShadow: isDark
+            ? '0 24px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06)'
+            : T.shadowElevated,
           animation: 'nc-modalIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
           overflow: 'hidden',
         }}
@@ -1758,21 +1767,21 @@ export function PostComposerModal({ isOpen, onClose, onPost }) {
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '16px 20px',
-          borderBottom: '1px solid rgba(0,0,0,0.06)',
+          borderBottom: isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(0,0,0,0.06)',
         }}>
-          <span style={{ fontSize: '16px', fontWeight: 700, color: T.text, fontFamily: 'Sora, sans-serif' }}>
+          <span style={{ fontSize: '16px', fontWeight: 700, color: isDark ? '#ffffff' : T.text, fontFamily: 'Sora, sans-serif' }}>
             Create Post
           </span>
           <button
             onClick={onClose}
             style={{
               width: '28px', height: '28px', borderRadius: '50%',
-              background: 'rgba(0,0,0,0.07)', border: 'none',
+              background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)', border: 'none',
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '13px', color: T.muted, transition: T.spring,
+              fontSize: '13px', color: isDark ? '#a3a3a3' : T.muted, transition: T.spring,
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.14)'; e.currentTarget.style.transform = 'scale(1.08)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.07)'; e.currentTarget.style.transform = 'scale(1)'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.14)'; e.currentTarget.style.transform = 'scale(1.08)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)'; e.currentTarget.style.transform = 'scale(1)'; }}
           >
             ✕
           </button>
@@ -1802,7 +1811,7 @@ export function PostComposerModal({ isOpen, onClose, onPost }) {
                 style={composerAreaStyle}
               />
               {!plainText && (
-                <div style={{ position: 'absolute', left: 0, top: 0, right: 0, fontSize: '16px', fontFamily: 'Inter, sans-serif', color: T.subtle, pointerEvents: 'none', lineHeight: 1.55 }} contentEditable={false}>
+                <div style={{ position: 'absolute', left: 0, top: 0, right: 0, fontSize: '16px', fontFamily: 'Inter, sans-serif', color: isDark ? '#555' : T.subtle, pointerEvents: 'none', lineHeight: 1.55 }} contentEditable={false}>
                   What&apos;s happening in football? 🏟️
                 </div>
               )}
@@ -1810,8 +1819,11 @@ export function PostComposerModal({ isOpen, onClose, onPost }) {
               {showSuggestions && suggestionsOpen && (
                 <div style={{
                   position: 'absolute', left: 0, right: 0, top: '100%', marginTop: 4, zIndex: 50,
-                  background: 'rgba(255,255,255,0.95)', border: '1px solid rgba(0,0,0,0.08)', borderRadius: 12,
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.10)', maxHeight: 280, overflowY: 'auto',
+                  background: isDark ? 'rgba(24,24,24,0.98)' : 'rgba(255,255,255,0.95)',
+                  border: isDark ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(0,0,0,0.08)',
+                  borderRadius: 12,
+                  boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.5)' : '0 8px 32px rgba(0,0,0,0.10)',
+                  maxHeight: 280, overflowY: 'auto',
                 }}>
                   {activeToken.type === 'hashtag' && hashtagSuggestions.map((h, i) => (
                     <button
@@ -1829,7 +1841,7 @@ export function PostComposerModal({ isOpen, onClose, onPost }) {
                       <div style={{ width: 28, height: 28, borderRadius: 6, background: T.accent, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>#</div>
                       <div>
                         <div style={{ fontSize: 13, fontWeight: 700, color: '#16a34a' }}>{highlightTag(h.tag, activeToken.query)}</div>
-                        <div style={{ fontSize: 12, color: T.muted }}>{h.count} posts</div>
+                        <div style={{ fontSize: 12, color: isDark ? '#666' : T.muted }}>{h.count} posts</div>
                       </div>
                     </button>
                   ))}
@@ -1852,8 +1864,8 @@ export function PostComposerModal({ isOpen, onClose, onPost }) {
                             {s.data.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                           </div>
                           <div>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{s.data.name}</div>
-                            <div style={{ fontSize: 12, color: T.muted }}>@{s.data.handle}</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? '#fff' : T.text }}>{s.data.name}</div>
+                            <div style={{ fontSize: 12, color: isDark ? '#666' : T.muted }}>@{s.data.handle}</div>
                           </div>
                           {s.data.verified && <span style={{ color: '#3b82f6', marginLeft: 'auto' }}>✓</span>}
                         </>
@@ -1861,8 +1873,8 @@ export function PostComposerModal({ isOpen, onClose, onPost }) {
                         <>
                           <div style={{ width: 28, height: 28, borderRadius: 4, background: s.data.color, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>🛡️</div>
                           <div>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{s.data.name}</div>
-                            <div style={{ fontSize: 12, color: T.muted, fontStyle: 'italic' }}>Official Club</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? '#fff' : T.text }}>{s.data.name}</div>
+                            <div style={{ fontSize: 12, color: isDark ? '#666' : T.muted, fontStyle: 'italic' }}>Official Club</div>
                           </div>
                         </>
                       )}
@@ -1950,7 +1962,7 @@ export function PostComposerModal({ isOpen, onClose, onPost }) {
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '12px 20px',
-          borderTop: '1px solid rgba(0,0,0,0.06)',
+          borderTop: isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(0,0,0,0.06)',
         }}>
           <PostToolbar
             variant="modal"

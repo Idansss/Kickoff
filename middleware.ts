@@ -32,7 +32,7 @@ export async function middleware(request: NextRequest) {
   const isPublic = PUBLIC_PATHS.some((p) => request.nextUrl.pathname.startsWith(p))
 
   // Only hard-redirect to login for truly protected routes
-  const PROTECTED_PATHS = ['/settings', '/profile/edit']
+  const PROTECTED_PATHS = ['/profile/edit']
   const isProtected = PROTECTED_PATHS.some((p) => request.nextUrl.pathname.startsWith(p))
   if (!user && isProtected) {
     const url = request.nextUrl.clone()

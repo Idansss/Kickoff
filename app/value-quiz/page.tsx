@@ -1,5 +1,8 @@
 import { Suspense } from 'react'
 import { ValueQuizContent } from '@/components/football/value-quiz/ValueQuizContent'
+import { AppLayout } from '@/components/app-layout'
+import { PageShell } from '@/components/shared/PageShell'
+import Link from 'next/link'
 
 export const metadata = {
   title: 'Guess the Value · KICKOFF',
@@ -8,16 +11,27 @@ export const metadata = {
 
 export default function ValueQuizPage() {
   return (
-    <main className="mx-auto flex max-w-lg flex-col gap-4 p-4">
-      <header className="space-y-1">
-        <h1 className="text-xl font-semibold">Guess the Value</h1>
-        <p className="text-sm text-muted-foreground">
-          How well do you know player market values? Guess closer, score higher.
-        </p>
-      </header>
-      <Suspense fallback={<div className="h-64 animate-pulse rounded-xl border bg-muted" />}>
-        <ValueQuizContent />
-      </Suspense>
-    </main>
+    <AppLayout>
+      <PageShell
+        title="Guess the Value"
+        description="How well do you know player market values? Guess closer, score higher."
+        header={
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/market-values"
+              className="rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-medium transition-colors hover:bg-muted"
+            >
+              💰 Market values
+            </Link>
+          </div>
+        }
+      >
+        <div className="mx-auto w-full max-w-lg">
+          <Suspense fallback={<div className="h-64 animate-pulse rounded-xl border bg-muted" />}>
+            <ValueQuizContent />
+          </Suspense>
+        </div>
+      </PageShell>
+    </AppLayout>
   )
 }
