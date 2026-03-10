@@ -168,10 +168,10 @@ export function Sidebar() {
           )}
         </div>
 
-        {/* Navigation links — no scroll; fixed list like X/TikTok */}
+        {/* Navigation links — scrollable */}
         <nav
           className={cn(
-            'flex flex-shrink-0 flex-col overflow-hidden',
+            'flex min-h-0 flex-1 flex-col overflow-y-auto scrollbar-hide',
             isOpen ? 'gap-0.5' : 'gap-0'
           )}
         >
@@ -300,8 +300,6 @@ export function Sidebar() {
           </Link>
         </div>
 
-        {/* Spacer to push profile to bottom while keeping Notifications/Settings higher */}
-        <div className="flex-1 min-h-0" />
 
         {/* Profile card at bottom */}
         {isOpen && (
