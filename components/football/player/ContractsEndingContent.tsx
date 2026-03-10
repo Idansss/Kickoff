@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { cn } from '@/lib/utils'
 import { ClubIdentity } from '@/components/common/ClubIdentity'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
+import { DatePicker } from '@/components/ui/date-picker'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 
@@ -228,33 +229,25 @@ export function ContractsEndingContent() {
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label
-                htmlFor="ce-end-from"
-                className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
-              >
+              <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 End from
               </label>
-              <input
-                id="ce-end-from"
-                type="date"
-                className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
+              <DatePicker
                 value={filters.endFrom ?? ''}
-                onChange={handleInputChange('endFrom')}
+                onChange={(v) => { setPage(1); setFilters((prev) => ({ ...prev, endFrom: v || undefined })) }}
+                placeholder="From date"
+                className="mt-1"
               />
             </div>
             <div>
-              <label
-                htmlFor="ce-end-to"
-                className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
-              >
+              <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 End to
               </label>
-              <input
-                id="ce-end-to"
-                type="date"
-                className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
+              <DatePicker
                 value={filters.endTo ?? ''}
-                onChange={handleInputChange('endTo')}
+                onChange={(v) => { setPage(1); setFilters((prev) => ({ ...prev, endTo: v || undefined })) }}
+                placeholder="To date"
+                className="mt-1"
               />
             </div>
           </div>

@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
+import { DatePicker } from '@/components/ui/date-picker'
 
 const FiltersSchema = z.object({
   nationality: z.string().optional(),
@@ -182,18 +183,14 @@ export function FreeAgentsContent() {
           </div>
 
           <div>
-            <label
-              htmlFor="fa-free-since"
-              className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
-            >
+            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Free since
             </label>
-            <input
-              id="fa-free-since"
-              type="date"
-              className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
+            <DatePicker
               value={filters.freeSince ?? ''}
-              onChange={handleInputChange('freeSince')}
+              onChange={(v) => { setPage(1); setFilters((prev) => ({ ...prev, freeSince: v || undefined })) }}
+              placeholder="Pick date"
+              className="mt-1"
             />
           </div>
 
