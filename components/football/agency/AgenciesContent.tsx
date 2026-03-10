@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
 
 const FiltersSchema = z.object({
   search: z.string().optional(),
@@ -96,6 +97,11 @@ export function AgenciesContent() {
       setFilters((prev) => ({ ...prev, [field]: value }))
     }
 
+  const handleValueChange = (field: keyof FiltersState) => (value: string) => {
+    setPage(1)
+    setFilters((prev) => ({ ...prev, [field]: value || undefined }))
+  }
+
   const hasActive = useMemo(
     () => Object.values(filters).some((v) => v != null && v !== ''),
     [filters],
@@ -162,17 +168,17 @@ export function AgenciesContent() {
             >
               Sort by
             </label>
-            <select
-              id="agencies-sort"
-              className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
-              value={filters.sort ?? 'value_desc'}
-              onChange={handleChange('sort')}
-            >
-              <option value="value_desc">Highest portfolio value</option>
-              <option value="clients_desc">Most clients</option>
-              <option value="agents_desc">Most agents</option>
-              <option value="name_asc">Name (A–Z)</option>
-            </select>
+            <Select value={filters.sort ?? 'value_desc'} onValueChange={handleValueChange('sort')}>
+              <SelectTrigger className="mt-1 h-8 w-full text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="value_desc">Highest portfolio value</SelectItem>
+                <SelectItem value="clients_desc">Most clients</SelectItem>
+                <SelectItem value="agents_desc">Most agents</SelectItem>
+                <SelectItem value="name_asc">Name (A–Z)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           </div>
         </div>

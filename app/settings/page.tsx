@@ -83,9 +83,9 @@ export default function SettingsPage(): React.JSX.Element {
 
   const [form, setForm] = useState({
     email: 'alex@example.com',
-    username: 'alexturner',
-    name: 'Alex Turner',
-    bio: 'Football enthusiast | Manchester supporter',
+    username: currentUser?.handle?.replace(/^@+/, '') ?? 'alexturner',
+    name: currentUser?.name ?? 'Alex Turner',
+    bio: (currentUser?.bio as string | null | undefined) ?? 'Football enthusiast | Manchester supporter',
   })
 
   const [saved, setSaved] = useState(false)
@@ -210,7 +210,11 @@ export default function SettingsPage(): React.JSX.Element {
                   <Input
                     id="username"
                     value={form.username}
-                    onChange={(e) => setForm({ ...form, username: e.target.value })}
+                    onChange={(e) => {
+                      const raw = e.target.value
+                      const normalized = raw.replace(/^@+/, '').replace(/\s+/g, '')
+                      setForm({ ...form, username: normalized })
+                    }}
                     className={cn(
                       'pl-7 w-full rounded-[8px] px-[14px] py-[10px] text-[14px]',
                       'bg-[#f9f9f9] text-[#0f0f0f] border border-[#e5e7eb] placeholder:text-[#555555]',
@@ -223,6 +227,9 @@ export default function SettingsPage(): React.JSX.Element {
                     ✏️
                   </span>
                 </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  This is your public handle. It will appear as <span className="font-mono">@{form.username || 'username'}</span> on posts.
+                </p>
               </div>
 
               <div>

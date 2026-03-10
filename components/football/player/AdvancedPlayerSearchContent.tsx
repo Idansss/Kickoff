@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { z } from 'zod'
 import { cn } from '@/lib/utils'
 import { ClubIdentity } from '@/components/common/ClubIdentity'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 
@@ -119,6 +120,11 @@ export function AdvancedPlayerSearchContent() {
     const value = e.target.value || undefined
     setPage(1)
     setFilters((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleValueChange = (field: keyof FiltersState) => (value: string) => {
+    setPage(1)
+    setFilters((prev) => ({ ...prev, [field]: value || undefined }))
   }
 
   const hasActiveFilters = useMemo(
@@ -262,18 +268,18 @@ export function AdvancedPlayerSearchContent() {
             >
               Position
             </label>
-            <select
-              id="aps-position"
-              className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
-              value={filters.position ?? ''}
-              onChange={handleInputChange('position')}
-            >
-              <option value="">Any</option>
-              <option value="GK">Goalkeepers</option>
-              <option value="DF">Defenders</option>
-              <option value="MF">Midfielders</option>
-              <option value="FW">Forwards</option>
-            </select>
+            <Select value={filters.position ?? ''} onValueChange={handleValueChange('position')}>
+              <SelectTrigger className="mt-1 h-8 w-full text-xs">
+                <SelectValue placeholder="Any" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="GK">Goalkeepers</SelectItem>
+                <SelectItem value="DF">Defenders</SelectItem>
+                <SelectItem value="MF">Midfielders</SelectItem>
+                <SelectItem value="FW">Forwards</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
@@ -283,16 +289,16 @@ export function AdvancedPlayerSearchContent() {
             >
               Preferred foot
             </label>
-            <select
-              id="aps-foot"
-              className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
-              value={filters.preferredFoot ?? ''}
-              onChange={handleInputChange('preferredFoot')}
-            >
-              <option value="">Any</option>
-              <option value="Right">Right</option>
-              <option value="Left">Left</option>
-            </select>
+            <Select value={filters.preferredFoot ?? ''} onValueChange={handleValueChange('preferredFoot')}>
+              <SelectTrigger className="mt-1 h-8 w-full text-xs">
+                <SelectValue placeholder="Any" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="Right">Right</SelectItem>
+                <SelectItem value="Left">Left</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
@@ -302,17 +308,17 @@ export function AdvancedPlayerSearchContent() {
             >
               Sort by
             </label>
-            <select
-              id="aps-sort"
-              className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
-              value={filters.sort ?? 'value_desc'}
-              onChange={handleInputChange('sort')}
-            >
-              <option value="value_desc">Market value (desc)</option>
-              <option value="age_asc">Youngest first</option>
-              <option value="age_desc">Oldest first</option>
-              <option value="name_asc">Name (A–Z)</option>
-            </select>
+            <Select value={filters.sort ?? 'value_desc'} onValueChange={handleValueChange('sort')}>
+              <SelectTrigger className="mt-1 h-8 w-full text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="value_desc">Market value (desc)</SelectItem>
+                <SelectItem value="age_asc">Youngest first</SelectItem>
+                <SelectItem value="age_desc">Oldest first</SelectItem>
+                <SelectItem value="name_asc">Name (A–Z)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           </div>
         </div>

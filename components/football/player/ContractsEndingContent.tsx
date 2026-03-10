@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { z } from 'zod'
 import { cn } from '@/lib/utils'
 import { ClubIdentity } from '@/components/common/ClubIdentity'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 
@@ -133,6 +134,11 @@ export function ContractsEndingContent() {
       setFilters((prev) => ({ ...prev, [field]: value }))
     }
 
+  const handleValueChange = (field: keyof FiltersState) => (value: string) => {
+    setPage(1)
+    setFilters((prev) => ({ ...prev, [field]: value || undefined }))
+  }
+
   const hasActiveFilters = useMemo(
     () => Object.values(filters).some((v) => v != null && v !== ''),
     [filters],
@@ -206,18 +212,18 @@ export function ContractsEndingContent() {
             >
               Position
             </label>
-            <select
-              id="ce-position"
-              className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
-              value={filters.position ?? ''}
-              onChange={handleInputChange('position')}
-            >
-              <option value="">Any</option>
-              <option value="GK">Goalkeepers</option>
-              <option value="DF">Defenders</option>
-              <option value="MF">Midfielders</option>
-              <option value="FW">Forwards</option>
-            </select>
+            <Select value={filters.position ?? ''} onValueChange={handleValueChange('position')}>
+              <SelectTrigger className="mt-1 h-8 w-full text-xs">
+                <SelectValue placeholder="Any" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="GK">Goalkeepers</SelectItem>
+                <SelectItem value="DF">Defenders</SelectItem>
+                <SelectItem value="MF">Midfielders</SelectItem>
+                <SelectItem value="FW">Forwards</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
@@ -260,16 +266,16 @@ export function ContractsEndingContent() {
             >
               Sort by
             </label>
-            <select
-              id="ce-sort"
-              className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
-              value={filters.sort ?? 'end_asc'}
-              onChange={handleInputChange('sort')}
-            >
-              <option value="end_asc">Soonest expiry</option>
-              <option value="value_desc">Market value (desc)</option>
-              <option value="name_asc">Name (A–Z)</option>
-            </select>
+            <Select value={filters.sort ?? 'end_asc'} onValueChange={handleValueChange('sort')}>
+              <SelectTrigger className="mt-1 h-8 w-full text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="end_asc">Soonest expiry</SelectItem>
+                <SelectItem value="value_desc">Market value (desc)</SelectItem>
+                <SelectItem value="name_asc">Name (A–Z)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           </div>
         </div>

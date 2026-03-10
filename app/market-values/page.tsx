@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils'
 import { PageShell } from '@/components/shared/PageShell'
 import { MarketHubQuickLinks } from '@/components/football/market-hub/MarketHubQuickLinks'
 import { AppLayout } from '@/components/app-layout'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
 
 type Tab = 'players' | 'clubs' | 'movers' | 'winners'
 
@@ -74,18 +75,18 @@ export default function MarketValuesPage() {
               >
                 Position
               </label>
-              <select
-                id="mv-position"
-                className="mt-1 h-8 rounded-md border bg-background px-2 text-xs"
-                value={positionFilter}
-                onChange={(e) => setPositionFilter(e.target.value)}
-              >
-                <option value="">Any</option>
-                <option value="GK">Goalkeeper</option>
-                <option value="DF">Defender</option>
-                <option value="MF">Midfielder</option>
-                <option value="FW">Forward</option>
-              </select>
+              <Select value={positionFilter} onValueChange={setPositionFilter}>
+                <SelectTrigger className="mt-1 h-8 text-xs">
+                  <SelectValue placeholder="Any" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Any</SelectItem>
+                  <SelectItem value="GK">Goalkeeper</SelectItem>
+                  <SelectItem value="DF">Defender</SelectItem>
+                  <SelectItem value="MF">Midfielder</SelectItem>
+                  <SelectItem value="FW">Forward</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <label

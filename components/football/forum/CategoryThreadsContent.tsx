@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
 
 interface Tag {
   name: string
@@ -145,15 +146,16 @@ export function CategoryThreadsContent({ categorySlug }: CategoryThreadsContentP
             onChange={(e) => updateParam('search', e.target.value)}
             className="h-8 rounded-lg border bg-background px-3 text-xs outline-none focus:ring-1 focus:ring-ring"
           />
-          <select
-            value={sort}
-            onChange={(e) => updateParam('sort', e.target.value)}
-            className="h-8 rounded-lg border bg-background px-2 text-xs outline-none focus:ring-1 focus:ring-ring"
-          >
-            {SORT_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
+          <Select value={sort} onValueChange={(v) => updateParam('sort', v)}>
+            <SelectTrigger className="h-8 text-xs" aria-label="Sort threads">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <button
           onClick={() => setShowForm((v) => !v)}

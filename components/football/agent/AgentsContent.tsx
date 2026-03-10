@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select'
 
 const FiltersSchema = z.object({
   search: z.string().optional(),
@@ -97,6 +98,11 @@ export function AgentsContent() {
       setFilters((prev) => ({ ...prev, [field]: value }))
     }
 
+  const handleValueChange = (field: keyof FiltersState) => (value: string) => {
+    setPage(1)
+    setFilters((prev) => ({ ...prev, [field]: value || undefined }))
+  }
+
   const hasActive = useMemo(
     () => Object.values(filters).some((v) => v != null && v !== ''),
     [filters],
@@ -164,16 +170,16 @@ export function AgentsContent() {
             >
               Sort by
             </label>
-            <select
-              id="agents-sort"
-              className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
-              value={filters.sort ?? 'clients_desc'}
-              onChange={handleChange('sort')}
-            >
-              <option value="clients_desc">Most clients</option>
-              <option value="value_desc">Highest portfolio value</option>
-              <option value="name_asc">Name (A–Z)</option>
-            </select>
+            <Select value={filters.sort ?? 'clients_desc'} onValueChange={handleValueChange('sort')}>
+              <SelectTrigger className="mt-1 h-8 w-full text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="clients_desc">Most clients</SelectItem>
+                <SelectItem value="value_desc">Highest portfolio value</SelectItem>
+                <SelectItem value="name_asc">Name (A–Z)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           </div>
         </div>
