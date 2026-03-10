@@ -1,5 +1,6 @@
 "use client"
 
+import Link from 'next/link'
 import * as Tabs from '@radix-ui/react-tabs'
 import { ClubIdentity } from '@/components/common/ClubIdentity'
 import type { MatchDTO } from '@/lib/football/providers/types'
@@ -14,6 +15,7 @@ interface MatchLineupsProps {
 }
 
 function PlayerRow({
+  id,
   name,
   position,
   shirtNo,
@@ -21,6 +23,7 @@ function PlayerRow({
   outMin,
   rating,
 }: {
+  id?: string
   name: string
   position?: string | null
   shirtNo?: number | null
@@ -32,7 +35,11 @@ function PlayerRow({
     <div className="flex items-center justify-between rounded-md px-2 py-1 text-xs hover:bg-muted/60">
       <div className="flex items-center gap-2">
         {shirtNo != null && <span className="w-6 text-center tabular-nums text-muted-foreground">{shirtNo}</span>}
-        <span className="font-medium">{name}</span>
+        {id ? (
+          <Link href={`/player/${id}`} className="font-medium hover:underline">{name}</Link>
+        ) : (
+          <span className="font-medium">{name}</span>
+        )}
         {position && <span className="text-[11px] uppercase text-muted-foreground">{position}</span>}
       </div>
       <div className="flex items-center gap-2">
@@ -70,6 +77,7 @@ function TeamLineupColumn({
           {startingXI.map((p) => (
             <PlayerRow
               key={p.id}
+              id={p.id}
               name={p.name}
               position={p.position}
               shirtNo={p.shirtNo}
@@ -89,6 +97,7 @@ function TeamLineupColumn({
           {bench.map((p) => (
             <PlayerRow
               key={p.id}
+              id={p.id}
               name={p.name}
               position={p.position}
               shirtNo={p.shirtNo}

@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { ClubIdentity } from '@/components/common/ClubIdentity'
 import { cn } from '@/lib/utils'
 import type { MatchLineupsDTO, MatchLineupPlayerDTO } from '@/lib/football/providers/types'
@@ -58,7 +59,7 @@ function PlayerDot({
 }) {
   const shortName = player.name.split(' ').slice(-1)[0] ?? player.name
   return (
-    <div className="flex flex-col items-center gap-0.5 group">
+    <Link href={`/player/${player.id}`} className="flex flex-col items-center gap-0.5 group">
       <div
         className={cn(
           'h-8 w-8 rounded-full border-2 border-white/80 flex items-center justify-center text-white text-[10px] font-bold shadow-md transition-transform group-hover:scale-110',
@@ -79,7 +80,7 @@ function PlayerDot({
           {player.rating.toFixed(1)}
         </span>
       )}
-    </div>
+    </Link>
   )
 }
 
@@ -129,6 +130,7 @@ export function PitchFormation({
           <ClubIdentity
             name={homeTeam.name}
             badgeUrl={homeTeam.badgeUrl}
+            href={`/club/${homeTeam.id}`}
             size="sm"
             textClassName="text-sm font-semibold"
           />
@@ -138,6 +140,7 @@ export function PitchFormation({
           <ClubIdentity
             name={awayTeam.name}
             badgeUrl={awayTeam.badgeUrl}
+            href={`/club/${awayTeam.id}`}
             size="sm"
             textClassName="text-sm font-semibold"
           />
@@ -194,9 +197,9 @@ export function PitchFormation({
               </p>
               <div className="flex flex-wrap gap-1">
                 {lineups.home.bench.map((p) => (
-                  <span key={p.id} className="text-[10px] bg-muted rounded px-1.5 py-0.5 font-medium">
+                  <Link key={p.id} href={`/player/${p.id}`} className="text-[10px] bg-muted rounded px-1.5 py-0.5 font-medium hover:bg-muted/70">
                     {p.shirtNo ? `${p.shirtNo}. ` : ''}{p.name.split(' ').slice(-1)[0]}
-                  </span>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -206,9 +209,9 @@ export function PitchFormation({
               </p>
               <div className="flex flex-wrap gap-1 justify-end">
                 {lineups.away.bench.map((p) => (
-                  <span key={p.id} className="text-[10px] bg-muted rounded px-1.5 py-0.5 font-medium">
+                  <Link key={p.id} href={`/player/${p.id}`} className="text-[10px] bg-muted rounded px-1.5 py-0.5 font-medium hover:bg-muted/70">
                     {p.shirtNo ? `${p.shirtNo}. ` : ''}{p.name.split(' ').slice(-1)[0]}
-                  </span>
+                  </Link>
                 ))}
               </div>
             </div>

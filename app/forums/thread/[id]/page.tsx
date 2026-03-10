@@ -6,14 +6,13 @@ import { ThreadContent } from '@/components/football/forum/ThreadContent'
 export const dynamic = 'force-dynamic'
 
 async function fetchThreadMeta(id: string) {
-  const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
-  const res = await fetch(`${base}/api/forums/thread/${id}?pageSize=1`, { cache: 'no-store' })
-  if (res.status === 404) return null
-  if (!res.ok) return null
-  const json = (await res.json()) as {
-    thread: { title: string; category: { slug: string; name: string } }
-  }
-  return json.thread
+  try {
+    const { db } = await import('@/lib/db')
+    return await db.forumThread.findUnique({
+      where: { id },
+      select: { title: true, category: { select: { slug: true, name: true } } },
+    })
+  } catch { return null }
 }
 
 interface Props {

@@ -1,5 +1,6 @@
 "use client"
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
 interface LeaderItem {
@@ -85,7 +86,7 @@ export function LeadersTab({ competitionId }: Props) {
                           {index + 1}.
                         </span>
                         <div>
-                          <div className="font-medium">{item.playerName}</div>
+                          <Link href={`/player/${item.playerId}`} className="font-medium hover:underline">{item.playerName}</Link>
                           <div className="text-[11px] text-muted-foreground">{item.teamName}</div>
                         </div>
                       </div>

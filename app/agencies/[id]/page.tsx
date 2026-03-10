@@ -52,12 +52,71 @@ interface AgencyDetailDTO {
 }
 
 async function fetchAgency(id: string): Promise<AgencyDetailDTO | null> {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
-  const res = await fetch(`${baseUrl}/api/agencies/${id}`, { cache: 'no-store' })
-  if (!res.ok) return null
-  return (await res.json()) as AgencyDetailDTO
+  try {
+    const { db } = await import('@/lib/db')
+    const agency = await db.agency.findUnique({
+      where: { id },
+      include: {
+        agents: {
+          include: {
+            agent: {
+              include: {
+                playerAgents: {
+                  where: { OR: [{ endDate: null }, { endDate: { gt: new Date() } }] },
+                  select: { id: true },
+                },
+              },
+            },
+          },
+        },
+        playerAgents: {
+          include: {
+            player: {
+              include: {
+                currentTeam: { select: { id: true, name: true, badgeUrl: true } },
+                marketValues: { orderBy: { date: 'desc' }, take: 1 },
+                contracts: { where: { status: 'ACTIVE' }, orderBy: { endDate: 'asc' }, take: 1 },
+              },
+            },
+            agent: { select: { id: true, name: true } },
+          },
+        },
+      },
+    })
+    if (!agency) return null
+    const now = new Date()
+    const calcAge = (dob: Date | null) => dob ? Math.abs(new Date(Date.now() - dob.getTime()).getUTCFullYear() - 1970) : null
+    const currentClients = agency.playerAgents
+      .filter((pa) => pa.player != null && (pa.endDate == null || pa.endDate > now))
+      .map((pa) => {
+        const p = pa.player!
+        const lv = p.marketValues[0]
+        const ac = p.contracts[0]
+        return {
+          id: p.id, name: p.name, nationality: p.nationality, position: p.position,
+          age: calcAge(p.dob ?? null), photoUrl: p.photoUrl, currentTeam: p.currentTeam,
+          agent: pa.agent ? { id: pa.agent.id, name: pa.agent.name } : null,
+          marketValue: lv ? { raw: lv.valueEur, formatted: `€${(lv.valueEur / 1_000_000).toFixed(1)}m`, date: lv.date } : null,
+          contract: ac ? { endDate: ac.endDate, status: ac.status } : null,
+          since: pa.startDate,
+        }
+      })
+    currentClients.sort((a, b) => (b.marketValue?.raw ?? 0) - (a.marketValue?.raw ?? 0))
+    const totalValueEur = currentClients.reduce((acc, c) => acc + (c.marketValue?.raw ?? 0), 0)
+    return {
+      agency: { id: agency.id, name: agency.name, country: agency.country, website: agency.website },
+      agents: agency.agents.map((m) => ({
+        id: m.agent.id, name: m.agent.name, country: m.agent.country, email: m.agent.email,
+        role: m.role, since: m.startDate, activeClientCount: m.agent.playerAgents.length,
+      })),
+      stats: {
+        agentCount: agency.agents.length, currentClientCount: currentClients.length,
+        totalClientValueEur: totalValueEur,
+        totalClientValueFormatted: totalValueEur > 0 ? `€${(totalValueEur / 1_000_000).toFixed(1)}m` : null,
+      },
+      currentClients,
+    }
+  } catch { return null }
 }
 
 export async function generateMetadata({

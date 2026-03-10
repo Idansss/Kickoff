@@ -155,7 +155,13 @@ export function ValueQuizContent() {
     resetRound()
     try {
       const res = await fetch('/api/value-quiz/random')
-      if (!res.ok) { setError('Could not load a player. Try again.'); return }
+      if (!res.ok) {
+        const json = await res.json().catch(() => null) as { error?: string } | null
+        setError(json?.error === 'No players with market values found'
+          ? 'No market value data in the database yet. Add some players with market values to play!'
+          : 'Could not load a player. Try again.')
+        return
+      }
       const json = (await res.json()) as RandomResponse
       setPlayer(json.player, json.valueBand)
     } catch {

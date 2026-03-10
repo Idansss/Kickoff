@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import type { MatchDTO } from '@/lib/football/providers/types'
+import { notFound } from 'next/navigation'
 import { MatchHeader } from '@/components/football/match/MatchHeader'
 import { MatchTimeline } from '@/components/football/match/MatchTimeline'
 import { MatchLineups } from '@/components/football/match/MatchLineups'
@@ -9,28 +9,12 @@ import { PitchFormation } from '@/components/football/match/PitchFormation'
 import { TacticalAI } from '@/components/football/match/TacticalAI'
 import { LiveMatchChat } from '@/components/football/match/LiveMatchChat'
 import { VideoHighlights } from '@/components/football/match/VideoHighlights'
-
-async function fetchMatch(id: string): Promise<MatchDTO> {
-  const base =
-    process.env.VERCEL_URL != null
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-
-  const res = await fetch(`${base}/api/football/matches/${id}`, {
-    cache: 'no-store',
-  })
-
-  if (!res.ok) {
-    throw new Error('Match not found')
-  }
-
-  const json = (await res.json()) as MatchDTO
-  return json
-}
+import { footballService } from '@/lib/football/service'
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   try {
-    const data = await fetchMatch(params.id)
+    const data = await footballService.match(params.id)
+    if (!data) return { title: 'Match - KICKOFF' }
     const m = data.match
     const score = m.status === 'FINISHED' || m.status === 'LIVE'
       ? ` ${m.homeTeam.score ?? 0}–${m.awayTeam.score ?? 0}` : ''
@@ -48,7 +32,8 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 }
 
 export default async function MatchPage({ params }: { params: { id: string } }) {
-  const data = await fetchMatch(params.id)
+  const data = await footballService.match(params.id)
+  if (!data) notFound()
   const { match } = data
 
   const isLive = match.status === 'LIVE'

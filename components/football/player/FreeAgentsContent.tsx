@@ -112,7 +112,7 @@ export function FreeAgentsContent() {
 
   const handleValueChange = (field: keyof FiltersState) => (value: string) => {
     setPage(1)
-    setFilters((prev) => ({ ...prev, [field]: value || undefined }))
+    setFilters((prev) => ({ ...prev, [field]: value === 'all' ? undefined : value || undefined }))
   }
 
   const hasActiveFilters = useMemo(
@@ -168,12 +168,12 @@ export function FreeAgentsContent() {
             >
               Position
             </label>
-            <Select value={filters.position ?? ''} onValueChange={handleValueChange('position')}>
+            <Select value={filters.position ?? 'all'} onValueChange={handleValueChange('position')}>
               <SelectTrigger className="mt-1 h-8 w-full text-xs">
-                <SelectValue placeholder="Any" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="all">Any</SelectItem>
                 <SelectItem value="GK">Goalkeepers</SelectItem>
                 <SelectItem value="DF">Defenders</SelectItem>
                 <SelectItem value="MF">Midfielders</SelectItem>

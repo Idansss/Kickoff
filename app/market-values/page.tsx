@@ -75,12 +75,12 @@ export default function MarketValuesPage() {
               >
                 Position
               </label>
-              <Select value={positionFilter} onValueChange={setPositionFilter}>
+              <Select value={positionFilter || 'all'} onValueChange={(v) => setPositionFilter(v === 'all' ? '' : v)}>
                 <SelectTrigger className="mt-1 h-8 text-xs">
-                  <SelectValue placeholder="Any" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any</SelectItem>
+                  <SelectItem value="all">Any</SelectItem>
                   <SelectItem value="GK">Goalkeeper</SelectItem>
                   <SelectItem value="DF">Defender</SelectItem>
                   <SelectItem value="MF">Midfielder</SelectItem>

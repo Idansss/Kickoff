@@ -1,5 +1,6 @@
 "use client"
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { ClubIdentity } from '@/components/common/ClubIdentity'
 
@@ -66,7 +67,7 @@ export function TeamTransfersTab({ teamId }: Props) {
             className="flex items-center justify-between rounded-lg border bg-background px-3 py-2"
           >
             <div>
-              <div className="font-semibold">{t.player.name}</div>
+              <Link href={`/player/${t.player.id}`} className="font-semibold hover:underline">{t.player.name}</Link>
               <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                 <span>{t.direction === 'in' ? 'In from' : 'Out to'}</span>
                 {t.direction === 'in' ? (

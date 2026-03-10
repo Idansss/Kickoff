@@ -124,7 +124,7 @@ export function AdvancedPlayerSearchContent() {
 
   const handleValueChange = (field: keyof FiltersState) => (value: string) => {
     setPage(1)
-    setFilters((prev) => ({ ...prev, [field]: value || undefined }))
+    setFilters((prev) => ({ ...prev, [field]: value === 'all' ? undefined : value || undefined }))
   }
 
   const hasActiveFilters = useMemo(
@@ -268,12 +268,12 @@ export function AdvancedPlayerSearchContent() {
             >
               Position
             </label>
-            <Select value={filters.position ?? ''} onValueChange={handleValueChange('position')}>
+            <Select value={filters.position ?? 'all'} onValueChange={handleValueChange('position')}>
               <SelectTrigger className="mt-1 h-8 w-full text-xs">
-                <SelectValue placeholder="Any" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="all">Any</SelectItem>
                 <SelectItem value="GK">Goalkeepers</SelectItem>
                 <SelectItem value="DF">Defenders</SelectItem>
                 <SelectItem value="MF">Midfielders</SelectItem>
@@ -289,12 +289,12 @@ export function AdvancedPlayerSearchContent() {
             >
               Preferred foot
             </label>
-            <Select value={filters.preferredFoot ?? ''} onValueChange={handleValueChange('preferredFoot')}>
+            <Select value={filters.preferredFoot ?? 'all'} onValueChange={handleValueChange('preferredFoot')}>
               <SelectTrigger className="mt-1 h-8 w-full text-xs">
-                <SelectValue placeholder="Any" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="all">Any</SelectItem>
                 <SelectItem value="Right">Right</SelectItem>
                 <SelectItem value="Left">Left</SelectItem>
               </SelectContent>

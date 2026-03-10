@@ -6,12 +6,10 @@ import { CategoryThreadsContent } from '@/components/football/forum/CategoryThre
 export const dynamic = 'force-dynamic'
 
 async function fetchCategory(slug: string) {
-  const base = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000'
-  const res = await fetch(`${base}/api/forums/${slug}?pageSize=1`, { cache: 'no-store' })
-  if (res.status === 404) return null
-  if (!res.ok) return null
-  const json = (await res.json()) as { category: { name: string; description: string | null } }
-  return json.category
+  try {
+    const { db } = await import('@/lib/db')
+    return await db.forumCategory.findUnique({ where: { slug }, select: { name: true, description: true } })
+  } catch { return null }
 }
 
 interface Props {
