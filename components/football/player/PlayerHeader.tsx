@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { ClubIdentity } from '@/components/common/ClubIdentity'
 import { FollowButton } from '@/components/common/FollowButton'
 
@@ -13,6 +14,7 @@ interface PlayerHeaderProps {
     nationality?: string | null
     preferredFoot?: string | null
     position?: string | null
+    heightCm?: number | null
     currentTeam?: {
       id: string
       name: string
@@ -24,6 +26,19 @@ interface PlayerHeaderProps {
     isOnLoan: boolean
     loanFromTeam?: { id: string; name: string } | null
   }
+  contract?: {
+    endDate: string
+    status: string
+    isOnLoan: boolean
+    wageEur?: number | null
+    releaseClauseEur?: number | null
+    club?: { id: string; name: string; badgeUrl?: string | null } | null
+  } | null
+  agent?: {
+    agent?: { id: string; name: string } | null
+    agency?: { id: string; name: string } | null
+    since?: string | null
+  } | null
   value?: string | number | null
   recentForm?: {
     avgRating: number
@@ -31,7 +46,7 @@ interface PlayerHeaderProps {
   } | null
 }
 
-export function PlayerHeader({ player, transferStatus, value, recentForm }: PlayerHeaderProps) {
+export function PlayerHeader({ player, transferStatus, contract, agent, value, recentForm }: PlayerHeaderProps) {
   return (
     <section className="flex flex-col gap-4 rounded-xl border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-4">
@@ -77,11 +92,10 @@ export function PlayerHeader({ player, transferStatus, value, recentForm }: Play
               />
             </div>
           )}
-          {player.preferredFoot && (
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              Preferred foot: {player.preferredFoot}
-            </p>
-          )}
+          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+            {player.preferredFoot && <span>{player.preferredFoot} foot</span>}
+            {player.heightCm && <span>{player.heightCm} cm</span>}
+          </div>
         </div>
       </div>
 
@@ -91,12 +105,47 @@ export function PlayerHeader({ player, transferStatus, value, recentForm }: Play
             <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               Contract
             </p>
-            <div className="rounded-full border bg-background px-2 py-1">
-              {transferStatus?.isOnLoan
+            <div className="rounded-full border bg-background px-2 py-1 text-xs">
+              {contract
+                ? (() => {
+                    const end = new Date(contract.endDate)
+                    const now = new Date()
+                    const monthsLeft = Math.round((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30))
+                    const urgency = monthsLeft <= 6 ? 'text-red-500' : monthsLeft <= 12 ? 'text-amber-500' : ''
+                    return (
+                      <span className={urgency}>
+                        {contract.isOnLoan
+                          ? `On loan · expires ${end.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}`
+                          : `Expires ${end.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}`}
+                      </span>
+                    )
+                  })()
+                : transferStatus?.isOnLoan
                 ? `On loan from ${transferStatus.loanFromTeam?.name ?? 'unknown'}`
-                : 'Permanent'}
+                : '—'}
             </div>
           </div>
+
+          {agent && (agent.agent || agent.agency) && (
+            <div>
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Agent
+              </p>
+              <div className="rounded-full border bg-background px-2 py-1 text-xs">
+                {agent.agent ? (
+                  <Link href={`/agents/${agent.agent.id}`} className="hover:underline">
+                    {agent.agent.name}
+                  </Link>
+                ) : null}
+                {agent.agent && agent.agency && <span className="mx-1 text-muted-foreground">·</span>}
+                {agent.agency ? (
+                  <Link href={`/agencies/${agent.agency.id}`} className="hover:underline text-muted-foreground">
+                    {agent.agency.name}
+                  </Link>
+                ) : null}
+              </div>
+            </div>
+          )}
 
           <div>
             <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">

@@ -1482,6 +1482,7 @@ export function ProfileCard({ user = { name: 'Alex Turner', handle: 'alexturner'
           gap: '10px',
           transition: 'background 0.2s ease',
           boxShadow: T.shadowCard,
+          cursor: 'pointer',
         }}
       >
         <div style={{

@@ -5,14 +5,16 @@ import Link from 'next/link'
 import { TopPlayersTable } from '@/components/football/market-value/TopPlayersTable'
 import { TopClubsTable } from '@/components/football/market-value/TopClubsTable'
 import { MoversPanel } from '@/components/football/market-value/MoversPanel'
+import { WinnersLosersPanel } from '@/components/football/market-value/WinnersLosersPanel'
 import { cn } from '@/lib/utils'
 
-type Tab = 'players' | 'clubs' | 'movers'
+type Tab = 'players' | 'clubs' | 'movers' | 'winners'
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'players', label: 'Most valuable players' },
   { key: 'clubs', label: 'Most valuable clubs' },
   { key: 'movers', label: 'Biggest movers' },
+  { key: 'winners', label: 'Winners & losers' },
 ]
 
 // Quick-link pills shown below the hero
@@ -124,6 +126,7 @@ export default function MarketValuesPage() {
         />
       )}
       {activeTab === 'clubs' && <TopClubsTable />}
+      {activeTab === 'winners' && <WinnersLosersPanel />}
       {activeTab === 'movers' && (
         <div className="grid gap-4 lg:grid-cols-2">
           <div>

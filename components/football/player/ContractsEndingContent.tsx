@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { z } from 'zod'
 import { cn } from '@/lib/utils'
+import { ClubIdentity } from '@/components/common/ClubIdentity'
 
 const FiltersSchema = z.object({
   competitionId: z.string().optional(),
@@ -44,6 +45,12 @@ interface ContractEndingResult {
   } | null
 }
 
+function defaultEndTo(): string {
+  const d = new Date()
+  d.setFullYear(d.getFullYear() + 1)
+  return d.toISOString().split('T')[0]
+}
+
 export function ContractsEndingContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -54,7 +61,10 @@ export function ContractsEndingContent() {
       initial[key] = value
     })
     const parsed = FiltersSchema.safeParse(initial)
-    return parsed.success ? parsed.data : {}
+    // default: show contracts ending within 12 months
+    return parsed.success
+      ? { endTo: defaultEndTo(), ...parsed.data }
+      : { endTo: defaultEndTo() }
   })
 
   const [page, setPage] = useState(() => {
@@ -148,28 +158,40 @@ export function ContractsEndingContent() {
         </div>
 
         <div className="space-y-3">
+          {/* Quick window presets */}
           <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Club ID
+            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+              Expiry window
             </label>
-            <input
-              className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
-              placeholder="Team ID…"
-              value={filters.clubId ?? ''}
-              onChange={handleInputChange('clubId')}
-            />
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Competition ID
-            </label>
-            <input
-              className="mt-1 h-8 w-full rounded-md border bg-background px-2 text-xs"
-              placeholder="Competition ID…"
-              value={filters.competitionId ?? ''}
-              onChange={handleInputChange('competitionId')}
-            />
+            <div className="flex flex-wrap gap-1">
+              {[
+                { label: '3 months', months: 3 },
+                { label: '6 months', months: 6 },
+                { label: '12 months', months: 12 },
+                { label: '24 months', months: 24 },
+              ].map(({ label, months }) => {
+                const end = new Date()
+                end.setMonth(end.getMonth() + months)
+                const endStr = end.toISOString().split('T')[0]
+                const active = filters.endTo === endStr
+                return (
+                  <button
+                    key={months}
+                    type="button"
+                    onClick={() => {
+                      setPage(1)
+                      setFilters((prev) => ({ ...prev, endFrom: undefined, endTo: endStr }))
+                    }}
+                    className={cn(
+                      'rounded-full border px-2 py-0.5 text-[11px] transition-colors',
+                      active ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted',
+                    )}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           <div>
@@ -288,8 +310,16 @@ export function ContractsEndingContent() {
                 <div className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
                   {p.nationality && <span>{p.nationality}</span>}
                   {p.age != null && <span>{p.age} yrs</span>}
-                  {p.club && <span>{p.club.name}</span>}
-                  <span>Ends {new Date(p.contract.endDate).toLocaleDateString()}</span>
+                  {p.club && (
+                    <ClubIdentity
+                      name={p.club.name}
+                      badgeUrl={p.club.badgeUrl}
+                      href={`/club/${p.club.id}`}
+                      size="xs"
+                      textClassName="hover:underline"
+                    />
+                  )}
+                  <span>Ends {new Date(p.contract.endDate).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}</span>
                 </div>
               </div>
               <div className="text-right text-xs">

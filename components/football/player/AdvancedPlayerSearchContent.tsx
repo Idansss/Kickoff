@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { z } from 'zod'
 import { cn } from '@/lib/utils'
+import { ClubIdentity } from '@/components/common/ClubIdentity'
 
 const FiltersSchema = z.object({
   nationality: z.string().optional(),
@@ -324,7 +325,13 @@ export function AdvancedPlayerSearchContent() {
                   {p.age != null && <span>{p.age} yrs</span>}
                   {p.heightCm != null && <span>{p.heightCm} cm</span>}
                   {p.preferredFoot && <span>{p.preferredFoot} foot</span>}
-                  {p.currentTeam && <span>{p.currentTeam.name}</span>}
+                  {p.currentTeam && (
+                    <ClubIdentity
+                      name={p.currentTeam.name}
+                      badgeUrl={p.currentTeam.badgeUrl}
+                      size="xs"
+                    />
+                  )}
                 </div>
               </div>
               <div className="text-right text-xs">

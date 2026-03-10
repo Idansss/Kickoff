@@ -23,6 +23,11 @@ import {
   Newspaper,
   MessageSquare,
   Dices,
+  UserX,
+  FileWarning,
+  SlidersHorizontal,
+  Building2,
+  Users,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { userStore } from '@/store/userStore'
@@ -57,6 +62,11 @@ export function Sidebar() {
     { href: '/value-quiz', label: 'Value Quiz', icon: Dices },
     { href: '/transfers', label: 'Transfers', icon: ArrowLeftRight },
     { href: '/compare', label: 'Compare', icon: GitCompare },
+    { href: '/free-agents', label: 'Free Agents', icon: UserX },
+    { href: '/contracts-ending', label: 'Contracts Ending', icon: FileWarning },
+    { href: '/players/advanced-search', label: 'Player Search', icon: SlidersHorizontal },
+    { href: '/agencies', label: 'Agencies', icon: Building2 },
+    { href: '/agents', label: 'Agents', icon: Users },
     { href: '/news', label: 'News', icon: Newspaper },
     { href: '/chat', label: 'Chat Rooms', icon: MessageCircle },
     { href: '/ai', label: 'FootballGPT', icon: Sparkles },
@@ -231,7 +241,7 @@ export function Sidebar() {
             type="button"
             onClick={() => setDrawerOpen(true)}
             className={cn(
-              'group flex w-full items-center rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted hover:text-foreground relative min-w-0',
+              'group flex w-full items-center rounded-xl text-sm font-medium transition-all text-muted-foreground hover:bg-muted hover:text-foreground relative min-w-0 cursor-pointer',
               !isOpen && ICON_ROW_HEIGHT,
               isOpen ? 'gap-3 px-3 py-2' : 'justify-center px-0'
             )}

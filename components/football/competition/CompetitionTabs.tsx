@@ -5,6 +5,7 @@ import { StandingsTab } from './tabs/StandingsTab'
 import { MatchesTab } from './tabs/MatchesTab'
 import { LeadersTab } from './tabs/LeadersTab'
 import { NewsTab } from './tabs/NewsTab'
+import { CompetitionValueTab } from './tabs/CompetitionValueTab'
 
 interface CompetitionTabsProps {
   competitionId: string
@@ -38,6 +39,12 @@ export function CompetitionTabs({ competitionId }: CompetitionTabsProps) {
         >
           News
         </Tabs.Trigger>
+        <Tabs.Trigger
+          value="value"
+          className="rounded-full border px-3 py-1 font-medium data-[state=active]:bg-muted"
+        >
+          Market Values
+        </Tabs.Trigger>
       </Tabs.List>
 
       <div className="space-y-4">
@@ -52,6 +59,9 @@ export function CompetitionTabs({ competitionId }: CompetitionTabsProps) {
         </Tabs.Content>
         <Tabs.Content value="news">
           <NewsTab competitionId={competitionId} />
+        </Tabs.Content>
+        <Tabs.Content value="value">
+          <CompetitionValueTab competitionId={competitionId} />
         </Tabs.Content>
       </div>
     </Tabs.Root>

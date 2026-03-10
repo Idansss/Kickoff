@@ -206,7 +206,7 @@ export async function GET(request: Request) {
     enriched = enriched.sort((a, b) => a.name.localeCompare(b.name))
   } // default end_asc is handled by initial query ordering
 
-  const totalPages = Math.ceil(total / pageSize)
+  const totalPages = Math.ceil(filteredContracts.length / pageSize)
 
   return NextResponse.json({
     page,

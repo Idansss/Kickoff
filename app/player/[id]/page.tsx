@@ -42,7 +42,10 @@ async function fetchPlayer(id: string) {
   return (await res.json()) as {
     player: any
     transferStatus?: any
+    contract?: any
+    agent?: any
     value?: any
+    valueDetail?: any
     recentForm?: any
   }
 }
@@ -55,6 +58,8 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
       <PlayerHeader
         player={data.player}
         transferStatus={data.transferStatus}
+        contract={data.contract}
+        agent={data.agent}
         value={data.value}
         recentForm={data.recentForm}
       />
